@@ -94,7 +94,7 @@ async function init() {
         const lines = (item.description || "").split("\n").filter(l => l.trim());
         const featuresHtml = lines.map(l => `<span>${l.trim()}</span>`).join("<br>");
         const buyBtn = item.buyLink
-            ? `<a href="${item.buyLink}" target="_blank" rel="noopener noreferrer"><button>Buy Now</button></a>`
+            ? `<a href="/buy/${item.id}"><button>Buy Now</button></a>`
             : `<button style="opacity:0.4;cursor:not-allowed" disabled>Buy Now</button>`;
         const bypassBtn = isAdmin
             ? `<button class="bypass-btn" onclick="bypassPayment(${item.id}, '${item.name.replace(/'/g,"\\'")}', '${item.price.replace(/'/g,"\\'")}', this)">⚡ Bypass Payment</button>`
