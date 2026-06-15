@@ -213,12 +213,16 @@
             </div>
             <div class="field">
                 <label>Price</label>
-                <input type="text" id="new-price" placeholder="e.g. $9.99">
+                <input type="text" id="new-price" placeholder="e.g. £9.99">
             </div>
         </div>
         <div class="field" style="margin-bottom:14px">
             <label>Description (one item per line)</label>
             <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+            <label>Buy Now Link (PayPal, Stripe, etc.)</label>
+            <input type="url" id="new-link" placeholder="https://paypal.me/yourlink">
         </div>
         <button class="btn btn-blue" onclick="addItem()">Add Item</button>
     </div>
@@ -271,9 +275,13 @@ function renderItems() {
                     <input type="text" value="${esc(item.price)}" oninput="items[${i}].price = this.value" placeholder="$0.00">
                 </div>
             </div>
-            <div class="field">
+            <div class="field" style="margin-bottom:12px">
                 <label>Description (one feature per line)</label>
                 <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2">${esc(item.description || "")}</textarea>
+            </div>
+            <div class="field">
+                <label>Buy Now Link (PayPal, Stripe, etc.)</label>
+                <input type="url" value="${esc(item.buyLink || "")}" oninput="items[${i}].buyLink = this.value" placeholder="https://paypal.me/yourlink">
             </div>
         </div>
     `).join("");
@@ -287,18 +295,20 @@ function addItem() {
     const name = document.getElementById("new-name").value.trim();
     const price = document.getElementById("new-price").value.trim();
     const description = document.getElementById("new-desc").value.trim();
+    const buyLink = document.getElementById("new-link").value.trim();
 
     if (!name || !price) {
         alert("Please enter a name and price.");
         return;
     }
 
-    items.push({ id: Date.now(), name, price, description });
+    items.push({ id: Date.now(), name, price, description, buyLink });
     renderItems();
 
     document.getElementById("new-name").value = "";
     document.getElementById("new-price").value = "";
     document.getElementById("new-desc").value = "";
+    document.getElementById("new-link").value = "";
 
     setStatus("", "");
 }

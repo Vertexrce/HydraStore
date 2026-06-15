@@ -61,12 +61,15 @@ fetch("/api/store-items")
         grid.innerHTML = items.map(item => {
             const lines = (item.description || "").split("\n").filter(l => l.trim());
             const featuresHtml = lines.map(l => `<span>${l.trim()}</span>`).join("<br>");
+            const buyBtn = item.buyLink
+                ? `<a href="${item.buyLink}" target="_blank" rel="noopener noreferrer"><button>Buy Now</button></a>`
+                : `<button style="opacity:0.4;cursor:not-allowed" disabled>Buy Now</button>`;
             return `
                 <div class="store-card">
                     <h3>${item.name}</h3>
                     <p>${featuresHtml}</p>
                     <div class="price">${item.price}</div>
-                    <button>Buy Now</button>
+                    ${buyBtn}
                 </div>
             `;
         }).join("");
