@@ -111,6 +111,24 @@ View Server
 </footer>
 
 <script src="script.js"></script>
+<script>
+fetch("/user")
+.then(res => res.json())
+.then(user => {
 
+    if(user.loggedIn){
+
+        document.querySelector(".discord-btn").outerHTML = `
+            <div class="user-box">
+                <img src="${user.avatar}" class="avatar">
+                <span>${user.username}</span>
+                <a href="/logout">Logout</a>
+            </div>
+        `;
+    }
+
+});
+</script>
+  
 </body>
 </html>
