@@ -94,22 +94,19 @@ res.sendFile(path.join(__dirname, "admin.html"));
 });
 
 app.get("/user", (req, res) => {
-if (!req.user) {
-return res.json({
-loggedIn: false
-});
-}
+    if (!req.user) {
+        return res.json({
+            loggedIn: false
+        });
+    }
 
-```
-res.json({
-    loggedIn: true,
-    username: req.user.username,
-    avatar: `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
-});
-```
-
+    res.json({
+        loggedIn: true,
+        username: req.user.username,
+        avatar: `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
+    });
 });
 
 app.listen(PORT, () => {
-console.log("Server running on port " + PORT);
+    console.log("Server running on port " + PORT);
 });
