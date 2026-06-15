@@ -22,20 +22,13 @@
 <section class="store-page">
     <h1>Vertex 6X Store</h1>
     <div id="admin-banner" style="display:none;background:#0c172b;border:1px solid #2563eb;border-radius:10px;padding:12px 20px;margin-bottom:24px;color:#4d8dff;font-size:14px;">
-        ⚙️ <strong>Admin mode</strong> — Bypass Payment buttons are visible only to you.
+        ⚙️ <strong>Admin mode</strong> — Bypass Payment buttons appear on the checkout page for each item.
         <a href="/admin" style="color:#4d8dff;margin-left:12px;">Go to Admin Panel →</a>
     </div>
     <div class="store-grid" id="store-grid">
         <div class="store-card" style="opacity:0.5"><h3>Loading...</h3></div>
     </div>
 </section>
-
-<div id="bypass-toast" style="
-    display:none;position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
-    background:#16a34a;color:white;padding:14px 28px;border-radius:12px;
-    font-weight:bold;font-size:15px;box-shadow:0 4px 20px rgba(0,0,0,0.4);
-    z-index:9999;transition:opacity 0.4s;
-">✓ Bypass recorded — purchase logged!</div>
 
 <style>
 .admin-cog-btn {
@@ -51,36 +44,16 @@
     color: #4d8dff;
     background: rgba(37, 99, 235, 0.12);
 }
-.bypass-btn {
-    display: block;
-    width: 100%;
-    margin-top: 10px;
-    padding: 12px 20px;
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-}
-.bypass-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-.bypass-btn:active { transform: translateY(0); }
-.bypass-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 </style>
 
 <script>
-let isAdmin = false;
-
 async function init() {
     const [statusRes, itemsRes] = await Promise.all([
         fetch("/api/admin-status"),
         fetch("/api/store-items")
     ]);
-    const { isAdmin: admin } = await statusRes.json();
+    const { isAdmin } = await statusRes.json();
     const items = await itemsRes.json();
-    isAdmin = admin;
 
     if (isAdmin) document.getElementById("admin-banner").style.display = "block";
 
@@ -93,59 +66,15 @@ async function init() {
     grid.innerHTML = items.map(item => {
         const lines = (item.description || "").split("\n").filter(l => l.trim());
         const featuresHtml = lines.map(l => `<span>${l.trim()}</span>`).join("<br>");
-        const buyBtn = item.buyLink
-            ? `<a href="/buy/${item.id}"><button>Buy Now</button></a>`
-            : `<button style="opacity:0.4;cursor:not-allowed" disabled>Buy Now</button>`;
-        const bypassBtn = isAdmin
-            ? `<button class="bypass-btn" onclick="bypassPayment(${item.id}, '${item.name.replace(/'/g,"\\'")}', '${item.price.replace(/'/g,"\\'")}', this)">⚡ Bypass Payment</button>`
-            : "";
         return `
             <div class="store-card">
                 <h3>${item.name}</h3>
                 <p>${featuresHtml}</p>
                 <div class="price">${item.price}</div>
-                ${buyBtn}
-                ${bypassBtn}
+                <a href="/checkout/${item.id}"><button>Buy Now</button></a>
             </div>
         `;
     }).join("");
-}
-
-async function bypassPayment(itemId, itemName, itemPrice, btn) {
-    btn.disabled = true;
-    btn.textContent = "Processing...";
-    try {
-        const res = await fetch("/api/bypass-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ itemId, itemName, itemPrice })
-        });
-        if (res.ok) {
-            showToast();
-            btn.textContent = "✓ Bypassed";
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = "⚡ Bypass Payment";
-            }, 3000);
-        } else {
-            btn.disabled = false;
-            btn.textContent = "⚡ Bypass Payment";
-            alert("Bypass failed — make sure you are logged into admin.");
-        }
-    } catch {
-        btn.disabled = false;
-        btn.textContent = "⚡ Bypass Payment";
-    }
-}
-
-function showToast() {
-    const toast = document.getElementById("bypass-toast");
-    toast.style.display = "block";
-    toast.style.opacity = "1";
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.style.display = "none", 400);
-    }, 2800);
 }
 
 init().catch(() => {

@@ -7,6 +7,7 @@ const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
 const { Pool } = require("pg");
+const https = require("https");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +29,7 @@ async function setupDB() {
             price TEXT NOT NULL,
             description TEXT DEFAULT '',
             buy_link TEXT DEFAULT '',
+            role_id TEXT DEFAULT '',
             sort_order INTEGER DEFAULT 0
         );
 
@@ -36,6 +38,7 @@ async function setupDB() {
             item_id INTEGER,
             item_name TEXT,
             item_price TEXT,
+            discord_user_id TEXT DEFAULT '',
             type TEXT DEFAULT 'bypass',
             note TEXT,
             created_at TIMESTAMPTZ DEFAULT NOW()
@@ -47,13 +50,16 @@ async function setupDB() {
         );
     `);
 
+    await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS role_id TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE purchases ADD COLUMN IF NOT EXISTS discord_user_id TEXT DEFAULT ''`);
+
     const { rows } = await pool.query("SELECT COUNT(*) FROM store_items");
     if (parseInt(rows[0].count) === 0) {
         await pool.query(`
-            INSERT INTO store_items (name, price, description, buy_link, sort_order) VALUES
-            ('VIP', '£9.99', 'Priority Queue\nVIP Chat Tag\nStarter Kit\nDiscord Role', '', 1),
-            ('AK Kit', '£4.99', 'AK-47\nAmmo\nMedical Supplies', '', 2),
-            ('Builder Kit', '£2.99', 'Wood\nStone\nMetal', '', 3)
+            INSERT INTO store_items (name, price, description, buy_link, role_id, sort_order) VALUES
+            ('VIP', '£9.99', 'Priority Queue\nVIP Chat Tag\nStarter Kit\nDiscord Role', '', '', 1),
+            ('AK Kit', '£4.99', 'AK-47\nAmmo\nMedical Supplies', '', '', 2),
+            ('Builder Kit', '£2.99', 'Wood\nStone\nMetal', '', '', 3)
         `);
     }
 }
@@ -140,6 +146,29 @@ app.get("/admin", checkAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, "admin.html"));
 });
 
+app.get("/checkout/:itemId", async (req, res) => {
+    res.sendFile(path.join(__dirname, "checkout.html"));
+});
+
+app.get("/api/checkout/:itemId", async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
+        if (!rows[0]) return res.status(404).json({ error: "Item not found" });
+        const item = rows[0];
+        res.json({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            description: item.description,
+            buyLink: item.buy_link,
+            roleId: item.role_id,
+            isAdmin: !!req.session.adminLoggedIn
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get("/buy/:itemId", async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
@@ -178,7 +207,8 @@ app.get("/api/store-items", async (req, res) => {
             name: r.name,
             price: r.price,
             description: r.description,
-            buyLink: r.buy_link
+            buyLink: r.buy_link,
+            roleId: r.role_id || ""
         })));
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -193,8 +223,8 @@ app.post("/api/store-items", checkAdminJson, async (req, res) => {
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             await pool.query(
-                "INSERT INTO store_items (id, name, price, description, buy_link, sort_order) VALUES ($1, $2, $3, $4, $5, $6)",
-                [item.id || Date.now() + i, item.name, item.price, item.description || "", item.buyLink || "", i]
+                "INSERT INTO store_items (id, name, price, description, buy_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                [item.id || Date.now() + i, item.name, item.price, item.description || "", item.buyLink || "", item.roleId || "", i]
             );
         }
         await pool.query("SELECT setval('store_items_id_seq', (SELECT MAX(id) FROM store_items))");
@@ -221,7 +251,6 @@ async function sendDiscordLog(message) {
     const channelId = await getSetting("discordChannelId");
     if (!token || !channelId) return;
     try {
-        const https = require("https");
         const body = JSON.stringify({ content: message });
         const options = {
             hostname: "discord.com",
@@ -244,24 +273,76 @@ async function sendDiscordLog(message) {
     }
 }
 
+async function assignDiscordRole(guildId, userId, roleId) {
+    const token = await getSetting("discordBotToken");
+    if (!token || !guildId || !userId || !roleId) {
+        return { ok: false, error: "Missing token, guildId, userId, or roleId" };
+    }
+    return new Promise((resolve) => {
+        const options = {
+            hostname: "discord.com",
+            path: `/api/v10/guilds/${guildId}/members/${userId}/roles/${roleId}`,
+            method: "PUT",
+            headers: {
+                "Authorization": `Bot ${token}`,
+                "Content-Length": 0
+            }
+        };
+        const req = https.request(options, r => {
+            let data = "";
+            r.on("data", chunk => data += chunk);
+            r.on("end", () => {
+                if (r.statusCode === 204) {
+                    resolve({ ok: true });
+                } else {
+                    resolve({ ok: false, error: `Discord API returned ${r.statusCode}: ${data}` });
+                }
+            });
+        });
+        req.on("error", e => resolve({ ok: false, error: e.message }));
+        req.end();
+    });
+}
+
 app.post("/api/bypass-payment", checkAdminJson, async (req, res) => {
-    const { itemId, itemName, itemPrice } = req.body;
+    const { itemId, itemName, itemPrice, roleId, discordUserId } = req.body;
     if (!itemName) return res.status(400).json({ error: "Missing item info" });
     const id = Date.now();
+
+    let roleResult = null;
+    if (roleId && discordUserId) {
+        const guildId = await getSetting("discordGuildId");
+        roleResult = await assignDiscordRole(guildId, discordUserId.trim(), roleId);
+    }
+
     try {
         await pool.query(
-            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
-            [id, itemId || null, itemName, itemPrice || "", "bypass", "Admin bypass — no payment taken"]
+            "INSERT INTO purchases (id, item_id, item_name, item_price, discord_user_id, type, note) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            [id, itemId || null, itemName, itemPrice || "", discordUserId || "", "bypass", "Admin bypass — no payment taken"]
         );
+
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        const roleNote = roleResult?.ok
+            ? `✅ Role assigned to <@${discordUserId}>`
+            : roleResult
+            ? `⚠️ Role assignment failed: ${roleResult.error}`
+            : `ℹ️ No role ID or Discord user provided`;
+
         await sendDiscordLog(
             `⚡ **Bypass Payment Used**\n` +
             `📦 Item: **${itemName}**\n` +
             `💷 Price: **${itemPrice || "N/A"}**\n` +
+            `👤 Discord User: ${discordUserId ? `<@${discordUserId}>` : "Not specified"}\n` +
             `🕐 Time: ${ts}\n` +
-            `📝 Note: Admin bypass — no payment taken`
+            `🎭 Role: ${roleNote}`
         );
-        res.json({ ok: true, entry: { id, itemName, itemPrice, timestamp: new Date().toISOString() } });
+
+        res.json({
+            ok: true,
+            roleAssigned: roleResult?.ok || false,
+            roleError: roleResult?.error || null,
+            entry: { id, itemName, itemPrice, discordUserId, timestamp: new Date().toISOString() }
+        });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -275,6 +356,7 @@ app.get("/api/purchases", checkAdminJson, async (req, res) => {
             itemId: r.item_id,
             itemName: r.item_name,
             itemPrice: r.item_price,
+            discordUserId: r.discord_user_id || "",
             type: r.type,
             note: r.note,
             timestamp: r.created_at
@@ -288,9 +370,11 @@ app.get("/api/settings", checkAdminJson, async (req, res) => {
     try {
         const channelId = await getSetting("discordChannelId");
         const token = await getSetting("discordBotToken");
+        const guildId = await getSetting("discordGuildId");
         res.json({
             discordChannelId: channelId,
-            discordBotToken: token ? "••••••••••••••••" : ""
+            discordBotToken: token ? "••••••••••••••••" : "",
+            discordGuildId: guildId
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -299,9 +383,10 @@ app.get("/api/settings", checkAdminJson, async (req, res) => {
 
 app.post("/api/settings", checkAdminJson, async (req, res) => {
     try {
-        const { discordChannelId, discordBotToken } = req.body;
+        const { discordChannelId, discordBotToken, discordGuildId } = req.body;
         if (discordChannelId !== undefined) await setSetting("discordChannelId", discordChannelId);
         if (discordBotToken && !discordBotToken.startsWith("•")) await setSetting("discordBotToken", discordBotToken);
+        if (discordGuildId !== undefined) await setSetting("discordGuildId", discordGuildId);
         res.json({ ok: true });
     } catch (e) {
         res.status(500).json({ error: e.message });
