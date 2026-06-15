@@ -110,19 +110,20 @@ View Server
 <p>Vertex 6X © 2026</p>
 </footer>
 
-<script src="script.js"></script>
 <script>
 fetch("/user")
 .then(res => res.json())
 .then(user => {
 
-    if(user.loggedIn){
+    const loginBtn = document.querySelector(".discord-btn");
 
-        document.querySelector(".discord-btn").outerHTML = `
+    if(user.loggedIn && loginBtn){
+
+        loginBtn.outerHTML = `
             <div class="user-box">
                 <img src="${user.avatar}" class="avatar">
                 <span>${user.username}</span>
-                <a href="/logout">Logout</a>
+                <a href="/logout" class="logout-btn">Logout</a>
             </div>
         `;
     }
