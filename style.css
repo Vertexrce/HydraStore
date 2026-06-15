@@ -278,3 +278,16 @@ flex-direction:column;
 }
 
 }
+.store-page{
+    padding-top:140px;
+    padding-left:50px;
+    padding-right:50px;
+    min-height:100vh;
+}
+
+.store-page h1{
+    text-align:center;
+    font-size:52px;
+    color:#4d8dff;
+    margin-bottom:40px;
+}
