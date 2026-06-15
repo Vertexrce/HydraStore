@@ -340,3 +340,22 @@ width:100%;
 }
 
 }
+.user-box{
+display:flex;
+align-items:center;
+gap:10px;
+color:white;
+}
+
+.avatar{
+width:40px;
+height:40px;
+border-radius:50%;
+border:2px solid #2563eb;
+}
+
+.user-box a{
+color:#4d8dff;
+text-decoration:none;
+font-weight:bold;
+}
