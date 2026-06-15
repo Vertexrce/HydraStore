@@ -1,0 +1,7 @@
+{
+  "name": "vertex-6x",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}
