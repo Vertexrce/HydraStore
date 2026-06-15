@@ -234,6 +234,41 @@
 
     <div id="items-list"></div>
 
+    <div class="section-title" style="margin-top:48px;">
+        <span>🔔 Discord Store Logs</span>
+    </div>
+    <p style="color:#8899bb;font-size:13px;margin-bottom:16px;">When a bypass payment is used, a message is sent to your Discord channel automatically.</p>
+
+    <div style="background:#0c172b;border:1px solid #1c3c8a;border-radius:14px;padding:24px;margin-bottom:32px;">
+        <div class="field-row" style="margin-bottom:14px;">
+            <div class="field">
+                <label>Discord Channel ID</label>
+                <input type="text" id="setting-channel-id" placeholder="e.g. 1234567890123456789" autocomplete="off">
+            </div>
+            <div class="field">
+                <label>Discord Bot Token</label>
+                <input type="password" id="setting-bot-token" placeholder="Paste your bot token" autocomplete="off">
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <button class="btn btn-blue" onclick="saveSettings()">💾 Save Discord Settings</button>
+            <button class="btn btn-gray" onclick="testDiscord()">🔔 Send Test Message</button>
+            <span id="settings-status" style="font-size:13px;color:#8899bb;"></span>
+        </div>
+        <p style="color:#4a5a7a;font-size:12px;margin-top:14px;">
+            Need a bot token? Go to <strong>discord.com/developers</strong> → your app → Bot → Reset Token.<br>
+            Make sure your bot has <strong>Send Messages</strong> permission in the channel and is added to your server.
+        </p>
+    </div>
+
+    <div class="section-title" style="margin-top:0;">
+        <span>⚡ Bypass Purchase Log</span>
+        <span style="font-size:14px;color:#8899bb" id="purchase-count"></span>
+    </div>
+    <p style="color:#8899bb;font-size:13px;margin-bottom:16px;">Every time you hit "Bypass Payment" on the store, it's recorded here.</p>
+
+    <div id="purchases-list"></div>
+
 </div>
 
 <div class="save-bar">
@@ -345,6 +380,85 @@ function setStatus(msg, cls) {
 }
 
 loadItems();
+loadPurchases();
+loadSettings();
+
+async function loadSettings() {
+    const res = await fetch("/api/settings");
+    if (!res.ok) return;
+    const s = await res.json();
+    document.getElementById("setting-channel-id").value = s.discordChannelId || "";
+    document.getElementById("setting-bot-token").value = s.discordBotToken || "";
+}
+
+async function saveSettings() {
+    const discordChannelId = document.getElementById("setting-channel-id").value.trim();
+    const discordBotToken = document.getElementById("setting-bot-token").value.trim();
+    const statusEl = document.getElementById("settings-status");
+    statusEl.style.color = "#8899bb";
+    statusEl.textContent = "Saving...";
+    const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ discordChannelId, discordBotToken })
+    });
+    if (res.ok) {
+        statusEl.style.color = "#4ade80";
+        statusEl.textContent = "✓ Saved!";
+    } else {
+        statusEl.style.color = "#f87171";
+        statusEl.textContent = "✗ Failed to save.";
+    }
+    setTimeout(() => statusEl.textContent = "", 3000);
+}
+
+async function testDiscord() {
+    const statusEl = document.getElementById("settings-status");
+    statusEl.style.color = "#8899bb";
+    statusEl.textContent = "Sending test...";
+    const res = await fetch("/api/bypass-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 })
+    });
+    if (res.ok) {
+        statusEl.style.color = "#4ade80";
+        statusEl.textContent = "✓ Test sent! Check your Discord channel.";
+        loadPurchases();
+    } else {
+        statusEl.style.color = "#f87171";
+        statusEl.textContent = "✗ Failed — check your bot token and channel ID.";
+    }
+    setTimeout(() => statusEl.textContent = "", 4000);
+}
+
+async function loadPurchases() {
+    const res = await fetch("/api/purchases");
+    if (!res.ok) return;
+    const purchases = await res.json();
+    const container = document.getElementById("purchases-list");
+    const count = document.getElementById("purchase-count");
+    count.textContent = purchases.length + " entries";
+
+    if (purchases.length === 0) {
+        container.innerHTML = '<div class="empty">No bypass purchases yet.</div>';
+        return;
+    }
+
+    container.innerHTML = purchases.map(p => {
+        const date = new Date(p.timestamp).toLocaleString();
+        return `
+            <div style="background:#0c172b;border:1px solid #1c3c8a;border-radius:10px;padding:16px 20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <div style="font-weight:bold;font-size:16px;">${p.itemName}</div>
+                    <div style="color:#8899bb;font-size:13px;margin-top:4px;">${date}</div>
+                    <div style="color:#7c3aed;font-size:12px;margin-top:2px;">⚡ ${p.note}</div>
+                </div>
+                <div style="font-size:22px;font-weight:bold;color:#4d8dff;">${p.itemPrice || ""}</div>
+            </div>
+        `;
+    }).join("");
+}
 </script>
 
 </body>

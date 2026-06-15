@@ -134,6 +134,110 @@ app.post("/api/store-items", checkAdmin, (req, res) => {
     res.json({ ok: true });
 });
 
+app.get("/api/admin-status", (req, res) => {
+    res.json({ isAdmin: !!req.session.adminLoggedIn });
+});
+
+const PURCHASES_FILE = path.join(__dirname, "purchases.json");
+const SETTINGS_FILE = path.join(__dirname, "settings.json");
+
+function loadPurchases() {
+    if (!fs.existsSync(PURCHASES_FILE)) return [];
+    return JSON.parse(fs.readFileSync(PURCHASES_FILE, "utf-8"));
+}
+
+function savePurchase(entry) {
+    const purchases = loadPurchases();
+    purchases.unshift(entry);
+    fs.writeFileSync(PURCHASES_FILE, JSON.stringify(purchases, null, 2));
+}
+
+function loadSettings() {
+    if (!fs.existsSync(SETTINGS_FILE)) return {};
+    return JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf-8"));
+}
+
+function saveSettings(data) {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2));
+}
+
+async function sendDiscordLog(message) {
+    const settings = loadSettings();
+    if (!settings.discordBotToken || !settings.discordChannelId) return;
+    try {
+        const https = require("https");
+        const body = JSON.stringify({ content: message });
+        const options = {
+            hostname: "discord.com",
+            path: `/api/v10/channels/${settings.discordChannelId}/messages`,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bot ${settings.discordBotToken}`,
+                "Content-Length": Buffer.byteLength(body)
+            }
+        };
+        await new Promise((resolve, reject) => {
+            const req = https.request(options, res => {
+                res.on("data", () => {});
+                res.on("end", resolve);
+            });
+            req.on("error", reject);
+            req.write(body);
+            req.end();
+        });
+    } catch (e) {
+        console.error("Discord log failed:", e.message);
+    }
+}
+
+app.post("/api/bypass-payment", checkAdmin, async (req, res) => {
+    const { itemId, itemName, itemPrice } = req.body;
+    if (!itemName) return res.status(400).json({ error: "Missing item info" });
+    const entry = {
+        id: Date.now(),
+        itemId,
+        itemName,
+        itemPrice,
+        type: "bypass",
+        note: "Admin bypass — no payment taken",
+        timestamp: new Date().toISOString()
+    };
+    savePurchase(entry);
+
+    const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+    await sendDiscordLog(
+        `⚡ **Bypass Payment Used**\n` +
+        `📦 Item: **${itemName}**\n` +
+        `💷 Price: **${itemPrice || "N/A"}**\n` +
+        `🕐 Time: ${ts}\n` +
+        `📝 Note: Admin bypass — no payment taken`
+    );
+
+    res.json({ ok: true, entry });
+});
+
+app.get("/api/purchases", checkAdmin, (req, res) => {
+    res.json(loadPurchases());
+});
+
+app.get("/api/settings", checkAdmin, (req, res) => {
+    const s = loadSettings();
+    res.json({
+        discordChannelId: s.discordChannelId || "",
+        discordBotToken: s.discordBotToken ? "••••••••••••••••" : ""
+    });
+});
+
+app.post("/api/settings", checkAdmin, (req, res) => {
+    const current = loadSettings();
+    const { discordChannelId, discordBotToken } = req.body;
+    if (discordChannelId !== undefined) current.discordChannelId = discordChannelId;
+    if (discordBotToken && !discordBotToken.startsWith("•")) current.discordBotToken = discordBotToken;
+    saveSettings(current);
+    res.json({ ok: true });
+});
+
 app.listen(PORT, () => {
     console.log("Server running on port " + PORT);
 });
