@@ -29,9 +29,11 @@
 Discord
 </a>
 
-<a href="/auth/discord" class="discord-btn">
-Login
-</a>
+<div id="account-area">
+    <a href="/auth/discord" class="discord-btn">
+        Login
+    </a>
+</div>
 
 </nav>
 
@@ -115,11 +117,9 @@ fetch("/user")
 .then(res => res.json())
 .then(user => {
 
-    const loginBtn = document.querySelector(".discord-btn");
+    if(user.loggedIn){
 
-    if(user.loggedIn && loginBtn){
-
-        loginBtn.outerHTML = `
+        document.getElementById("account-area").innerHTML = `
             <div class="user-box">
                 <img src="${user.avatar}" class="avatar">
                 <span>${user.username}</span>
