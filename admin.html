@@ -1,16 +1,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Vertex Admin</title>
+    <title>Vertex 6X Admin</title>
+
+    <style>
+        body{
+            background:#050b18;
+            color:white;
+            font-family:Arial,sans-serif;
+            padding:40px;
+        }
+
+        h1{
+            color:#4d8dff;
+        }
+
+        input{
+            padding:12px;
+            margin:5px;
+            border:none;
+            border-radius:8px;
+        }
+
+        button{
+            padding:12px 20px;
+            background:#2563eb;
+            color:white;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+        }
+
+        .item{
+            background:#0c172b;
+            padding:15px;
+            margin-top:10px;
+            border-radius:10px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .delete-btn{
+            background:red;
+        }
+    </style>
 </head>
 <body>
 
-<h1>Vertex 6X Admin</h1>
+<h1>Vertex 6X Admin Panel</h1>
 
 <input id="name" placeholder="Item Name">
 <input id="price" placeholder="Price">
 
-<button>Add Item</button>
+<button onclick="addItem()">Add Item</button>
+
+<hr>
+
+<div id="items"></div>
+
+<script>
+
+let items = [];
+
+function addItem(){
+
+    const name = document.getElementById("name").value;
+    const price = document.getElementById("price").value;
+
+    if(!name || !price) return;
+
+    items.push({
+        name,
+        price
+    });
+
+    renderItems();
+
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+}
+
+function deleteItem(index){
+    items.splice(index,1);
+    renderItems();
+}
+
+function renderItems(){
+
+    const container = document.getElementById("items");
+
+    container.innerHTML = "";
+
+    items.forEach((item,index)=>{
+
+        container.innerHTML += `
+            <div class="item">
+                <div>
+                    <strong>${item.name}</strong><br>
+                    $${item.price}
+                </div>
+
+                <button
+                    class="delete-btn"
+                    onclick="deleteItem(${index})">
+                    Delete
+                </button>
+            </div>
+        `;
+    });
+}
+
+</script>
 
 </body>
 </html>
