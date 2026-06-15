@@ -3,297 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vertex 6X Admin Panel</title>
+    <title>Shop Admin — Vertex 6X</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #050b18;
-            color: white;
-            font-family: Arial, sans-serif;
+            background: #0e0e0e;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Arial, sans-serif;
             min-height: 100vh;
         }
 
-        header {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
-            padding: 18px 40px;
+        /* ── Top bar ── */
+        .topbar {
+            background: #111;
+            border-bottom: 1px solid #222;
+            padding: 18px 48px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1c3c8a;
             position: sticky;
             top: 0;
             z-index: 100;
         }
-
-        header h1 {
-            color: #4d8dff;
-            font-size: 22px;
+        .topbar-left h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
         }
-
-        .header-right {
+        .topbar-left p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 3px;
+            max-width: 480px;
+        }
+        .topbar-right {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
         }
 
+        /* ── Buttons ── */
         .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 9px 20px;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: background 0.2s;
+            font-size: 13px;
+            font-weight: 600;
+            transition: opacity 0.15s, transform 0.1s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-red { background: #c0392b; color: #fff; }
+        .btn-red:hover { background: #a93226; opacity: 1; }
+        .btn-outline { background: transparent; color: #ccc; border: 1px solid #333; }
+        .btn-outline:hover { border-color: #555; color: #fff; opacity: 1; }
+        .btn-ghost { background: #1a1a1a; color: #aaa; border: 1px solid #2a2a2a; }
+        .btn-ghost:hover { color: #fff; border-color: #444; opacity: 1; }
+        .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+        /* ── Main content ── */
+        .content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 48px 120px;
         }
 
-        .btn-blue { background: #2563eb; color: white; }
-        .btn-blue:hover { background: #1d4ed8; }
-        .btn-green { background: #16a34a; color: white; }
-        .btn-green:hover { background: #15803d; }
-        .btn-red { background: #dc2626; color: white; }
-        .btn-red:hover { background: #b91c1c; }
-        .btn-gray { background: #1c2d4a; color: #aac0e0; }
-        .btn-gray:hover { background: #243b60; }
-
-        .main {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 0 20px;
+        /* ── Section block ── */
+        .section {
+            margin-bottom: 48px;
         }
-
-        .section-title {
-            font-size: 20px;
-            color: #4d8dff;
-            margin-bottom: 20px;
+        .section-head {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #1e1e1e;
+        }
+        .section-head h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+        .section-head p {
+            font-size: 13px;
+            color: #555;
+            margin-top: 4px;
+            max-width: 560px;
+        }
+        .section-head-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: 24px;
         }
 
-        .item-card {
-            background: #0c172b;
-            border: 1px solid #1c3c8a;
-            border-radius: 14px;
-            padding: 24px;
+        /* ── Form panel ── */
+        .panel {
+            background: #141414;
+            border: 1px solid #1e1e1e;
+            border-radius: 10px;
+            padding: 28px;
             margin-bottom: 16px;
+        }
+
+        /* ── Field grid ── */
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+        .col-span-2 { grid-column: span 2; }
+        .col-span-3 { grid-column: span 3; }
+
+        /* ── Field ── */
+        .field { display: flex; flex-direction: column; gap: 7px; }
+        .field label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .field input,
+        .field textarea,
+        .field select {
+            background: #0e0e0e;
+            border: 1px solid #252525;
+            border-radius: 6px;
+            color: #e0e0e0;
+            padding: 10px 13px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s;
+            font-family: inherit;
+            width: 100%;
+        }
+        .field input:focus,
+        .field textarea:focus,
+        .field select:focus { border-color: #c0392b; }
+        .field input::placeholder,
+        .field textarea::placeholder { color: #3a3a3a; }
+        .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+        .field select { appearance: none; cursor: pointer; }
+        .field .hint { font-size: 11px; color: #3a3a3a; margin-top: 2px; }
+
+        /* ── Item card ── */
+        .item-card {
+            background: #141414;
+            border: 1px solid #1e1e1e;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 12px;
             transition: border-color 0.2s;
         }
-
-        .item-card:hover {
-            border-color: #4d8dff;
-        }
-
-        .item-header {
+        .item-card:hover { border-color: #2e2e2e; }
+        .item-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
-
-        .item-num {
-            color: #4d8dff;
-            font-size: 13px;
-            font-weight: bold;
+        .item-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #555;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .field-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        label {
-            font-size: 12px;
-            color: #8899bb;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input, textarea {
-            background: #07101f;
-            border: 1px solid #1c3c8a;
-            border-radius: 8px;
-            color: white;
-            padding: 10px 12px;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.2s;
-            width: 100%;
-            font-family: Arial, sans-serif;
-        }
-
-        input:focus, textarea:focus {
-            border-color: #4d8dff;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            line-height: 1.5;
-        }
-
-        .add-item-form {
-            background: #0a1526;
-            border: 2px dashed #1c3c8a;
-            border-radius: 14px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .add-item-form h3 {
-            color: #4d8dff;
+        /* ── Add item panel ── */
+        .add-panel {
+            background: #111;
+            border: 1px dashed #252525;
+            border-radius: 10px;
+            padding: 28px;
             margin-bottom: 16px;
         }
+        .add-panel h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 20px;
+        }
 
-        .save-bar {
+        /* ── Purchases log ── */
+        .purchase-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: #141414;
+            border: 1px solid #1e1e1e;
+            border-radius: 8px;
+            padding: 14px 20px;
+            margin-bottom: 8px;
+        }
+        .purchase-row .item-name { font-weight: 600; font-size: 15px; color: #fff; }
+        .purchase-row .item-date { font-size: 12px; color: #444; margin-top: 3px; }
+        .purchase-row .item-discord { font-size: 12px; color: #7c5cbf; margin-top: 2px; }
+        .purchase-row .item-note { font-size: 12px; color: #3a3a3a; margin-top: 2px; }
+        .purchase-row .item-price { font-size: 20px; font-weight: 700; color: #c0392b; }
+
+        /* ── Status bar ── */
+        .statusbar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(5, 11, 24, 0.95);
-            border-top: 1px solid #1c3c8a;
-            padding: 16px 40px;
+            background: rgba(14,14,14,0.97);
+            border-top: 1px solid #1e1e1e;
+            padding: 14px 48px;
             display: flex;
             justify-content: flex-end;
             align-items: center;
             gap: 14px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
         }
+        .status-msg { font-size: 13px; color: #444; }
+        .status-msg.saved { color: #4ade80; }
+        .status-msg.error { color: #f87171; }
 
-        .save-status {
-            font-size: 14px;
-            color: #8899bb;
-        }
+        /* ── Empty state ── */
+        .empty { text-align: center; color: #333; padding: 40px; font-size: 14px; }
 
-        .save-status.saved { color: #4ade80; }
-        .save-status.error { color: #f87171; }
+        /* ── Divider ── */
+        .divider { border: none; border-top: 1px solid #1a1a1a; margin: 28px 0; }
 
-        .empty {
-            text-align: center;
-            color: #4a5a7a;
-            padding: 40px;
-        }
-
-        .role-hint {
-            color: #4a5a7a;
-            font-size: 11px;
-            margin-top: 4px;
-        }
-
-        @media (max-width: 600px) {
-            .field-row { grid-template-columns: 1fr; }
-            header { padding: 14px 20px; }
-            .save-bar { padding: 14px 20px; }
+        @media (max-width: 700px) {
+            .content { padding: 24px 20px 100px; }
+            .topbar { padding: 14px 20px; }
+            .topbar-left p { display: none; }
+            .grid-3, .grid-2 { grid-template-columns: 1fr; }
+            .col-span-2, .col-span-3 { grid-column: span 1; }
+            .statusbar { padding: 14px 20px; }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>⚙️ Admin Setup — Vertex 6X</h1>
-    <div class="header-right">
-        <a href="/" class="btn btn-gray">← View Site</a>
+<!-- Top bar -->
+<div class="topbar">
+    <div class="topbar-left">
+        <h1>Shop Admin</h1>
+        <p>Manage store items, Discord role settings, and bypass purchase logs.</p>
+    </div>
+    <div class="topbar-right">
+        <a href="/" class="btn btn-outline">← Back to Site</a>
         <a href="/admin-logout" class="btn btn-red">Logout</a>
     </div>
-</header>
+</div>
 
-<div class="main">
+<div class="content">
 
-    <div class="add-item-form">
-        <h3>+ Add New Store Item</h3>
-        <div class="field-row">
-            <div class="field">
-                <label>Item Name</label>
-                <input type="text" id="new-name" placeholder="e.g. VIP Pack">
+    <!-- ── Discord Settings ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>Discord Settings</h2>
+                <p>Required for purchase logs and automatic role assignment when a bypass is used.</p>
             </div>
-            <div class="field">
-                <label>Price</label>
-                <input type="text" id="new-price" placeholder="e.g. £9.99">
-            </div>
-        </div>
-        <div class="field" style="margin-bottom:14px">
-            <label>Description (one item per line)</label>
-            <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit"></textarea>
-        </div>
-        <div class="field-row" style="margin-bottom:14px">
-            <div class="field">
-                <label>Buy Now Link (PayPal, Stripe, etc.)</label>
-                <input type="url" id="new-link" placeholder="https://paypal.me/yourlink">
-            </div>
-            <div class="field">
-                <label>Discord Role ID</label>
-                <input type="text" id="new-role-id" placeholder="e.g. 1234567890123456789">
-                <span class="role-hint">Right-click a role in Discord → Copy Role ID</span>
+            <div class="section-head-actions">
+                <button class="btn btn-ghost btn-sm" onclick="testDiscord()">🔔 Send Test</button>
+                <button class="btn btn-red btn-sm" onclick="saveSettings()">Save Settings</button>
             </div>
         </div>
-        <button class="btn btn-blue" onclick="addItem()">Add Item</button>
+
+        <div class="panel">
+            <div class="grid-3">
+                <div class="field">
+                    <label>Bot Token</label>
+                    <input type="password" id="setting-bot-token" placeholder="Paste bot token" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label>Server (Guild) ID</label>
+                    <input type="text" id="setting-guild-id" placeholder="1234567890123456789" autocomplete="off">
+                    <span class="hint">Right-click server → Copy Server ID</span>
+                </div>
+                <div class="field">
+                    <label>Log Channel ID</label>
+                    <input type="text" id="setting-channel-id" placeholder="1234567890123456789" autocomplete="off">
+                    <span class="hint">Channel where logs are sent</span>
+                </div>
+            </div>
+            <p style="font-size:12px;color:#333;margin-top:4px;">
+                Bot needs <strong style="color:#444">Send Messages</strong> + <strong style="color:#444">Manage Roles</strong> permissions. Bot's role must be above any roles it assigns.
+            </p>
+            <div style="margin-top:12px;">
+                <span id="settings-status" style="font-size:13px;color:#555;"></span>
+            </div>
+        </div>
     </div>
 
-    <div class="section-title">
-        <span>Store Items</span>
-        <span style="font-size:14px;color:#8899bb" id="item-count"></span>
-    </div>
-
-    <div id="items-list"></div>
-
-    <div class="section-title" style="margin-top:48px;">
-        <span>🔔 Discord Settings</span>
-    </div>
-    <p style="color:#8899bb;font-size:13px;margin-bottom:16px;">Required for logs and automatic role assignment on bypass.</p>
-
-    <div style="background:#0c172b;border:1px solid #1c3c8a;border-radius:14px;padding:24px;margin-bottom:32px;">
-        <div class="field-row" style="margin-bottom:14px;">
-            <div class="field">
-                <label>Discord Bot Token</label>
-                <input type="password" id="setting-bot-token" placeholder="Paste your bot token" autocomplete="off">
+    <!-- ── Product Editor ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>Product Editor</h2>
+                <p>Create or update store items. Set a Discord Role ID to automatically assign roles on bypass.</p>
             </div>
-            <div class="field">
-                <label>Discord Server (Guild) ID</label>
-                <input type="text" id="setting-guild-id" placeholder="e.g. 1234567890123456789" autocomplete="off">
-                <span class="role-hint">Right-click your server → Copy Server ID (need Developer Mode on)</span>
+            <div class="section-head-actions">
+                <span style="font-size:12px;color:#444;align-self:center;" id="item-count"></span>
+                <button class="btn btn-red btn-sm" onclick="saveAll()">Save Products</button>
             </div>
         </div>
-        <div class="field" style="margin-bottom:14px;">
-            <label>Discord Log Channel ID</label>
-            <input type="text" id="setting-channel-id" placeholder="e.g. 1234567890123456789" autocomplete="off">
-            <span class="role-hint">The channel where purchase logs are sent</span>
+
+        <!-- Add new item -->
+        <div class="add-panel">
+            <h3>+ New Product</h3>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Product Name</label>
+                    <input type="text" id="new-name" placeholder="e.g. VIP Pack">
+                </div>
+                <div class="field">
+                    <label>Price</label>
+                    <input type="text" id="new-price" placeholder="e.g. £9.99">
+                </div>
+                <div class="field">
+                    <label>Discord Role ID</label>
+                    <input type="text" id="new-role-id" placeholder="1234567890123456789">
+                    <span class="hint">Right-click role → Copy Role ID</span>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Buy Now Link (PayPal / Stripe / etc.)</label>
+                    <input type="url" id="new-link" placeholder="https://paypal.me/yourlink">
+                </div>
+                <div class="field">
+                    <label>Description (one feature per line)</label>
+                    <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit"></textarea>
+                </div>
+            </div>
+            <button class="btn btn-red" onclick="addItem()">+ Add Product</button>
         </div>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <button class="btn btn-blue" onclick="saveSettings()">💾 Save Discord Settings</button>
-            <button class="btn btn-gray" onclick="testDiscord()">🔔 Send Test Message</button>
-            <span id="settings-status" style="font-size:13px;color:#8899bb;"></span>
-        </div>
-        <p style="color:#4a5a7a;font-size:12px;margin-top:14px;">
-            Need a bot token? Go to <strong>discord.com/developers</strong> → your app → Bot → Reset Token.<br>
-            Make sure your bot has <strong>Send Messages</strong> and <strong>Manage Roles</strong> permissions, and is in your server.<br>
-            The bot's role must be <strong>above</strong> the roles it assigns in your server's role list.
-        </p>
+
+        <!-- Existing items -->
+        <div id="items-list"></div>
     </div>
 
-    <div class="section-title" style="margin-top:0;">
-        <span>⚡ Bypass Purchase Log</span>
-        <span style="font-size:14px;color:#8899bb" id="purchase-count"></span>
+    <!-- ── Bypass Log ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>Bypass Purchase Log</h2>
+                <p>Every admin bypass is recorded here, including which Discord user received the role.</p>
+            </div>
+            <div class="section-head-actions">
+                <span style="font-size:12px;color:#444;align-self:center;" id="purchase-count"></span>
+            </div>
+        </div>
+        <div id="purchases-list"></div>
     </div>
-    <p style="color:#8899bb;font-size:13px;margin-bottom:16px;">Every bypass is recorded here with the Discord user who received the role.</p>
-
-    <div id="purchases-list"></div>
 
 </div>
 
-<div class="save-bar">
-    <span class="save-status" id="save-status"></span>
-    <button class="btn btn-green" onclick="saveAll()">💾 Save All Changes</button>
+<!-- Status bar -->
+<div class="statusbar">
+    <span class="status-msg" id="save-status"></span>
+    <button class="btn btn-ghost" onclick="loadPurchases()">↻ Refresh Log</button>
+    <button class="btn btn-red" onclick="saveAll()">💾 Save All Changes</button>
 </div>
 
 <script>
@@ -307,42 +388,42 @@ async function loadItems() {
 
 function renderItems() {
     const list = document.getElementById("items-list");
-    document.getElementById("item-count").textContent = items.length + " items";
+    document.getElementById("item-count").textContent = items.length + " product" + (items.length !== 1 ? "s" : "");
 
     if (items.length === 0) {
-        list.innerHTML = '<div class="empty">No store items yet. Add one above!</div>';
+        list.innerHTML = '<div class="empty">No products yet — add one above.</div>';
         return;
     }
 
     list.innerHTML = items.map((item, i) => `
         <div class="item-card" id="card-${i}">
-            <div class="item-header">
-                <span class="item-num">Item ${i + 1}</span>
-                <button class="btn btn-red" onclick="deleteItem(${i})">🗑 Delete</button>
+            <div class="item-card-header">
+                <span class="item-label">Product ${i + 1} — ${esc(item.name || "Untitled")}</span>
+                <button class="btn btn-ghost btn-sm" onclick="deleteItem(${i})">🗑 Delete</button>
             </div>
-            <div class="field-row">
+            <div class="grid-3">
                 <div class="field">
-                    <label>Name</label>
+                    <label>Product Name</label>
                     <input type="text" value="${esc(item.name)}" oninput="items[${i}].name = this.value" placeholder="Item name">
                 </div>
                 <div class="field">
                     <label>Price</label>
-                    <input type="text" value="${esc(item.price)}" oninput="items[${i}].price = this.value" placeholder="$0.00">
-                </div>
-            </div>
-            <div class="field" style="margin-bottom:12px">
-                <label>Description (one feature per line)</label>
-                <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2">${esc(item.description || "")}</textarea>
-            </div>
-            <div class="field-row">
-                <div class="field">
-                    <label>Buy Now Link (PayPal, Stripe, etc.)</label>
-                    <input type="url" value="${esc(item.buyLink || "")}" oninput="items[${i}].buyLink = this.value" placeholder="https://paypal.me/yourlink">
+                    <input type="text" value="${esc(item.price)}" oninput="items[${i}].price = this.value" placeholder="£0.00">
                 </div>
                 <div class="field">
                     <label>Discord Role ID</label>
-                    <input type="text" value="${esc(item.roleId || "")}" oninput="items[${i}].roleId = this.value" placeholder="e.g. 1234567890123456789">
-                    <span class="role-hint">Right-click role in Discord → Copy Role ID</span>
+                    <input type="text" value="${esc(item.roleId || '')}" oninput="items[${i}].roleId = this.value" placeholder="1234567890123456789">
+                    <span class="hint">Right-click role → Copy Role ID</span>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Buy Now Link (PayPal / Stripe / etc.)</label>
+                    <input type="url" value="${esc(item.buyLink || '')}" oninput="items[${i}].buyLink = this.value" placeholder="https://paypal.me/yourlink">
+                </div>
+                <div class="field">
+                    <label>Description (one feature per line)</label>
+                    <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2">${esc(item.description || '')}</textarea>
                 </div>
             </div>
         </div>
@@ -359,21 +440,14 @@ function addItem() {
     const description = document.getElementById("new-desc").value.trim();
     const buyLink = document.getElementById("new-link").value.trim();
     const roleId = document.getElementById("new-role-id").value.trim();
-
-    if (!name || !price) {
-        alert("Please enter a name and price.");
-        return;
-    }
-
+    if (!name || !price) { alert("Please enter a name and price."); return; }
     items.push({ id: Date.now(), name, price, description, buyLink, roleId });
     renderItems();
-
     document.getElementById("new-name").value = "";
     document.getElementById("new-price").value = "";
     document.getElementById("new-desc").value = "";
     document.getElementById("new-link").value = "";
     document.getElementById("new-role-id").value = "";
-
     setStatus("", "");
 }
 
@@ -392,25 +466,16 @@ async function saveAll() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(items)
         });
-        if (res.ok) {
-            setStatus("✓ Saved successfully!", "saved");
-        } else {
-            setStatus("✗ Save failed. Try again.", "error");
-        }
-    } catch (e) {
-        setStatus("✗ Network error.", "error");
-    }
+        setStatus(res.ok ? "✓ Saved successfully" : "✗ Save failed. Try again.", res.ok ? "saved" : "error");
+    } catch { setStatus("✗ Network error.", "error"); }
+    setTimeout(() => setStatus("", ""), 3000);
 }
 
 function setStatus(msg, cls) {
     const el = document.getElementById("save-status");
     el.textContent = msg;
-    el.className = "save-status " + cls;
+    el.className = "status-msg " + cls;
 }
-
-loadItems();
-loadPurchases();
-loadSettings();
 
 async function loadSettings() {
     const res = await fetch("/api/settings");
@@ -426,39 +491,30 @@ async function saveSettings() {
     const discordBotToken = document.getElementById("setting-bot-token").value.trim();
     const discordGuildId = document.getElementById("setting-guild-id").value.trim();
     const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#8899bb";
-    statusEl.textContent = "Saving...";
+    statusEl.style.color = "#555"; statusEl.textContent = "Saving...";
     const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ discordChannelId, discordBotToken, discordGuildId })
     });
-    if (res.ok) {
-        statusEl.style.color = "#4ade80";
-        statusEl.textContent = "✓ Saved!";
-    } else {
-        statusEl.style.color = "#f87171";
-        statusEl.textContent = "✗ Failed to save.";
-    }
+    if (res.ok) { statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Saved!"; }
+    else { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Failed to save."; }
     setTimeout(() => statusEl.textContent = "", 3000);
 }
 
 async function testDiscord() {
     const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#8899bb";
-    statusEl.textContent = "Sending test...";
+    statusEl.style.color = "#555"; statusEl.textContent = "Sending test...";
     const res = await fetch("/api/bypass-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 })
     });
     if (res.ok) {
-        statusEl.style.color = "#4ade80";
-        statusEl.textContent = "✓ Test sent! Check your Discord channel.";
+        statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Test sent! Check your Discord.";
         loadPurchases();
     } else {
-        statusEl.style.color = "#f87171";
-        statusEl.textContent = "✗ Failed — check your bot token and channel ID.";
+        statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Failed — check bot token and channel ID.";
     }
     setTimeout(() => statusEl.textContent = "", 4000);
 }
@@ -469,7 +525,7 @@ async function loadPurchases() {
     const purchases = await res.json();
     const container = document.getElementById("purchases-list");
     const count = document.getElementById("purchase-count");
-    count.textContent = purchases.length + " entries";
+    count.textContent = purchases.length + " entr" + (purchases.length !== 1 ? "ies" : "y");
 
     if (purchases.length === 0) {
         container.innerHTML = '<div class="empty">No bypass purchases yet.</div>';
@@ -478,22 +534,23 @@ async function loadPurchases() {
 
     container.innerHTML = purchases.map(p => {
         const date = new Date(p.timestamp).toLocaleString();
-        const discordTag = p.discordUserId
-            ? `<span style="color:#a78bfa;font-size:12px;margin-top:2px;">👤 Discord ID: ${p.discordUserId}</span>`
-            : "";
         return `
-            <div style="background:#0c172b;border:1px solid #1c3c8a;border-radius:10px;padding:16px 20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div class="purchase-row">
                 <div>
-                    <div style="font-weight:bold;font-size:16px;">${p.itemName}</div>
-                    <div style="color:#8899bb;font-size:13px;margin-top:4px;">${date}</div>
-                    ${discordTag}
-                    <div style="color:#7c3aed;font-size:12px;margin-top:2px;">⚡ ${p.note}</div>
+                    <div class="item-name">${p.itemName}</div>
+                    <div class="item-date">${date}</div>
+                    ${p.discordUserId ? `<div class="item-discord">👤 Discord ID: ${p.discordUserId}</div>` : ""}
+                    <div class="item-note">⚡ ${p.note}</div>
                 </div>
-                <div style="font-size:22px;font-weight:bold;color:#4d8dff;">${p.itemPrice || ""}</div>
+                <div class="item-price">${p.itemPrice || ""}</div>
             </div>
         `;
     }).join("");
 }
+
+loadItems();
+loadPurchases();
+loadSettings();
 </script>
 
 </body>
