@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vertex 6X Store</title>
-
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,47 +13,69 @@
         <img src="vertex-logo.png" alt="Vertex 6X">
     </div>
 
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="store.html">Store</a></li>
+    </ul>
 
-<ul>
-    <li><a href="index.html">Home</a></li>
-    <li><a href="store.html">Store</a></li>
-</ul>
-
-
+    <a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
 </nav>
 
 <section class="store-page">
+    <h1>Vertex 6X Store</h1>
 
-
-<h1>Vertex 6X Store</h1>
-
-<div class="store-grid">
-
-    <div class="store-card">
-        <h3>VIP</h3>
-        <p>Priority Queue<br>VIP Tag<br>Starter Kit</p>
-        <div class="price">$9.99</div>
-        <button>Buy Now</button>
+    <div class="store-grid" id="store-grid">
+        <div class="store-card" style="opacity:0.5">
+            <h3>Loading...</h3>
+        </div>
     </div>
-
-    <div class="store-card">
-        <h3>AK Kit</h3>
-        <p>AK-47<br>Ammo<br>Medical Supplies</p>
-        <div class="price">$4.99</div>
-        <button>Buy Now</button>
-    </div>
-
-    <div class="store-card">
-        <h3>Builder Kit</h3>
-        <p>Wood<br>Stone<br>Metal</p>
-        <div class="price">$2.99</div>
-        <button>Buy Now</button>
-    </div>
-
-</div>
-
-
 </section>
+
+<style>
+.admin-cog-btn {
+    font-size: 22px;
+    color: #4a5a7a;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: color 0.2s, background 0.2s;
+    line-height: 1;
+}
+.admin-cog-btn:hover {
+    color: #4d8dff;
+    background: rgba(37, 99, 235, 0.12);
+}
+</style>
+
+<script>
+fetch("/api/store-items")
+    .then(res => res.json())
+    .then(items => {
+        const grid = document.getElementById("store-grid");
+
+        if (!items || items.length === 0) {
+            grid.innerHTML = '<p style="color:#8899bb;text-align:center;padding:40px">No items available yet.</p>';
+            return;
+        }
+
+        grid.innerHTML = items.map(item => {
+            const lines = (item.description || "").split("\n").filter(l => l.trim());
+            const featuresHtml = lines.map(l => `<span>${l.trim()}</span>`).join("<br>");
+            return `
+                <div class="store-card">
+                    <h3>${item.name}</h3>
+                    <p>${featuresHtml}</p>
+                    <div class="price">${item.price}</div>
+                    <button>Buy Now</button>
+                </div>
+            `;
+        }).join("");
+    })
+    .catch(() => {
+        document.getElementById("store-grid").innerHTML =
+            '<p style="color:#f87171;text-align:center;padding:40px">Failed to load store items.</p>';
+    });
+</script>
 
 </body>
 </html>

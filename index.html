@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vertex 6X | Rust Console Servers</title>
-
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,6 +27,8 @@
 <a href="https://discord.gg/vertexrce" class="discord-btn">
 Discord
 </a>
+
+<a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
 
 <div id="account-area">
     <a href="/auth/discord" class="discord-btn">
@@ -103,7 +104,6 @@ View Server
 <div class="feature-box">🎮 Console Optimized</div>
 <div class="feature-box">👥 100+ pop</div>
 
-
 </div>
 
 </section>
@@ -111,6 +111,23 @@ View Server
 <footer>
 <p>Vertex 6X © 2026</p>
 </footer>
+
+<style>
+.admin-cog-btn {
+    font-size: 22px;
+    color: #4a5a7a;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: color 0.2s, background 0.2s;
+    line-height: 1;
+    order: 99;
+}
+.admin-cog-btn:hover {
+    color: #4d8dff;
+    background: rgba(37, 99, 235, 0.12);
+}
+</style>
 
 <script>
 fetch("/user")

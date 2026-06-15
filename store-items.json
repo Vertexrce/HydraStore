@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "VIP",
+    "price": "$9.99",
+    "description": "Priority Queue\nVIP Chat Tag\nStarter Kit\nDiscord Role"
+  },
+  {
+    "id": 2,
+    "name": "AK Kit",
+    "price": "$4.99",
+    "description": "AK-47\nAmmo\nMedical Supplies"
+  },
+  {
+    "id": 3,
+    "name": "Builder Kit",
+    "price": "$2.99",
+    "description": "Wood\nStone\nMetal"
+  }
+]

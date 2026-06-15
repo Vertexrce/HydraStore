@@ -1,116 +1,340 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Vertex 6X Admin</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertex 6X Admin Panel</title>
     <style>
-        body{
-            background:#050b18;
-            color:white;
-            font-family:Arial,sans-serif;
-            padding:40px;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050b18;
+            color: white;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
         }
 
-        h1{
-            color:#4d8dff;
+        header {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1c3c8a;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        input{
-            padding:12px;
-            margin:5px;
-            border:none;
-            border-radius:8px;
+        header h1 {
+            color: #4d8dff;
+            font-size: 22px;
         }
 
-        button{
-            padding:12px 20px;
-            background:#2563eb;
-            color:white;
-            border:none;
-            border-radius:8px;
-            cursor:pointer;
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
-        .item{
-            background:#0c172b;
-            padding:15px;
-            margin-top:10px;
-            border-radius:10px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
         }
 
-        .delete-btn{
-            background:red;
+        .btn-blue { background: #2563eb; color: white; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-green { background: #16a34a; color: white; }
+        .btn-green:hover { background: #15803d; }
+        .btn-red { background: #dc2626; color: white; }
+        .btn-red:hover { background: #b91c1c; }
+        .btn-gray { background: #1c2d4a; color: #aac0e0; }
+        .btn-gray:hover { background: #243b60; }
+
+        .main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #4d8dff;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-card {
+            background: #0c172b;
+            border: 1px solid #1c3c8a;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .item-card:hover {
+            border-color: #4d8dff;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .item-num {
+            color: #4d8dff;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 12px;
+            color: #8899bb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea {
+            background: #07101f;
+            border: 1px solid #1c3c8a;
+            border-radius: 8px;
+            color: white;
+            padding: 10px 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #4d8dff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.5;
+        }
+
+        .add-item-form {
+            background: #0a1526;
+            border: 2px dashed #1c3c8a;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .add-item-form h3 {
+            color: #4d8dff;
+            margin-bottom: 16px;
+        }
+
+        .save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(5, 11, 24, 0.95);
+            border-top: 1px solid #1c3c8a;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .save-status {
+            font-size: 14px;
+            color: #8899bb;
+        }
+
+        .save-status.saved { color: #4ade80; }
+        .save-status.error { color: #f87171; }
+
+        .empty {
+            text-align: center;
+            color: #4a5a7a;
+            padding: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .field-row { grid-template-columns: 1fr; }
+            header { padding: 14px 20px; }
+            .save-bar { padding: 14px 20px; }
         }
     </style>
 </head>
 <body>
 
-<h1>Vertex 6X Admin Panel</h1>
+<header>
+    <h1>⚙️ Admin Setup — Vertex 6X</h1>
+    <div class="header-right">
+        <a href="/" class="btn btn-gray">← View Site</a>
+        <a href="/admin-logout" class="btn btn-red">Logout</a>
+    </div>
+</header>
 
-<input id="name" placeholder="Item Name">
-<input id="price" placeholder="Price">
+<div class="main">
 
-<button onclick="addItem()">Add Item</button>
+    <div class="add-item-form">
+        <h3>+ Add New Store Item</h3>
+        <div class="field-row">
+            <div class="field">
+                <label>Item Name</label>
+                <input type="text" id="new-name" placeholder="e.g. VIP Pack">
+            </div>
+            <div class="field">
+                <label>Price</label>
+                <input type="text" id="new-price" placeholder="e.g. $9.99">
+            </div>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+            <label>Description (one item per line)</label>
+            <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit"></textarea>
+        </div>
+        <button class="btn btn-blue" onclick="addItem()">Add Item</button>
+    </div>
 
-<hr>
+    <div class="section-title">
+        <span>Store Items</span>
+        <span style="font-size:14px;color:#8899bb" id="item-count"></span>
+    </div>
 
-<div id="items"></div>
+    <div id="items-list"></div>
+
+</div>
+
+<div class="save-bar">
+    <span class="save-status" id="save-status"></span>
+    <button class="btn btn-green" onclick="saveAll()">💾 Save All Changes</button>
+</div>
 
 <script>
-
 let items = [];
 
-function addItem(){
-
-    const name = document.getElementById("name").value;
-    const price = document.getElementById("price").value;
-
-    if(!name || !price) return;
-
-    items.push({
-        name,
-        price
-    });
-
-    renderItems();
-
-    document.getElementById("name").value = "";
-    document.getElementById("price").value = "";
-}
-
-function deleteItem(index){
-    items.splice(index,1);
+async function loadItems() {
+    const res = await fetch("/api/store-items");
+    items = await res.json();
     renderItems();
 }
 
-function renderItems(){
+function renderItems() {
+    const list = document.getElementById("items-list");
+    document.getElementById("item-count").textContent = items.length + " items";
 
-    const container = document.getElementById("items");
+    if (items.length === 0) {
+        list.innerHTML = '<div class="empty">No store items yet. Add one above!</div>';
+        return;
+    }
 
-    container.innerHTML = "";
-
-    items.forEach((item,index)=>{
-
-        container.innerHTML += `
-            <div class="item">
-                <div>
-                    <strong>${item.name}</strong><br>
-                    $${item.price}
-                </div>
-
-                <button
-                    class="delete-btn"
-                    onclick="deleteItem(${index})">
-                    Delete
-                </button>
+    list.innerHTML = items.map((item, i) => `
+        <div class="item-card" id="card-${i}">
+            <div class="item-header">
+                <span class="item-num">Item ${i + 1}</span>
+                <button class="btn btn-red" onclick="deleteItem(${i})">🗑 Delete</button>
             </div>
-        `;
-    });
+            <div class="field-row">
+                <div class="field">
+                    <label>Name</label>
+                    <input type="text" value="${esc(item.name)}" oninput="items[${i}].name = this.value" placeholder="Item name">
+                </div>
+                <div class="field">
+                    <label>Price</label>
+                    <input type="text" value="${esc(item.price)}" oninput="items[${i}].price = this.value" placeholder="$0.00">
+                </div>
+            </div>
+            <div class="field">
+                <label>Description (one feature per line)</label>
+                <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2">${esc(item.description || "")}</textarea>
+            </div>
+        </div>
+    `).join("");
 }
 
+function esc(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function addItem() {
+    const name = document.getElementById("new-name").value.trim();
+    const price = document.getElementById("new-price").value.trim();
+    const description = document.getElementById("new-desc").value.trim();
+
+    if (!name || !price) {
+        alert("Please enter a name and price.");
+        return;
+    }
+
+    items.push({ id: Date.now(), name, price, description });
+    renderItems();
+
+    document.getElementById("new-name").value = "";
+    document.getElementById("new-price").value = "";
+    document.getElementById("new-desc").value = "";
+
+    setStatus("", "");
+}
+
+function deleteItem(index) {
+    if (!confirm(`Delete "${items[index].name}"?`)) return;
+    items.splice(index, 1);
+    renderItems();
+    setStatus("", "");
+}
+
+async function saveAll() {
+    setStatus("Saving...", "");
+    try {
+        const res = await fetch("/api/store-items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(items)
+        });
+        if (res.ok) {
+            setStatus("✓ Saved successfully!", "saved");
+        } else {
+            setStatus("✗ Save failed. Try again.", "error");
+        }
+    } catch (e) {
+        setStatus("✗ Network error.", "error");
+    }
+}
+
+function setStatus(msg, cls) {
+    const el = document.getElementById("save-status");
+    el.textContent = msg;
+    el.className = "save-status " + cls;
+}
+
+loadItems();
 </script>
 
 </body>
