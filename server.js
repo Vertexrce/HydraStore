@@ -222,12 +222,20 @@ app.post("/api/store-items", checkAdminJson, async (req, res) => {
         await pool.query("DELETE FROM store_items");
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            await pool.query(
-                "INSERT INTO store_items (id, name, price, description, buy_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-                [item.id || Date.now() + i, item.name, item.price, item.description || "", item.buyLink || "", item.roleId || "", i]
-            );
+            const numericId = item.id && Number(item.id) < 2000000000 ? Number(item.id) : null;
+            if (numericId) {
+                await pool.query(
+                    "INSERT INTO store_items (id, name, price, description, buy_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                    [numericId, item.name, item.price, item.description || "", item.buyLink || "", item.roleId || "", i]
+                );
+            } else {
+                await pool.query(
+                    "INSERT INTO store_items (name, price, description, buy_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6)",
+                    [item.name, item.price, item.description || "", item.buyLink || "", item.roleId || "", i]
+                );
+            }
         }
-        await pool.query("SELECT setval('store_items_id_seq', (SELECT MAX(id) FROM store_items))");
+        await pool.query("SELECT setval('store_items_id_seq', COALESCE((SELECT MAX(id) FROM store_items), 1))");
         res.json({ ok: true });
     } catch (e) {
         res.status(500).json({ error: e.message });

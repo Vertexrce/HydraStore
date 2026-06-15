@@ -441,7 +441,7 @@ function addItem() {
     const buyLink = document.getElementById("new-link").value.trim();
     const roleId = document.getElementById("new-role-id").value.trim();
     if (!name || !price) { alert("Please enter a name and price."); return; }
-    items.push({ id: Date.now(), name, price, description, buyLink, roleId });
+    items.push({ id: null, name, price, description, buyLink, roleId });
     renderItems();
     document.getElementById("new-name").value = "";
     document.getElementById("new-price").value = "";
