@@ -137,7 +137,6 @@ padding:30px;
 border-radius:15px;
 text-align:center;
 border:1px solid #1c4cff;
-min-height:220px;
 }
 
 .stat-card h2{
@@ -198,6 +197,7 @@ padding:30px;
 border-radius:20px;
 border:2px solid #2563eb;
 text-align:center;
+height:auto;
 }
 
 .store-card h3{
