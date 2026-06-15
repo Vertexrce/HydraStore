@@ -135,6 +135,7 @@ display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 gap:20px;
 background:#07101f;
+align-items:start;
 }
 
 .stat-card{
@@ -143,6 +144,9 @@ padding:30px;
 border-radius:15px;
 text-align:center;
 border:1px solid #1c4cff;
+
+height:auto;
+min-height:220px;
 }
 
 .stat-card h2{
