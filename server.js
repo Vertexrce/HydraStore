@@ -8,7 +8,13 @@ const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
 const { Pool } = require("pg");
 const https = require("https");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Stripe = require("stripe");
+function getStripe() {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) throw new Error("STRIPE_SECRET_KEY is not set in environment variables.");
+    return new Stripe(key);
+}
+const WebSocket = require("ws");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +27,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
     const sig = req.headers["stripe-signature"];
     let event;
     try {
-        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        event = getStripe().webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
         console.error("Webhook signature failed:", err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -121,6 +127,39 @@ async function setupDB() {
             reason TEXT DEFAULT '',
             type TEXT DEFAULT 'grant',
             created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS web_game_servers (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            rcon_host TEXT NOT NULL,
+            rcon_port INTEGER DEFAULT 28016,
+            rcon_password TEXT DEFAULT '',
+            sort_order INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS web_kit_configs (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            required_role_id TEXT DEFAULT '',
+            cooldown_minutes INTEGER DEFAULT 60,
+            server_id INTEGER,
+            enabled INTEGER DEFAULT 1,
+            sort_order INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS web_kit_cooldowns (
+            discord_id TEXT NOT NULL,
+            kit_id INTEGER NOT NULL,
+            expires_at TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY (discord_id, kit_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS web_player_links (
+            discord_id TEXT PRIMARY KEY,
+            gamertag TEXT NOT NULL,
+            updated_at TIMESTAMPTZ DEFAULT NOW()
         );
     `);
 
@@ -273,7 +312,7 @@ app.get("/api/checkout/:itemId", async (req, res) => {
 // ── Lookup Stripe session for success page ──
 app.get("/api/checkout-session/:sessionId", async (req, res) => {
     try {
-        const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+        const session = await getStripe().checkout.sessions.retrieve(req.params.sessionId);
         res.json({
             itemName: session.metadata?.item_name || "",
             itemPrice: session.metadata?.item_price || "",
@@ -338,7 +377,7 @@ app.get("/buy-stripe/:itemId", async (req, res) => {
             }];
         }
 
-        const checkoutSession = await stripe.checkout.sessions.create({
+        const checkoutSession = await getStripe().checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: lineItems,
             mode: "payment",
@@ -599,6 +638,42 @@ async function sendDiscordLog(message) {
     }
 }
 
+// ── WebSocket RCON (Rust) ──────────────────────────────────────────────────────
+async function sendRcon(host, port, password, command) {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(`ws://${host}:${port}/${password}`);
+        const timer = setTimeout(() => { ws.terminate(); reject(new Error("RCON timeout")); }, 8000);
+        ws.once("open", () => {
+            ws.send(JSON.stringify({ Identifier: 1, Message: command, Name: "WebRcon" }));
+        });
+        ws.once("message", (data) => {
+            clearTimeout(timer);
+            ws.close();
+            try { resolve(JSON.parse(data.toString()).Message || ""); } catch { resolve(data.toString()); }
+        });
+        ws.once("error", (err) => { clearTimeout(timer); ws.terminate(); reject(err); });
+    });
+}
+
+// ── Discord member roles ───────────────────────────────────────────────────────
+async function getDiscordMemberRoles(guildId, userId, botToken) {
+    return new Promise((resolve) => {
+        const opts = {
+            hostname: "discord.com",
+            path: `/api/v10/guilds/${guildId}/members/${userId}`,
+            headers: { "Authorization": `Bot ${botToken}`, "User-Agent": "Vertex6X/1.0" }
+        };
+        const req = https.get(opts, (r) => {
+            let data = "";
+            r.on("data", (c) => data += c);
+            r.on("end", () => {
+                try { resolve(JSON.parse(data).roles || []); } catch { resolve([]); }
+            });
+        });
+        req.on("error", () => resolve([]));
+    });
+}
+
 async function assignDiscordRole(guildId, userId, roleId) {
     const token = await getSetting("discordBotToken");
     if (!token || !guildId || !userId || !roleId) {
@@ -690,6 +765,228 @@ app.post("/api/settings", checkAdminJson, async (req, res) => {
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
+});
+
+// ── Kits page ─────────────────────────────────────────────────────────────────
+app.get("/kits", (req, res) => res.sendFile(path.join(__dirname, "kits.html")));
+
+// ── Kits: player gamertag link ────────────────────────────────────────────────
+app.get("/api/kits/gamertag", async (req, res) => {
+    if (!req.user) return res.json({ gamertag: null });
+    try {
+        const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
+        res.json({ gamertag: rows[0]?.gamertag || null });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/kits/gamertag", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const { gamertag } = req.body;
+    if (!gamertag?.trim()) return res.status(400).json({ error: "Gamertag required" });
+    try {
+        await pool.query(
+            `INSERT INTO web_player_links (discord_id, gamertag, updated_at)
+             VALUES ($1, $2, NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET gamertag = $2, updated_at = NOW()`,
+            [req.user.id, gamertag.trim()]
+        );
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Kits: list available kits for logged-in user ──────────────────────────────
+app.get("/api/kits", async (req, res) => {
+    try {
+        const { rows: allKits } = await pool.query(
+            `SELECT k.*, s.name as server_name, s.rcon_host, s.rcon_port, s.rcon_password
+             FROM web_kit_configs k
+             LEFT JOIN web_game_servers s ON s.id = k.server_id
+             WHERE k.enabled = 1
+             ORDER BY k.sort_order, k.id`
+        );
+
+        if (!req.user) {
+            return res.json({ loggedIn: false, gamertag: null, kits: allKits.map(k => ({
+                id: k.id, name: k.name, description: k.description,
+                cooldownMinutes: k.cooldown_minutes, requiredRoleId: k.required_role_id,
+                serverName: k.server_name || "Server", hasRole: false, onCooldown: false, expiresAt: null
+            }))});
+        }
+
+        const botToken = await getSetting("discordBotToken");
+        const guildId  = await getSetting("discordGuildId");
+        let memberRoles = [];
+        if (botToken && guildId) {
+            memberRoles = await getDiscordMemberRoles(guildId, req.user.id, botToken);
+        }
+
+        const { rows: cooldowns } = await pool.query(
+            "SELECT kit_id, expires_at FROM web_kit_cooldowns WHERE discord_id = $1 AND expires_at > NOW()",
+            [req.user.id]
+        );
+        const cdMap = {};
+        for (const cd of cooldowns) cdMap[cd.kit_id] = cd.expires_at;
+
+        const { rows: gtRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
+        const gamertag = gtRows[0]?.gamertag || null;
+
+        const result = allKits
+            .map(k => ({
+                id: k.id, name: k.name, description: k.description,
+                cooldownMinutes: k.cooldown_minutes, requiredRoleId: k.required_role_id,
+                serverName: k.server_name || "Server",
+                hasRole: !k.required_role_id || memberRoles.includes(k.required_role_id),
+                onCooldown: !!cdMap[k.id],
+                expiresAt: cdMap[k.id] || null
+            }))
+            .filter(k => k.hasRole);
+
+        res.json({ loggedIn: true, gamertag, kits: result });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Kits: claim ───────────────────────────────────────────────────────────────
+app.post("/api/kits/claim", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const { kitId } = req.body;
+    if (!kitId) return res.status(400).json({ error: "Missing kitId" });
+    try {
+        const { rows } = await pool.query(
+            `SELECT k.*, s.name as server_name, s.rcon_host, s.rcon_port, s.rcon_password
+             FROM web_kit_configs k
+             LEFT JOIN web_game_servers s ON s.id = k.server_id
+             WHERE k.id = $1 AND k.enabled = 1 LIMIT 1`,
+            [kitId]
+        );
+        if (!rows[0]) return res.status(404).json({ error: "Kit not found" });
+        const kit = rows[0];
+
+        if (kit.required_role_id) {
+            const botToken = await getSetting("discordBotToken");
+            const guildId  = await getSetting("discordGuildId");
+            if (botToken && guildId) {
+                const roles = await getDiscordMemberRoles(guildId, req.user.id, botToken);
+                if (!roles.includes(kit.required_role_id)) {
+                    return res.status(403).json({ error: "You do not have the required role for this kit." });
+                }
+            }
+        }
+
+        const { rows: cdRows } = await pool.query(
+            "SELECT expires_at FROM web_kit_cooldowns WHERE discord_id = $1 AND kit_id = $2 AND expires_at > NOW() LIMIT 1",
+            [req.user.id, kitId]
+        );
+        if (cdRows[0]) {
+            return res.status(429).json({ error: "Kit is on cooldown.", expiresAt: cdRows[0].expires_at });
+        }
+
+        const { rows: gtRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
+        const gamertag = gtRows[0]?.gamertag;
+        if (!gamertag) return res.status(400).json({ error: "Link your in-game name first." });
+
+        if (!kit.rcon_host) return res.status(500).json({ error: "No game server configured for this kit." });
+
+        const cmd = `kit givetoplayer "${kit.name}" "${gamertag}"`;
+        try {
+            await sendRcon(kit.rcon_host, kit.rcon_port || 28016, kit.rcon_password || "", cmd);
+        } catch (rconErr) {
+            console.error("RCON error:", rconErr.message);
+            return res.status(500).json({ error: "RCON connection failed — server may be offline." });
+        }
+
+        const expiresAt = new Date(Date.now() + kit.cooldown_minutes * 60 * 1000);
+        await pool.query(
+            `INSERT INTO web_kit_cooldowns (discord_id, kit_id, expires_at)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (discord_id, kit_id) DO UPDATE SET expires_at = $3`,
+            [req.user.id, kitId, expiresAt]
+        );
+
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `🎁 **Kit Claimed (Website)**\n` +
+            `📦 Kit: **${kit.name}**\n` +
+            `🎮 Gamertag: **${gamertag}**\n` +
+            `👤 Discord: <@${req.user.id}>\n` +
+            `🖥️ Server: ${kit.server_name || "N/A"}\n` +
+            `🕐 Time: ${ts}`
+        );
+
+        res.json({ ok: true, expiresAt });
+    } catch (e) {
+        console.error("Kit claim error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ── Admin: Game Servers ───────────────────────────────────────────────────────
+app.get("/api/admin/game-servers", checkAdminJson, async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT id, name, rcon_host, rcon_port, sort_order FROM web_game_servers ORDER BY sort_order, id");
+        res.json(rows.map(s => ({ id: s.id, name: s.name, rconHost: s.rcon_host, rconPort: s.rcon_port })));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/admin/game-servers", checkAdminJson, async (req, res) => {
+    const servers = req.body;
+    if (!Array.isArray(servers)) return res.status(400).json({ error: "Expected array" });
+    try {
+        await pool.query("DELETE FROM web_game_servers");
+        for (let i = 0; i < servers.length; i++) {
+            const s = servers[i];
+            if (!s.name || !s.rconHost) continue;
+            if (s.id) {
+                await pool.query(
+                    "INSERT INTO web_game_servers (id, name, rcon_host, rcon_port, rcon_password, sort_order) VALUES ($1,$2,$3,$4,$5,$6)",
+                    [s.id, s.name, s.rconHost, parseInt(s.rconPort) || 28016, s.rconPassword || "", i]
+                );
+            } else {
+                await pool.query(
+                    "INSERT INTO web_game_servers (name, rcon_host, rcon_port, rcon_password, sort_order) VALUES ($1,$2,$3,$4,$5)",
+                    [s.name, s.rconHost, parseInt(s.rconPort) || 28016, s.rconPassword || "", i]
+                );
+            }
+        }
+        try { await pool.query("SELECT setval('web_game_servers_id_seq', COALESCE((SELECT MAX(id) FROM web_game_servers), 1))"); } catch {}
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: Kit Configs ────────────────────────────────────────────────────────
+app.get("/api/admin/web-kits", checkAdminJson, async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT * FROM web_kit_configs ORDER BY sort_order, id");
+        res.json(rows.map(k => ({
+            id: k.id, name: k.name, description: k.description,
+            requiredRoleId: k.required_role_id, cooldownMinutes: k.cooldown_minutes,
+            serverId: k.server_id, enabled: k.enabled
+        })));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/admin/web-kits", checkAdminJson, async (req, res) => {
+    const kits = req.body;
+    if (!Array.isArray(kits)) return res.status(400).json({ error: "Expected array" });
+    try {
+        await pool.query("DELETE FROM web_kit_configs");
+        for (let i = 0; i < kits.length; i++) {
+            const k = kits[i];
+            if (!k.name) continue;
+            if (k.id) {
+                await pool.query(
+                    "INSERT INTO web_kit_configs (id, name, description, required_role_id, cooldown_minutes, server_id, enabled, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+                    [k.id, k.name, k.description || "", k.requiredRoleId || "", parseInt(k.cooldownMinutes) || 60, k.serverId || null, k.enabled !== false ? 1 : 0, i]
+                );
+            } else {
+                await pool.query(
+                    "INSERT INTO web_kit_configs (name, description, required_role_id, cooldown_minutes, server_id, enabled, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                    [k.name, k.description || "", k.requiredRoleId || "", parseInt(k.cooldownMinutes) || 60, k.serverId || null, k.enabled !== false ? 1 : 0, i]
+                );
+            }
+        }
+        try { await pool.query("SELECT setval('web_kit_configs_id_seq', COALESCE((SELECT MAX(id) FROM web_kit_configs), 1))"); } catch {}
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 setupDB()

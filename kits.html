@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kits — Vertex 6X</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #080c14; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+
+nav {
+    background: rgba(8,12,20,0.95);
+    border-bottom: 1px solid #111d35;
+    padding: 0 40px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo img { height: 32px; width: auto; display: block; }
+.nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
+.nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
+.nav-links a { color: #6b80a8; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+.nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.05); }
+.nav-links a.active { color: #4d8dff; }
+.nav-right { display: flex; align-items: center; gap: 6px; }
+.nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
+.nav-cog:hover { color: #4d8dff; }
+.cart-icon-btn { position: relative; color: #6b80a8; text-decoration: none; font-size: 20px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s; line-height: 1; }
+.cart-icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.cart-badge { position: absolute; top: 2px; right: 2px; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
+
+.page { max-width: 900px; margin: 0 auto; padding: 48px 20px 80px; }
+
+.page-header { margin-bottom: 36px; }
+.page-header h1 { font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.page-header p { color: #3d5a8a; font-size: 14px; margin-top: 6px; }
+
+.section-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #2a4070; margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid #0f1e38;
+}
+.section-title span { font-size: 16px; }
+
+.prompt-card {
+    background: #0c1628; border: 1px solid #162240; border-radius: 14px;
+    padding: 36px; text-align: center; margin-bottom: 32px;
+}
+.prompt-card h2 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.prompt-card p { font-size: 14px; color: #3d5a8a; margin-bottom: 20px; line-height: 1.6; }
+.prompt-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s;
+}
+.prompt-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.prompt-btn-discord { background: #5865f2; color: #fff; }
+.prompt-btn-green { background: #059669; color: #fff; }
+
+.gamertag-form { display: flex; gap: 10px; max-width: 360px; margin: 0 auto; }
+.gamertag-input {
+    flex: 1; background: #060d1a; border: 1px solid #1a2e4a; border-radius: 8px;
+    color: #e0e6f0; padding: 11px 14px; font-size: 14px; outline: none;
+    transition: border-color 0.15s; font-family: inherit;
+}
+.gamertag-input:focus { border-color: #2563eb; }
+.gamertag-input::placeholder { color: #1e3060; }
+
+.kits-grid { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+
+.kit-card {
+    background: #0c1628; border: 1px solid #162240; border-radius: 14px;
+    padding: 24px 28px; display: flex; align-items: center; gap: 24px;
+    transition: border-color 0.2s;
+}
+.kit-card:hover { border-color: #1e3a7a; }
+
+.kit-icon {
+    width: 52px; height: 52px; border-radius: 10px;
+    background: rgba(77,141,255,0.08); border: 1px solid #1a2e52;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+}
+
+.kit-info { flex: 1; min-width: 0; }
+.kit-name { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.kit-desc { font-size: 13px; color: #3d5a8a; line-height: 1.5; }
+.kit-server { font-size: 11px; color: #1e3060; margin-top: 4px; }
+.kit-cd-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(77,141,255,0.08); border: 1px solid #1a2e52;
+    border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700;
+    color: #3d5a8a; margin-top: 6px;
+}
+
+.kit-action { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+.ready-circle {
+    width: 80px; height: 80px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; cursor: pointer;
+}
+.ready-circle svg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transform: rotate(-90deg);
+}
+.ready-circle .circle-bg { fill: none; stroke: #0f1e38; stroke-width: 4; }
+.ready-circle .circle-progress { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.ready-circle .circle-progress.ready-color { stroke: #059669; }
+.ready-circle .circle-progress.cooldown-color { stroke: #1d4ed8; }
+.ready-text { position: relative; text-align: center; pointer-events: none; }
+.ready-text .label { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
+.ready-text .sublabel { font-size: 9px; color: #3d5a8a; margin-top: 1px; }
+.ready-text.is-ready .label { color: #34d399; }
+.ready-text.is-cooldown .label { color: #60a5fa; font-size: 10px; }
+
+.claim-btn {
+    width: 120px; padding: 10px 0; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.claim-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.claim-btn:active:not(:disabled) { transform: translateY(0); }
+.claim-btn.ready { background: #059669; color: #fff; box-shadow: 0 4px 16px rgba(5,150,105,0.3); }
+.claim-btn.ready:hover { box-shadow: 0 6px 24px rgba(5,150,105,0.45); }
+.claim-btn.cooldown { background: #0c1628; color: #1e3060; border: 1px solid #1a2e52; cursor: default; }
+.claim-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.claim-result { font-size: 12px; font-weight: 600; text-align: center; max-width: 120px; }
+.claim-result.success { color: #34d399; }
+.claim-result.error { color: #f87171; }
+
+.empty-kits { text-align: center; padding: 60px 20px; color: #1e3060; font-size: 15px; }
+
+.gamertag-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(5,150,105,0.08); border: 1px solid rgba(5,150,105,0.2);
+    border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #34d399; font-weight: 600;
+    margin-bottom: 24px; cursor: pointer; transition: border-color 0.15s;
+}
+.gamertag-pill:hover { border-color: rgba(5,150,105,0.5); }
+
+.loading { text-align: center; color: #1e3060; padding: 80px 20px; font-size: 15px; }
+
+@media (max-width: 600px) {
+    nav { padding: 0 20px; }
+    .kit-card { flex-wrap: wrap; }
+    .kit-action { flex-direction: row; align-items: center; width: 100%; justify-content: flex-end; }
+    .ready-circle { width: 60px; height: 60px; }
+    .claim-btn { width: 100px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="nav-logo">
+        <img src="/vertex-logo.png" alt="Vertex 6X" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="nav-logo-text" style="display:none">Vertex 6X</span>
+    </a>
+    <ul class="nav-links">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/store.html">Store</a></li>
+        <li><a href="/kits" class="active">Kits</a></li>
+    </ul>
+    <div class="nav-right">
+        <a href="/cart.html" class="cart-icon-btn" title="Cart">
+            🛒<span class="cart-badge" id="nav-cart-count"></span>
+        </a>
+        <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
+    </div>
+</nav>
+
+<div class="page">
+    <div class="page-header">
+        <h1>🎁 Kits</h1>
+        <p>Claim your available kits. Kits are delivered directly to your in-game inventory.</p>
+    </div>
+    <div id="kits-content"><div class="loading">Loading kits…</div></div>
+</div>
+
+<script>
+const CART_KEY = "vertex6x_cart";
+function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } }
+function updateNavBadge() {
+    const badge = document.getElementById("nav-cart-count");
+    if (badge) { const c = getCart().length; badge.textContent = c; badge.style.display = c ? "flex" : "none"; }
+}
+
+let state = { loggedIn: false, gamertag: null, kits: [] };
+let timers = {};
+
+function esc(str) { return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+async function init() {
+    updateNavBadge();
+    const res = await fetch("/api/kits");
+    if (!res.ok) { document.getElementById("kits-content").innerHTML = '<div class="loading">Failed to load kits.</div>'; return; }
+    state = await res.json();
+    render();
+}
+
+function render() {
+    const container = document.getElementById("kits-content");
+
+    if (!state.loggedIn) {
+        container.innerHTML = `
+            <div class="prompt-card">
+                <h2>Login to access your kits</h2>
+                <p>Connect your Discord account to see and claim kits you're eligible for.</p>
+                <a href="/auth/discord" class="prompt-btn prompt-btn-discord">
+                    <svg width="20" height="20" viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" fill="currentColor"/></svg>
+                    Login with Discord
+                </a>
+            </div>`;
+        return;
+    }
+
+    if (!state.gamertag) {
+        container.innerHTML = `
+            <div class="prompt-card">
+                <h2>🎮 Link your in-game name</h2>
+                <p>Enter your exact in-game Rust name so we can deliver kits to you.</p>
+                <div class="gamertag-form">
+                    <input class="gamertag-input" id="gt-input" type="text" placeholder="Your in-game name" autocomplete="off" maxlength="64">
+                    <button class="prompt-btn prompt-btn-green" onclick="linkGamertag()">Link</button>
+                </div>
+                <div id="gt-status" style="margin-top:10px;font-size:13px;color:#f87171;min-height:20px;"></div>
+            </div>`;
+        document.getElementById("gt-input").addEventListener("keydown", e => { if (e.key === "Enter") linkGamertag(); });
+        return;
+    }
+
+    let html = `<div class="gamertag-pill" onclick="promptChangeGamertag()">🎮 ${esc(state.gamertag)} <span style="color:#1e4a3a;font-size:10px;">✎ change</span></div>`;
+
+    if (!state.kits.length) {
+        html += `<div class="empty-kits">🔒 No kits available for your roles.<br><span style="font-size:13px;color:#1a2e52;margin-top:6px;display:block;">Purchase a rank to unlock kits.</span></div>`;
+    } else {
+        html += `<div class="section-title"><span>🎁</span> YOUR KITS</div><div class="kits-grid" id="kits-grid">`;
+        for (const kit of state.kits) {
+            html += renderKitCard(kit);
+        }
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
+    startTimers();
+}
+
+function renderKitCard(kit) {
+    const cdMin = kit.cooldownMinutes;
+    const cdLabel = cdMin >= 60 ? `${Math.floor(cdMin/60)}h${cdMin%60 ? ` ${cdMin%60}m` : ""}` : `${cdMin}m`;
+    const desc = kit.description ? kit.description.split("\n").filter(l=>l.trim()).slice(0,3).join(" · ") : "";
+
+    const onCooldown = kit.onCooldown && kit.expiresAt && new Date(kit.expiresAt) > new Date();
+    const readyClass = onCooldown ? "is-cooldown" : "is-ready";
+    const readyLabel = onCooldown ? fmtRemaining(new Date(kit.expiresAt) - Date.now()) : "Ready!";
+    const readySub = onCooldown ? "" : "Claim Now";
+
+    const circumference = 2 * Math.PI * 36;
+    const progress = onCooldown
+        ? ((cdMin * 60 * 1000 - (new Date(kit.expiresAt) - Date.now())) / (cdMin * 60 * 1000)) * circumference
+        : circumference;
+    const strokeColor = onCooldown ? "cooldown-color" : "ready-color";
+
+    return `<div class="kit-card" id="kit-${kit.id}">
+        <div class="kit-icon">🎁</div>
+        <div class="kit-info">
+            <div class="kit-name">${esc(kit.name)}</div>
+            ${desc ? `<div class="kit-desc">${esc(desc)}</div>` : ""}
+            <div class="kit-server">🖥️ ${esc(kit.serverName)}</div>
+            <div class="kit-cd-badge">🕐 ${cdLabel} cooldown</div>
+        </div>
+        <div class="kit-action">
+            <div class="ready-circle" id="circle-${kit.id}">
+                <svg viewBox="0 0 80 80">
+                    <circle class="circle-bg" cx="40" cy="40" r="36"/>
+                    <circle class="circle-progress ${strokeColor}" id="cp-${kit.id}"
+                        cx="40" cy="40" r="36"
+                        stroke-dasharray="${circumference}"
+                        stroke-dashoffset="${circumference - progress}"/>
+                </svg>
+                <div class="ready-text ${readyClass}" id="rt-${kit.id}">
+                    <div class="label" id="rl-${kit.id}">${onCooldown ? readyLabel : "Ready!"}</div>
+                    ${!onCooldown ? `<div class="sublabel">Claim Now</div>` : ""}
+                </div>
+            </div>
+            <button class="claim-btn ${onCooldown ? "cooldown" : "ready"}" id="btn-${kit.id}"
+                ${onCooldown ? "disabled" : `onclick="claimKit(${kit.id})"`}>
+                ${onCooldown ? "⏳ Cooldown" : "⬇ Claim Kit"}
+            </button>
+            <div class="claim-result" id="res-${kit.id}"></div>
+        </div>
+    </div>`;
+}
+
+function fmtRemaining(ms) {
+    if (ms <= 0) return "Ready!";
+    const s = Math.floor(ms / 1000);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${sec}s`;
+    return `${sec}s`;
+}
+
+function startTimers() {
+    Object.values(timers).forEach(clearInterval);
+    timers = {};
+    for (const kit of state.kits) {
+        if (!kit.onCooldown || !kit.expiresAt) continue;
+        timers[kit.id] = setInterval(() => tickKit(kit), 1000);
+    }
+}
+
+function tickKit(kit) {
+    const remaining = new Date(kit.expiresAt) - Date.now();
+    const circumference = 2 * Math.PI * 36;
+
+    if (remaining <= 0) {
+        clearInterval(timers[kit.id]);
+        delete timers[kit.id];
+        kit.onCooldown = false;
+
+        const btn = document.getElementById(`btn-${kit.id}`);
+        const rt = document.getElementById(`rt-${kit.id}`);
+        const rl = document.getElementById(`rl-${kit.id}`);
+        const cp = document.getElementById(`cp-${kit.id}`);
+
+        if (btn) { btn.className = "claim-btn ready"; btn.disabled = false; btn.onclick = () => claimKit(kit.id); btn.textContent = "⬇ Claim Kit"; }
+        if (rt) rt.className = "ready-text is-ready";
+        if (rl) rl.textContent = "Ready!";
+        if (cp) { cp.className = "circle-progress ready-color"; cp.style.strokeDashoffset = "0"; }
+        return;
+    }
+
+    const cdMin = kit.cooldownMinutes;
+    const elapsed = (cdMin * 60 * 1000) - remaining;
+    const progress = (elapsed / (cdMin * 60 * 1000)) * circumference;
+
+    const rl = document.getElementById(`rl-${kit.id}`);
+    const cp = document.getElementById(`cp-${kit.id}`);
+    if (rl) rl.textContent = fmtRemaining(remaining);
+    if (cp) { cp.style.transition = "none"; cp.style.strokeDashoffset = `${circumference - progress}`; }
+}
+
+async function claimKit(kitId) {
+    const btn = document.getElementById(`btn-${kitId}`);
+    const res = document.getElementById(`res-${kitId}`);
+    if (btn) { btn.disabled = true; btn.textContent = "⏳ Claiming…"; }
+    if (res) { res.textContent = ""; res.className = "claim-result"; }
+
+    try {
+        const r = await fetch("/api/kits/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ kitId })
+        });
+        const data = await r.json();
+        if (r.ok) {
+            if (res) { res.textContent = "✓ Kit sent!"; res.className = "claim-result success"; }
+            const kit = state.kits.find(k => k.id === kitId);
+            if (kit) {
+                kit.onCooldown = true;
+                kit.expiresAt = data.expiresAt;
+                timers[kitId] = setInterval(() => tickKit(kit), 1000);
+                if (btn) { btn.className = "claim-btn cooldown"; btn.disabled = true; btn.onclick = null; btn.textContent = "⏳ Cooldown"; }
+            }
+        } else {
+            if (res) { res.textContent = `✗ ${data.error}`; res.className = "claim-result error"; }
+            if (btn) { btn.disabled = false; btn.textContent = "⬇ Claim Kit"; }
+        }
+    } catch {
+        if (res) { res.textContent = "✗ Network error."; res.className = "claim-result error"; }
+        if (btn) { btn.disabled = false; btn.textContent = "⬇ Claim Kit"; }
+    }
+    setTimeout(() => { if (res) res.textContent = ""; }, 5000);
+}
+
+async function linkGamertag() {
+    const input = document.getElementById("gt-input");
+    const statusEl = document.getElementById("gt-status");
+    const gamertag = input?.value?.trim();
+    if (!gamertag) { if (statusEl) { statusEl.textContent = "Enter your in-game name."; } return; }
+    if (statusEl) { statusEl.style.color = "#3d5a8a"; statusEl.textContent = "Linking…"; }
+    try {
+        const r = await fetch("/api/kits/gamertag", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gamertag })
+        });
+        const data = await r.json();
+        if (r.ok) {
+            state.gamertag = gamertag;
+            render();
+        } else {
+            if (statusEl) { statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${data.error}`; }
+        }
+    } catch {
+        if (statusEl) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    }
+}
+
+function promptChangeGamertag() {
+    const newName = prompt(`Change in-game name (current: ${state.gamertag}):`, state.gamertag);
+    if (!newName || !newName.trim()) return;
+    fetch("/api/kits/gamertag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gamertag: newName.trim() })
+    }).then(r => r.json()).then(data => {
+        if (data.ok) { state.gamertag = newName.trim(); render(); }
+        else alert("Failed: " + data.error);
+    });
+}
+
+init();
+</script>
+</body>
+</html>
