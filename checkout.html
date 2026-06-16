@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout — Vertex 6X</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -157,7 +158,13 @@
         flex-shrink: 0;
     }
 
-    /* ── Buttons ── */
+    /* ── Payment buttons ── */
+    .pay-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
     .pay-btn {
         display: flex;
         align-items: center;
@@ -165,8 +172,6 @@
         gap: 10px;
         width: 100%;
         padding: 16px;
-        background: linear-gradient(135deg, #2563eb, #1a4fd8);
-        color: #fff;
         border: none;
         border-radius: 10px;
         font-size: 16px;
@@ -175,14 +180,44 @@
         text-decoration: none;
         text-align: center;
         transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-        box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
     }
     .pay-btn:hover {
         opacity: 0.92;
         transform: translateY(-1px);
-        box-shadow: 0 6px 28px rgba(37, 99, 235, 0.4);
     }
     .pay-btn:active { transform: translateY(0); }
+
+    /* Stripe button — card blue */
+    .pay-btn-stripe {
+        background: linear-gradient(135deg, #635bff, #4f46e5);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(99, 91, 255, 0.35);
+    }
+    .pay-btn-stripe:hover { box-shadow: 0 6px 28px rgba(99, 91, 255, 0.5); }
+
+    /* PayPal button — PayPal gold */
+    .pay-btn-paypal {
+        background: linear-gradient(135deg, #ffc439, #f0a500);
+        color: #1a1a1a;
+        box-shadow: 0 4px 20px rgba(255, 196, 57, 0.3);
+    }
+    .pay-btn-paypal:hover { box-shadow: 0 6px 28px rgba(255, 196, 57, 0.45); }
+
+    /* Divider between buttons */
+    .pay-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #1e2e4a;
+        font-size: 12px;
+    }
+    .pay-divider::before,
+    .pay-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #0f1e38;
+    }
 
     .no-link-msg {
         display: flex;
@@ -347,9 +382,31 @@ function render(item) {
     const lines = (item.description || "").split("\n").filter(l => l.trim());
     const featuresHtml = lines.map(l => `<li>${esc(l.trim())}</li>`).join("");
 
-    const payBtn = item.buyLink
-        ? `<a href="/buy/${item.id}" class="pay-btn">💳 Pay Now — ${esc(item.price)}</a>`
-        : `<div class="no-link-msg">⏳ Payment link not set up yet — contact admin</div>`;
+    const hasStripe = !!item.stripeLink;
+    const hasPaypal = !!item.paypalLink;
+
+    let payHtml = "";
+    if (!hasStripe && !hasPaypal) {
+        payHtml = `<div class="no-link-msg">⏳ Payment link not set up yet — contact admin</div>`;
+    } else {
+        const buttons = [];
+        if (hasStripe) {
+            buttons.push(`<a href="/buy-stripe/${item.id}" class="pay-btn pay-btn-stripe">
+                <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="6" fill="#635bff"/><path d="M14.5 11.5c0-1.1.9-1.5 2.4-1.5 2.1 0 4.8.7 6.6 1.8V6.3C21.5 5.5 19.3 5 17 5c-4.4 0-7.3 2.3-7.3 6.2 0 6 8.3 5 8.3 7.6 0 1.3-1.1 1.7-2.7 1.7-2.3 0-5.3-.9-7.3-2.2v5.6C10 24.9 12.5 25.5 15 25.5c4.5 0 7.6-2.2 7.6-6.2-.1-6.5-8.1-5.3-8.1-7.8z" fill="white"/></svg>
+                Pay with Card
+            </a>`);
+        }
+        if (hasStripe && hasPaypal) {
+            buttons.push(`<div class="pay-divider">or</div>`);
+        }
+        if (hasPaypal) {
+            buttons.push(`<a href="/buy-paypal/${item.id}" class="pay-btn pay-btn-paypal">
+                <svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M25.9 8.2C25.3 5.2 22.8 4 19.5 4H10.3c-.6 0-1.1.4-1.2 1L5.4 25.4c-.1.4.2.8.6.8h4.6l1.1-7.1-.1.3c.1-.6.6-1 1.2-1h2.5c4.9 0 8.7-2 9.8-7.7.1-.3.1-.6.1-.9.3.2.3.2.3.4.1-.4.1-.8 0-1z" fill="#003087"/><path d="M25.9 8.2c0 .3-.1.6-.1.9-1.1 5.7-4.9 7.7-9.8 7.7h-2.5c-.6 0-1.1.4-1.2 1l-1.7 10.6c-.1.4.2.7.6.7h4c.5 0 1-.4 1.1-.9l.1-.3.8-5.2.1-.3c.1-.5.6-.9 1.1-.9h.7c4.4 0 7.8-1.8 8.8-6.9.4-2.1.2-3.9-.8-5.1-.3-.1-.7-.3-1.2-.3z" fill="#009cde"/><path d="M24.7 7.7c-.2-.1-.4-.1-.6-.2s-.4-.1-.7-.1c-.8-.1-1.7-.2-2.7-.2h-7.9c-.2 0-.4.1-.6.2-.4.2-.6.6-.7 1l-1.7 10.5-.1.3c.1-.6.6-1 1.2-1h2.5c4.9 0 8.7-2 9.8-7.7.1-.3.1-.6.1-.9-.3-.1-.5-.2-.7-.2-.2-.4-.4-.5-.9-.7z" fill="#012169"/></svg>
+                Pay with PayPal
+            </a>`);
+        }
+        payHtml = `<div class="pay-buttons">${buttons.join("")}</div>`;
+    }
 
     const noRoleWarning = !item.roleId
         ? `<p class="no-role-warn">⚠️ No role ID configured for this item. Add one in the admin panel to enable auto role assignment.</p>`
@@ -388,7 +445,7 @@ function render(item) {
             <div class="item-price">${esc(item.price)}</div>
             <hr class="item-divider">
             ${featuresHtml ? `<ul class="item-features">${featuresHtml}</ul>` : ""}
-            ${payBtn}
+            ${payHtml}
         </div>
         ${bypassSection}
     `;

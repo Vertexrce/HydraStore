@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vertex 6X Store</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -58,29 +59,25 @@ async function init() {
     if (isAdmin) document.getElementById("admin-banner").style.display = "block";
 
     const grid = document.getElementById("store-grid");
-    if (!items || items.length === 0) {
-        grid.innerHTML = '<p style="color:#8899bb;text-align:center;padding:40px">No items available yet.</p>';
+    if (!items.length) {
+        grid.innerHTML = '<p style="color:#3a4d6b;text-align:center;padding:40px;">No items in the store yet.</p>';
         return;
     }
-
-    grid.innerHTML = items.map(item => {
-        const lines = (item.description || "").split("\n").filter(l => l.trim());
-        const featuresHtml = lines.map(l => `<span>${l.trim()}</span>`).join("<br>");
-        return `
-            <div class="store-card">
-                <h3>${item.name}</h3>
-                <p>${featuresHtml}</p>
-                <div class="price">${item.price}</div>
-                <a href="/checkout/${item.id}"><button>Buy Now</button></a>
-            </div>
-        `;
-    }).join("");
+    grid.innerHTML = items.map(item => `
+        <div class="store-card">
+            <h3>${esc(item.name)}</h3>
+            <div class="store-price">${esc(item.price)}</div>
+            <p>${esc(item.description || "").replace(/\n/g, "<br>")}</p>
+            <a href="/checkout/${item.id}" class="store-btn">Buy Now</a>
+        </div>
+    `).join("");
 }
 
-init().catch(() => {
-    document.getElementById("store-grid").innerHTML =
-        '<p style="color:#f87171;text-align:center;padding:40px">Failed to load store items.</p>';
-});
+function esc(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+init();
 </script>
 
 </body>

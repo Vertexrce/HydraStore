@@ -29,6 +29,8 @@ async function setupDB() {
             price TEXT NOT NULL,
             description TEXT DEFAULT '',
             buy_link TEXT DEFAULT '',
+            stripe_link TEXT DEFAULT '',
+            paypal_link TEXT DEFAULT '',
             role_id TEXT DEFAULT '',
             sort_order INTEGER DEFAULT 0
         );
@@ -51,15 +53,17 @@ async function setupDB() {
     `);
 
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS role_id TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stripe_link TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS paypal_link TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE purchases ADD COLUMN IF NOT EXISTS discord_user_id TEXT DEFAULT ''`);
 
     const { rows } = await pool.query("SELECT COUNT(*) FROM store_items");
     if (parseInt(rows[0].count) === 0) {
         await pool.query(`
-            INSERT INTO store_items (name, price, description, buy_link, role_id, sort_order) VALUES
-            ('VIP', '£9.99', 'Priority Queue\nVIP Chat Tag\nStarter Kit\nDiscord Role', '', '', 1),
-            ('AK Kit', '£4.99', 'AK-47\nAmmo\nMedical Supplies', '', '', 2),
-            ('Builder Kit', '£2.99', 'Wood\nStone\nMetal', '', '', 3)
+            INSERT INTO store_items (name, price, description, buy_link, stripe_link, paypal_link, role_id, sort_order) VALUES
+            ('VIP', '£9.99', 'Priority Queue\nVIP Chat Tag\nStarter Kit\nDiscord Role', '', '', '', '', 1),
+            ('AK Kit', '£4.99', 'AK-47\nAmmo\nMedical Supplies', '', '', '', '', 2),
+            ('Builder Kit', '£2.99', 'Wood\nStone\nMetal', '', '', '', '', 3)
         `);
     }
 }
@@ -161,6 +165,8 @@ app.get("/api/checkout/:itemId", async (req, res) => {
             price: item.price,
             description: item.description,
             buyLink: item.buy_link,
+            stripeLink: item.stripe_link,
+            paypalLink: item.paypal_link,
             roleId: item.role_id,
             isAdmin: !!req.session.adminLoggedIn
         });
@@ -172,8 +178,10 @@ app.get("/api/checkout/:itemId", async (req, res) => {
 app.get("/buy/:itemId", async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
-        if (!rows[0] || !rows[0].buy_link) return res.redirect("/store.html");
+        if (!rows[0]) return res.redirect("/store.html");
         const item = rows[0];
+        const link = item.stripe_link || item.paypal_link || item.buy_link;
+        if (!link) return res.redirect("/store.html");
 
         await pool.query(
             "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
@@ -189,7 +197,57 @@ app.get("/buy/:itemId", async (req, res) => {
             `📝 Note: Customer clicked Buy Now — redirecting to payment`
         );
 
-        res.redirect(item.buy_link);
+        res.redirect(link);
+    } catch (e) {
+        res.redirect("/store.html");
+    }
+});
+
+app.get("/buy-stripe/:itemId", async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
+        if (!rows[0] || !rows[0].stripe_link) return res.redirect("/store.html");
+        const item = rows[0];
+
+        await pool.query(
+            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
+            [Date.now(), item.id, item.name, item.price, "click-stripe", "Customer clicked Pay with Card (Stripe)"]
+        );
+
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `🛒 **Stripe Purchase Initiated**\n` +
+            `📦 Item: **${item.name}**\n` +
+            `💷 Price: **${item.price}**\n` +
+            `🕐 Time: ${ts}`
+        );
+
+        res.redirect(item.stripe_link);
+    } catch (e) {
+        res.redirect("/store.html");
+    }
+});
+
+app.get("/buy-paypal/:itemId", async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
+        if (!rows[0] || !rows[0].paypal_link) return res.redirect("/store.html");
+        const item = rows[0];
+
+        await pool.query(
+            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
+            [Date.now(), item.id, item.name, item.price, "click-paypal", "Customer clicked Pay with PayPal"]
+        );
+
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `🛒 **PayPal Purchase Initiated**\n` +
+            `📦 Item: **${item.name}**\n` +
+            `💷 Price: **${item.price}**\n` +
+            `🕐 Time: ${ts}`
+        );
+
+        res.redirect(item.paypal_link);
     } catch (e) {
         res.redirect("/store.html");
     }
@@ -208,6 +266,8 @@ app.get("/api/store-items", async (req, res) => {
             price: r.price,
             description: r.description,
             buyLink: r.buy_link,
+            stripeLink: r.stripe_link || "",
+            paypalLink: r.paypal_link || "",
             roleId: r.role_id || ""
         })));
     } catch (e) {
@@ -225,13 +285,13 @@ app.post("/api/store-items", checkAdminJson, async (req, res) => {
             const numericId = item.id && Number(item.id) < 2000000000 ? Number(item.id) : null;
             if (numericId) {
                 await pool.query(
-                    "INSERT INTO store_items (id, name, price, description, buy_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-                    [numericId, item.name, item.price, item.description || "", item.buyLink || "", item.roleId || "", i]
+                    "INSERT INTO store_items (id, name, price, description, buy_link, stripe_link, paypal_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+                    [numericId, item.name, item.price, item.description || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", i]
                 );
             } else {
                 await pool.query(
-                    "INSERT INTO store_items (name, price, description, buy_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6)",
-                    [item.name, item.price, item.description || "", item.buyLink || "", item.roleId || "", i]
+                    "INSERT INTO store_items (name, price, description, buy_link, stripe_link, paypal_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+                    [item.name, item.price, item.description || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", i]
                 );
             }
         }

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop Admin — Vertex 6X</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -132,6 +133,30 @@
             color: #555;
             text-transform: uppercase;
             letter-spacing: 0.8px;
+        }
+        .field label .badge-stripe {
+            display: inline-block;
+            background: #635bff22;
+            color: #635bff;
+            border: 1px solid #635bff44;
+            border-radius: 3px;
+            font-size: 9px;
+            padding: 1px 5px;
+            margin-left: 5px;
+            letter-spacing: 0.5px;
+            vertical-align: middle;
+        }
+        .field label .badge-paypal {
+            display: inline-block;
+            background: #ffc43922;
+            color: #c98f00;
+            border: 1px solid #ffc43944;
+            border-radius: 3px;
+            font-size: 9px;
+            padding: 1px 5px;
+            margin-left: 5px;
+            letter-spacing: 0.5px;
+            vertical-align: middle;
         }
         .field input,
         .field textarea,
@@ -311,7 +336,7 @@
         <div class="section-head">
             <div>
                 <h2>Product Editor</h2>
-                <p>Create or update store items. Set a Discord Role ID to automatically assign roles on bypass.</p>
+                <p>Create or update store items. Add Stripe and/or PayPal links — customers will see both payment options.</p>
             </div>
             <div class="section-head-actions">
                 <span style="font-size:12px;color:#444;align-self:center;" id="item-count"></span>
@@ -339,9 +364,17 @@
             </div>
             <div class="grid-2">
                 <div class="field">
-                    <label>Buy Now Link (PayPal / Stripe / etc.)</label>
-                    <input type="url" id="new-link" placeholder="https://paypal.me/yourlink">
+                    <label>Stripe Payment Link <span class="badge-stripe">STRIPE</span></label>
+                    <input type="url" id="new-stripe-link" placeholder="https://buy.stripe.com/...">
+                    <span class="hint">From Stripe Dashboard → Payment Links</span>
                 </div>
+                <div class="field">
+                    <label>PayPal Link <span class="badge-paypal">PAYPAL</span></label>
+                    <input type="url" id="new-paypal-link" placeholder="https://paypal.me/...">
+                    <span class="hint">PayPal.me link or PayPal button URL</span>
+                </div>
+            </div>
+            <div class="grid-1">
                 <div class="field">
                     <label>Description (one feature per line)</label>
                     <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit"></textarea>
@@ -418,9 +451,17 @@ function renderItems() {
             </div>
             <div class="grid-2">
                 <div class="field">
-                    <label>Buy Now Link (PayPal / Stripe / etc.)</label>
-                    <input type="url" value="${esc(item.buyLink || '')}" oninput="items[${i}].buyLink = this.value" placeholder="https://paypal.me/yourlink">
+                    <label>Stripe Payment Link <span class="badge-stripe">STRIPE</span></label>
+                    <input type="url" value="${esc(item.stripeLink || '')}" oninput="items[${i}].stripeLink = this.value" placeholder="https://buy.stripe.com/...">
+                    <span class="hint">From Stripe Dashboard → Payment Links</span>
                 </div>
+                <div class="field">
+                    <label>PayPal Link <span class="badge-paypal">PAYPAL</span></label>
+                    <input type="url" value="${esc(item.paypalLink || '')}" oninput="items[${i}].paypalLink = this.value" placeholder="https://paypal.me/...">
+                    <span class="hint">PayPal.me link or PayPal button URL</span>
+                </div>
+            </div>
+            <div class="grid-1">
                 <div class="field">
                     <label>Description (one feature per line)</label>
                     <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2">${esc(item.description || '')}</textarea>
@@ -438,15 +479,17 @@ function addItem() {
     const name = document.getElementById("new-name").value.trim();
     const price = document.getElementById("new-price").value.trim();
     const description = document.getElementById("new-desc").value.trim();
-    const buyLink = document.getElementById("new-link").value.trim();
+    const stripeLink = document.getElementById("new-stripe-link").value.trim();
+    const paypalLink = document.getElementById("new-paypal-link").value.trim();
     const roleId = document.getElementById("new-role-id").value.trim();
     if (!name || !price) { alert("Please enter a name and price."); return; }
-    items.push({ id: null, name, price, description, buyLink, roleId });
+    items.push({ id: null, name, price, description, buyLink: "", stripeLink, paypalLink, roleId });
     renderItems();
     document.getElementById("new-name").value = "";
     document.getElementById("new-price").value = "";
     document.getElementById("new-desc").value = "";
-    document.getElementById("new-link").value = "";
+    document.getElementById("new-stripe-link").value = "";
+    document.getElementById("new-paypal-link").value = "";
     document.getElementById("new-role-id").value = "";
     setStatus("", "");
 }
