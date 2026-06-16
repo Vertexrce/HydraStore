@@ -311,41 +311,17 @@
         <div class="section-head">
             <div>
                 <h2>🖥️ Game Servers</h2>
-                <p>Add your Rust server RCON credentials. These are used to deliver kits in-game.</p>
+                <p>Servers are managed via <strong>/game-server add</strong> in your Discord bot. They appear here automatically once configured.</p>
             </div>
             <div class="section-head-actions">
-                <button class="btn btn-blue btn-sm" onclick="saveServers()">💾 Save Servers</button>
+                <button class="btn btn-blue btn-sm" onclick="loadServers()">🔄 Refresh</button>
             </div>
         </div>
-
-        <div class="add-panel">
-            <h3>+ Add Server</h3>
-            <div class="grid-3">
-                <div class="field">
-                    <label>Server Name</label>
-                    <input type="text" id="new-srv-name" placeholder="e.g. EU Main">
-                </div>
-                <div class="field">
-                    <label>RCON Host / IP</label>
-                    <input type="text" id="new-srv-host" placeholder="123.45.67.89">
-                </div>
-                <div class="field">
-                    <label>RCON Port</label>
-                    <input type="number" id="new-srv-port" placeholder="28016" value="28016">
-                </div>
-            </div>
-            <div class="grid-1">
-                <div class="field">
-                    <label>RCON Password</label>
-                    <input type="password" id="new-srv-pass" placeholder="Your server RCON password" autocomplete="off">
-                    <span class="hint">This is stored securely. Find it in your server startup parameters (rcon.password).</span>
-                </div>
-            </div>
-            <button class="btn btn-blue" onclick="addServer()">+ Add Server</button>
+        <div style="background:#060d1a;border:1px solid #1a2e52;border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:#2a4a7f;line-height:1.7;">
+            💡 To add a server: use <code style="color:#4d8dff;background:#0c1628;padding:1px 6px;border-radius:4px;">/game-server add</code> in Discord, then click <strong>Refresh</strong> above.
+            The server will appear in the Kits Config dropdown automatically.
         </div>
-
         <div id="servers-list"></div>
-        <span id="servers-status" style="font-size:13px;color:#2a4a7f;display:block;margin-top:8px;"></span>
     </div>
 
     <!-- ── Kits Config ── -->
@@ -649,7 +625,7 @@ loadCredits();
 loadServers();
 loadKits();
 
-/* ── Game Servers ── */
+/* ── Game Servers (read-only from bot SQLite) ── */
 let servers = [];
 
 async function loadServers() {
@@ -662,77 +638,36 @@ async function loadServers() {
 
 function renderServers() {
     const list = document.getElementById("servers-list");
-    if (!servers.length) { list.innerHTML = '<div class="empty">No servers added yet.</div>'; return; }
-    list.innerHTML = servers.map((s, i) => `
-        <div class="item-card">
+    if (!servers.length) {
+        list.innerHTML = '<div class="empty">No servers found. Use <strong>/game-server add</strong> in Discord to add one, then click Refresh.</div>';
+        return;
+    }
+    list.innerHTML = servers.map(s => `
+        <div class="item-card" style="opacity:1">
             <div class="item-card-header">
-                <span class="item-label">🖥️ ${esc(s.name)}</span>
-                <button class="btn btn-danger btn-sm" onclick="deleteServer(${i})">🗑 Delete</button>
+                <span class="item-label">🖥️ ${esc(s.name)}${s.region ? ` <span style="font-size:11px;color:#2a4070;font-weight:400;margin-left:4px;">${esc(s.region)}</span>` : ""}</span>
+                <span style="font-size:11px;color:#1e3060;font-family:monospace;">ID: ${esc(s.id)}</span>
             </div>
-            <div class="grid-3">
-                <div class="field">
-                    <label>Name</label>
-                    <input type="text" value="${esc(s.name)}" oninput="servers[${i}].name=this.value;refreshServerDropdown()">
-                </div>
-                <div class="field">
-                    <label>RCON Host</label>
-                    <input type="text" value="${esc(s.rconHost)}" oninput="servers[${i}].rconHost=this.value">
-                </div>
-                <div class="field">
-                    <label>RCON Port</label>
-                    <input type="number" value="${s.rconPort||28016}" oninput="servers[${i}].rconPort=this.value">
-                </div>
-            </div>
-            <div class="field">
-                <label>RCON Password</label>
-                <input type="password" placeholder="(unchanged)" autocomplete="off" oninput="servers[${i}].rconPassword=this.value">
+            <div style="font-size:13px;color:#2a4070;margin-top:4px;">
+                🔌 ${esc(s.rconHost)}:${s.rconPort || 28016}
             </div>
         </div>`).join("");
 }
 
 function refreshServerDropdown() {
-    const sel = document.getElementById("new-kit-server");
-    if (!sel) return;
-    const current = sel.value;
-    sel.innerHTML = '<option value="">— Select server —</option>' +
-        servers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
-    if (current) sel.value = current;
-}
-
-function addServer() {
-    const name = document.getElementById("new-srv-name").value.trim();
-    const rconHost = document.getElementById("new-srv-host").value.trim();
-    const rconPort = document.getElementById("new-srv-port").value.trim() || "28016";
-    const rconPassword = document.getElementById("new-srv-pass").value.trim();
-    if (!name || !rconHost) { alert("Server name and RCON host are required."); return; }
-    servers.push({ name, rconHost, rconPort, rconPassword });
-    renderServers();
-    refreshServerDropdown();
-    ["new-srv-name","new-srv-host","new-srv-pass"].forEach(id => document.getElementById(id).value = "");
-    document.getElementById("new-srv-port").value = "28016";
-}
-
-function deleteServer(i) {
-    if (!confirm(`Delete server "${servers[i].name}"?`)) return;
-    servers.splice(i, 1);
-    renderServers();
-    refreshServerDropdown();
-}
-
-async function saveServers() {
-    const statusEl = document.getElementById("servers-status");
-    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Saving…";
-    try {
-        const res = await fetch("/api/admin/game-servers", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(servers) });
-        if (res.ok) {
-            statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Servers saved!";
-            await loadServers();
-        } else {
-            const d = await res.json();
-            statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${d.error}`;
-        }
-    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
-    setTimeout(() => statusEl.textContent = "", 3000);
+    document.querySelectorAll(".kit-server-select").forEach(sel => {
+        const current = sel.dataset.current;
+        sel.innerHTML = '<option value="">— Select server —</option>' +
+            servers.map(s => `<option value="${s.id}" ${s.id === current ? "selected" : ""}>${esc(s.name)}</option>`).join("");
+        if (current) sel.value = current;
+    });
+    const addSel = document.getElementById("new-kit-server");
+    if (addSel) {
+        const cur = addSel.value;
+        addSel.innerHTML = '<option value="">— Select server —</option>' +
+            servers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+        if (cur) addSel.value = cur;
+    }
 }
 
 /* ── Kits Config ── */
@@ -773,9 +708,9 @@ function renderKitsAdmin() {
             <div class="grid-2">
                 <div class="field">
                     <label>Game Server</label>
-                    <select onchange="kits[${i}].serverId=this.value||null">
+                    <select class="kit-server-select" data-current="${esc(k.botServerId||'')}" onchange="kits[${i}].botServerId=this.value||''">
                         <option value="">— Select server —</option>
-                        ${servers.map(s => `<option value="${s.id}" ${String(k.serverId)===String(s.id)?"selected":""}>${esc(s.name)}</option>`).join("")}
+                        ${servers.map(s => `<option value="${s.id}" ${(k.botServerId||'')===String(s.id)?"selected":""}>${esc(s.name)}</option>`).join("")}
                     </select>
                 </div>
                 <div class="field">
@@ -790,11 +725,11 @@ function addKit() {
     const name = document.getElementById("new-kit-name").value.trim();
     const requiredRoleId = document.getElementById("new-kit-role").value.trim();
     const cooldownMinutes = parseInt(document.getElementById("new-kit-cd").value) || 60;
-    const serverId = document.getElementById("new-kit-server").value || null;
+    const botServerId = document.getElementById("new-kit-server").value || "";
     const description = document.getElementById("new-kit-desc").value.trim();
     if (!name) { alert("Kit name is required — it must match the exact in-game kit name."); return; }
-    if (!serverId) { alert("Please select a game server for this kit."); return; }
-    kits.push({ name, requiredRoleId, cooldownMinutes, serverId, description, enabled: true });
+    if (!botServerId) { alert("Please select a game server for this kit."); return; }
+    kits.push({ name, requiredRoleId, cooldownMinutes, botServerId, description, enabled: true });
     renderKitsAdmin();
     ["new-kit-name","new-kit-role","new-kit-desc"].forEach(id => document.getElementById(id).value = "");
     document.getElementById("new-kit-cd").value = "60";
