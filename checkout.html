@@ -15,7 +15,6 @@
         min-height: 100vh;
     }
 
-    /* ── Navbar ── */
     nav {
         background: rgba(8, 12, 20, 0.92);
         border-bottom: 1px solid #111d35;
@@ -29,50 +28,15 @@
         z-index: 100;
         backdrop-filter: blur(10px);
     }
-    .nav-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-    }
-    .nav-logo img {
-        height: 32px;
-        width: auto;
-        display: block;
-    }
-    .nav-logo-text {
-        font-size: 16px;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: 0.5px;
-    }
-    .nav-links {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-        list-style: none;
-    }
-    .nav-links a {
-        color: #6b80a8;
-        text-decoration: none;
-        font-size: 14px;
-        padding: 6px 14px;
-        border-radius: 6px;
-        transition: color 0.15s, background 0.15s;
-    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 32px; width: auto; display: block; }
+    .nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+    .nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
+    .nav-links a { color: #6b80a8; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
     .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
-    .nav-cog {
-        color: #334155;
-        text-decoration: none;
-        font-size: 18px;
-        padding: 6px 8px;
-        border-radius: 6px;
-        transition: color 0.15s;
-        line-height: 1;
-    }
+    .nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
     .nav-cog:hover { color: #4d8dff; }
 
-    /* ── Page layout ── */
     .page {
         min-height: calc(100vh - 62px);
         display: flex;
@@ -80,17 +44,7 @@
         align-items: center;
         padding: 48px 20px 80px;
     }
-    .back-link {
-        align-self: flex-start;
-        max-width: 560px;
-        width: 100%;
-        margin: 0 auto 24px;
-        display: block;
-        color: #3a4d6b;
-        text-decoration: none;
-        font-size: 13px;
-        transition: color 0.15s;
-    }
+    .back-link { align-self: flex-start; max-width: 560px; width: 100%; margin: 0 auto 24px; display: block; color: #3a4d6b; text-decoration: none; font-size: 13px; transition: color 0.15s; }
     .back-link:hover { color: #4d8dff; }
 
     /* ── Checkout card ── */
@@ -98,11 +52,19 @@
         background: #0c1628;
         border: 1px solid #162240;
         border-radius: 16px;
-        padding: 36px 40px;
+        overflow: hidden;
         width: 100%;
         max-width: 560px;
         margin-bottom: 16px;
     }
+    .checkout-card-img {
+        width: 100%;
+        max-height: 220px;
+        object-fit: cover;
+        display: block;
+    }
+    .checkout-card-body { padding: 32px 36px; }
+
     .item-tag {
         display: inline-block;
         font-size: 10px;
@@ -116,227 +78,93 @@
         padding: 3px 8px;
         margin-bottom: 14px;
     }
-    .item-name {
-        font-size: 30px;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: -0.5px;
-        margin-bottom: 4px;
-    }
-    .item-price {
-        font-size: 38px;
-        font-weight: 800;
-        color: #4d8dff;
-        letter-spacing: -1px;
-        margin-bottom: 24px;
-    }
-    .item-divider {
-        border: none;
-        border-top: 1px solid #0f1e38;
-        margin-bottom: 20px;
-    }
-    .item-features {
-        list-style: none;
-        margin-bottom: 28px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    .item-features li {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 14px;
-        color: #8aa0c8;
-    }
-    .item-features li::before {
-        content: '';
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #2a4a7f;
-        flex-shrink: 0;
+    .item-name { font-size: 30px; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .item-price { font-size: 38px; font-weight: 800; color: #4d8dff; letter-spacing: -1px; margin-bottom: 24px; }
+    .item-divider { border: none; border-top: 1px solid #0f1e38; margin-bottom: 20px; }
+    .item-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 8px; }
+    .item-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #8aa0c8; }
+    .item-features li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #2a4a7f; flex-shrink: 0; margin-top: 6px; }
+    .item-features img { max-width: 100%; border-radius: 6px; margin-top: 4px; }
+
+    /* ── Error banner ── */
+    .err-banner {
+        background: rgba(127,29,29,0.5);
+        border: 1px solid #7f1d1d;
+        border-radius: 8px;
+        color: #fca5a5;
+        font-size: 13px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        display: none;
     }
 
-    /* ── Payment buttons ── */
-    .pay-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
+    /* ── Pay buttons ── */
+    .pay-buttons { display: flex; flex-direction: column; gap: 12px; }
     .pay-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-        padding: 16px;
-        border: none;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: none;
-        text-align: center;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        width: 100%; padding: 16px;
+        border: none; border-radius: 10px;
+        font-size: 16px; font-weight: 700;
+        cursor: pointer; text-decoration: none; text-align: center;
         transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
     }
-    .pay-btn:hover {
-        opacity: 0.92;
-        transform: translateY(-1px);
-    }
+    .pay-btn:hover { opacity: 0.92; transform: translateY(-1px); }
     .pay-btn:active { transform: translateY(0); }
+    .pay-btn-stripe { background: linear-gradient(135deg, #635bff, #4f46e5); color: #fff; box-shadow: 0 4px 20px rgba(99,91,255,0.35); }
+    .pay-btn-stripe:hover { box-shadow: 0 6px 28px rgba(99,91,255,0.5); }
+    .pay-btn-paypal { background: linear-gradient(135deg, #ffc439, #f0a500); color: #1a1a1a; box-shadow: 0 4px 20px rgba(255,196,57,0.3); }
+    .pay-btn-paypal:hover { box-shadow: 0 6px 28px rgba(255,196,57,0.45); }
+    .pay-btn-credit { background: linear-gradient(135deg, #059669, #047857); color: #fff; box-shadow: 0 4px 20px rgba(5,150,105,0.3); }
+    .pay-btn-credit:hover { box-shadow: 0 6px 28px rgba(5,150,105,0.45); }
 
-    /* Stripe button — card blue */
-    .pay-btn-stripe {
-        background: linear-gradient(135deg, #635bff, #4f46e5);
-        color: #fff;
-        box-shadow: 0 4px 20px rgba(99, 91, 255, 0.35);
-    }
-    .pay-btn-stripe:hover { box-shadow: 0 6px 28px rgba(99, 91, 255, 0.5); }
-
-    /* PayPal button — PayPal gold */
-    .pay-btn-paypal {
-        background: linear-gradient(135deg, #ffc439, #f0a500);
-        color: #1a1a1a;
-        box-shadow: 0 4px 20px rgba(255, 196, 57, 0.3);
-    }
-    .pay-btn-paypal:hover { box-shadow: 0 6px 28px rgba(255, 196, 57, 0.45); }
-
-    /* Divider between buttons */
-    .pay-divider {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #1e2e4a;
-        font-size: 12px;
-    }
-    .pay-divider::before,
-    .pay-divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: #0f1e38;
-    }
+    .pay-divider { display: flex; align-items: center; gap: 12px; color: #1e2e4a; font-size: 12px; }
+    .pay-divider::before, .pay-divider::after { content: ''; flex: 1; height: 1px; background: #0f1e38; }
 
     .no-link-msg {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding: 16px;
-        background: #080f1c;
-        color: #2a3a55;
-        border: 1px dashed #0f1e38;
-        border-radius: 10px;
-        font-size: 14px;
-        gap: 8px;
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; padding: 16px;
+        background: #080f1c; color: #2a3a55;
+        border: 1px dashed #0f1e38; border-radius: 10px;
+        font-size: 14px; gap: 8px;
     }
 
+    /* ── Credit balance pill ── */
+    .credit-pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.3);
+        border-radius: 20px; padding: 6px 14px;
+        font-size: 13px; color: #34d399; font-weight: 600;
+        margin-bottom: 14px;
+    }
+
+    /* ── Credit result ── */
+    .credit-result { margin-top: 10px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; }
+    .credit-result.success { background: rgba(5,46,22,0.8); border: 1px solid #166534; color: #4ade80; }
+    .credit-result.error { background: rgba(45,10,10,0.8); border: 1px solid #7f1d1d; color: #f87171; }
+
     /* ── Admin bypass ── */
-    .bypass-card {
-        background: #0c1020;
-        border: 1px solid #261a40;
-        border-radius: 16px;
-        padding: 28px 40px;
-        width: 100%;
-        max-width: 560px;
-    }
-    .bypass-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 6px;
-    }
-    .bypass-header h3 {
-        font-size: 15px;
-        font-weight: 700;
-        color: #a78bfa;
-    }
-    .bypass-badge {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        color: #5b3fa0;
-        background: rgba(124, 58, 237, 0.12);
-        border: 1px solid #2e1a52;
-        border-radius: 4px;
-        padding: 2px 7px;
-    }
-    .bypass-desc {
-        font-size: 13px;
-        color: #3d3060;
-        margin-bottom: 18px;
-    }
-    .bypass-input {
-        background: #07090f;
-        border: 1px solid #1e1534;
-        border-radius: 8px;
-        color: #c4b5f8;
-        padding: 12px 14px;
-        font-size: 14px;
-        width: 100%;
-        outline: none;
-        margin-bottom: 12px;
-        transition: border-color 0.15s;
-        font-family: inherit;
-    }
+    .bypass-card { background: #0c1020; border: 1px solid #261a40; border-radius: 16px; padding: 28px 40px; width: 100%; max-width: 560px; }
+    .bypass-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .bypass-header h3 { font-size: 15px; font-weight: 700; color: #a78bfa; }
+    .bypass-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #5b3fa0; background: rgba(124,58,237,0.12); border: 1px solid #2e1a52; border-radius: 4px; padding: 2px 7px; }
+    .bypass-desc { font-size: 13px; color: #3d3060; margin-bottom: 18px; }
+    .bypass-input { background: #07090f; border: 1px solid #1e1534; border-radius: 8px; color: #c4b5f8; padding: 12px 14px; font-size: 14px; width: 100%; outline: none; margin-bottom: 12px; transition: border-color 0.15s; font-family: inherit; }
     .bypass-input:focus { border-color: #7c3aed; }
     .bypass-input::placeholder { color: #2a1f42; }
-    .bypass-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        padding: 13px;
-        background: linear-gradient(135deg, #6d28d9, #4f46e5);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: opacity 0.15s, transform 0.1s;
-        box-shadow: 0 4px 16px rgba(109, 40, 217, 0.3);
-    }
+    .bypass-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; background: linear-gradient(135deg,#6d28d9,#4f46e5); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.1s; box-shadow: 0 4px 16px rgba(109,40,217,0.3); }
     .bypass-btn:hover { opacity: 0.88; transform: translateY(-1px); }
     .bypass-btn:active { transform: translateY(0); }
     .bypass-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
-    .no-role-warn {
-        font-size: 11px;
-        color: #4a3520;
-        background: rgba(245, 158, 11, 0.06);
-        border: 1px solid #2a1e0a;
-        border-radius: 6px;
-        padding: 8px 12px;
-        margin-top: 12px;
-    }
+    .no-role-warn { font-size: 11px; color: #4a3520; background: rgba(245,158,11,0.06); border: 1px solid #2a1e0a; border-radius: 6px; padding: 8px 12px; margin-top: 12px; }
+    .result-box { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; }
+    .result-box.success { background: rgba(5,46,22,0.8); border: 1px solid #166534; color: #4ade80; }
+    .result-box.error { background: rgba(45,10,10,0.8); border: 1px solid #7f1d1d; color: #f87171; }
 
-    /* ── Result box ── */
-    .result-box {
-        margin-top: 12px;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        display: none;
-    }
-    .result-box.success { background: rgba(5, 46, 22, 0.8); border: 1px solid #166534; color: #4ade80; }
-    .result-box.error   { background: rgba(45, 10, 10, 0.8); border: 1px solid #7f1d1d; color: #f87171; }
-
-    /* ── Loading ── */
-    .loading {
-        text-align: center;
-        color: #1e2e4a;
-        padding: 80px 20px;
-        font-size: 15px;
-    }
+    .loading { text-align: center; color: #1e2e4a; padding: 80px 20px; font-size: 15px; }
 
     @media (max-width: 600px) {
         nav { padding: 0 20px; }
-        .checkout-card, .bypass-card { padding: 28px 22px; }
+        .checkout-card-body, .bypass-card { padding: 24px 20px; }
         .item-name { font-size: 24px; }
         .item-price { font-size: 30px; }
     }
@@ -358,6 +186,7 @@
 
 <div class="page">
     <a href="/store.html" class="back-link">← Back to Store</a>
+    <div id="err-banner" class="err-banner"></div>
     <div id="checkout-content">
         <div class="loading">Loading item…</div>
     </div>
@@ -365,6 +194,17 @@
 
 <script>
 const itemId = location.pathname.split("/").pop();
+
+// Show error from query string (e.g. ?err=no-stripe)
+const urlParams = new URLSearchParams(location.search);
+const errParam = urlParams.get("err");
+if (errParam) {
+    const banner = document.getElementById("err-banner");
+    banner.style.display = "block";
+    if (errParam === "no-stripe") banner.textContent = "⚠️ Stripe payment link hasn't been set up for this item yet. Please use PayPal or contact an admin.";
+    else if (errParam === "no-paypal") banner.textContent = "⚠️ PayPal link hasn't been set up for this item yet. Please use another payment method or contact an admin.";
+    else banner.textContent = "⚠️ Payment error. Please try another method or contact an admin.";
+}
 
 async function init() {
     try {
@@ -378,35 +218,59 @@ async function init() {
     }
 }
 
-function render(item) {
-    const lines = (item.description || "").split("\n").filter(l => l.trim());
-    const featuresHtml = lines.map(l => `<li>${esc(l.trim())}</li>`).join("");
+function renderDescription(desc) {
+    if (!desc) return "";
+    return desc.split("\n").filter(l => l.trim()).map(line => {
+        if (line.trim().startsWith("[img:") && line.trim().endsWith("]")) {
+            const url = line.trim().slice(5, -1).trim();
+            return `<li style="list-style:none;padding:0;"><img src="${esc(url)}" alt="Item image" style="max-width:100%;border-radius:6px;margin:4px 0;display:block;"></li>`;
+        }
+        return `<li>${esc(line.trim())}</li>`;
+    }).join("");
+}
 
+function render(item) {
     const hasStripe = !!item.stripeLink;
     const hasPaypal = !!item.paypalLink;
+    const hasCredit = item.isLoggedIn && item.creditBalance > 0;
+
+    // Parse price
+    const priceNum = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+    const canUseCredit = hasCredit && !isNaN(priceNum) && item.creditBalance >= priceNum;
 
     let payHtml = "";
-    if (!hasStripe && !hasPaypal) {
+    if (!hasStripe && !hasPaypal && !canUseCredit) {
         payHtml = `<div class="no-link-msg">⏳ Payment link not set up yet — contact admin</div>`;
     } else {
-        const buttons = [];
-        if (hasStripe) {
-            buttons.push(`<a href="/buy-stripe/${item.id}" class="pay-btn pay-btn-stripe">
-                <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="6" fill="#635bff"/><path d="M14.5 11.5c0-1.1.9-1.5 2.4-1.5 2.1 0 4.8.7 6.6 1.8V6.3C21.5 5.5 19.3 5 17 5c-4.4 0-7.3 2.3-7.3 6.2 0 6 8.3 5 8.3 7.6 0 1.3-1.1 1.7-2.7 1.7-2.3 0-5.3-.9-7.3-2.2v5.6C10 24.9 12.5 25.5 15 25.5c4.5 0 7.6-2.2 7.6-6.2-.1-6.5-8.1-5.3-8.1-7.8z" fill="white"/></svg>
-                Pay with Card
-            </a>`);
+        const parts = [];
+        if (hasStripe) parts.push(`<a href="/buy-stripe/${item.id}" class="pay-btn pay-btn-stripe">
+            <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="6" fill="#635bff"/><path d="M14.5 11.5c0-1.1.9-1.5 2.4-1.5 2.1 0 4.8.7 6.6 1.8V6.3C21.5 5.5 19.3 5 17 5c-4.4 0-7.3 2.3-7.3 6.2 0 6 8.3 5 8.3 7.6 0 1.3-1.1 1.7-2.7 1.7-2.3 0-5.3-.9-7.3-2.2v5.6C10 24.9 12.5 25.5 15 25.5c4.5 0 7.6-2.2 7.6-6.2-.1-6.5-8.1-5.3-8.1-7.8z" fill="white"/></svg>
+            Pay with Card (Stripe)
+        </a>`);
+        if (hasStripe && hasPaypal) parts.push(`<div class="pay-divider">or</div>`);
+        if (hasPaypal) parts.push(`<a href="/buy-paypal/${item.id}" class="pay-btn pay-btn-paypal">
+            <svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M25.9 8.2C25.3 5.2 22.8 4 19.5 4H10.3c-.6 0-1.1.4-1.2 1L5.4 25.4c-.1.4.2.8.6.8h4.6l1.1-7.1-.1.3c.1-.6.6-1 1.2-1h2.5c4.9 0 8.7-2 9.8-7.7.1-.3.1-.6.1-.9.3.2.3.2.3.4.1-.4.1-.8 0-1z" fill="#003087"/><path d="M25.9 8.2c0 .3-.1.6-.1.9-1.1 5.7-4.9 7.7-9.8 7.7h-2.5c-.6 0-1.1.4-1.2 1l-1.7 10.6c-.1.4.2.7.6.7h4c.5 0 1-.4 1.1-.9l.1-.3.8-5.2.1-.3c.1-.5.6-.9 1.1-.9h.7c4.4 0 7.8-1.8 8.8-6.9.4-2.1.2-3.9-.8-5.1-.3-.1-.7-.3-1.2-.3z" fill="#009cde"/></svg>
+            Pay with PayPal
+        </a>`);
+        if (canUseCredit) {
+            if (parts.length) parts.push(`<div class="pay-divider">or</div>`);
+            parts.push(`
+                <button class="pay-btn pay-btn-credit" id="credit-pay-btn" onclick="payWithCredits(${item.id})">
+                    💰 Pay with Store Credits (£${item.creditBalance.toFixed(2)} available)
+                </button>
+                <div class="credit-result" id="credit-result"></div>
+            `);
+        } else if (item.isLoggedIn && hasCredit && !canUseCredit) {
+            parts.push(`<p style="font-size:12px;color:#2a4a6a;text-align:center;margin-top:4px;">💰 You have £${item.creditBalance.toFixed(2)} credits — not enough for this item (£${isNaN(priceNum) ? item.price : priceNum.toFixed(2)})</p>`);
+        } else if (!item.isLoggedIn) {
+            parts.push(`<p style="font-size:12px;color:#2a4a6a;text-align:center;margin-top:4px;"><a href="/auth/discord" style="color:#4d8dff;">Login with Discord</a> to use store credits</p>`);
         }
-        if (hasStripe && hasPaypal) {
-            buttons.push(`<div class="pay-divider">or</div>`);
-        }
-        if (hasPaypal) {
-            buttons.push(`<a href="/buy-paypal/${item.id}" class="pay-btn pay-btn-paypal">
-                <svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M25.9 8.2C25.3 5.2 22.8 4 19.5 4H10.3c-.6 0-1.1.4-1.2 1L5.4 25.4c-.1.4.2.8.6.8h4.6l1.1-7.1-.1.3c.1-.6.6-1 1.2-1h2.5c4.9 0 8.7-2 9.8-7.7.1-.3.1-.6.1-.9.3.2.3.2.3.4.1-.4.1-.8 0-1z" fill="#003087"/><path d="M25.9 8.2c0 .3-.1.6-.1.9-1.1 5.7-4.9 7.7-9.8 7.7h-2.5c-.6 0-1.1.4-1.2 1l-1.7 10.6c-.1.4.2.7.6.7h4c.5 0 1-.4 1.1-.9l.1-.3.8-5.2.1-.3c.1-.5.6-.9 1.1-.9h.7c4.4 0 7.8-1.8 8.8-6.9.4-2.1.2-3.9-.8-5.1-.3-.1-.7-.3-1.2-.3z" fill="#009cde"/><path d="M24.7 7.7c-.2-.1-.4-.1-.6-.2s-.4-.1-.7-.1c-.8-.1-1.7-.2-2.7-.2h-7.9c-.2 0-.4.1-.6.2-.4.2-.6.6-.7 1l-1.7 10.5-.1.3c.1-.6.6-1 1.2-1h2.5c4.9 0 8.7-2 9.8-7.7.1-.3.1-.6.1-.9-.3-.1-.5-.2-.7-.2-.2-.4-.4-.5-.9-.7z" fill="#012169"/></svg>
-                Pay with PayPal
-            </a>`);
-        }
-        payHtml = `<div class="pay-buttons">${buttons.join("")}</div>`;
+        payHtml = `<div class="pay-buttons">${parts.join("")}</div>`;
     }
+
+    const creditPill = item.isLoggedIn && item.creditBalance > 0
+        ? `<div class="credit-pill">💰 Store Credits: £${item.creditBalance.toFixed(2)}</div>`
+        : "";
 
     const noRoleWarning = !item.roleId
         ? `<p class="no-role-warn">⚠️ No role ID configured for this item. Add one in the admin panel to enable auto role assignment.</p>`
@@ -419,18 +283,9 @@ function render(item) {
                 <span class="bypass-badge">Admin Only</span>
             </div>
             <p class="bypass-desc">Enter the customer's Discord User ID to skip payment and assign their role instantly.</p>
-            <input
-                class="bypass-input"
-                id="discord-user-id"
-                type="text"
-                placeholder="Discord User ID  (e.g. 123456789012345678)"
-                autocomplete="off"
-            >
-            <button
-                class="bypass-btn"
-                id="bypass-btn"
-                onclick="doBypass('${escJs(item.name)}', '${escJs(item.price)}', ${item.id}, '${escJs(item.roleId || "")}')"
-            >
+            <input class="bypass-input" id="discord-user-id" type="text" placeholder="Discord User ID  (e.g. 123456789012345678)" autocomplete="off">
+            <button class="bypass-btn" id="bypass-btn"
+                onclick="doBypass('${escJs(item.name)}', '${escJs(item.price)}', ${item.id}, '${escJs(item.roleId || "")}')">
                 ⚡ Bypass &amp; Assign Role
             </button>
             ${noRoleWarning}
@@ -438,14 +293,22 @@ function render(item) {
         </div>
     ` : "";
 
+    const imgHtml = item.imageUrl
+        ? `<img class="checkout-card-img" src="${esc(item.imageUrl)}" alt="${esc(item.name)}" onerror="this.style.display='none'">`
+        : "";
+
     document.getElementById("checkout-content").innerHTML = `
         <div class="checkout-card">
-            <span class="item-tag">Vertex 6X Store</span>
-            <div class="item-name">${esc(item.name)}</div>
-            <div class="item-price">${esc(item.price)}</div>
-            <hr class="item-divider">
-            ${featuresHtml ? `<ul class="item-features">${featuresHtml}</ul>` : ""}
-            ${payHtml}
+            ${imgHtml}
+            <div class="checkout-card-body">
+                <span class="item-tag">${esc(item.category || "Vertex 6X Store")}</span>
+                <div class="item-name">${esc(item.name)}</div>
+                <div class="item-price">${esc(item.price)}</div>
+                <hr class="item-divider">
+                ${item.description ? `<ul class="item-features">${renderDescription(item.description)}</ul>` : ""}
+                ${creditPill}
+                ${payHtml}
+            </div>
         </div>
         ${bypassSection}
     `;
@@ -458,16 +321,47 @@ function escJs(str) {
     return String(str || "").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
 }
 
+async function payWithCredits(itemId) {
+    const btn = document.getElementById("credit-pay-btn");
+    const resultEl = document.getElementById("credit-result");
+    btn.disabled = true;
+    btn.textContent = "Processing…";
+    resultEl.style.display = "none";
+    try {
+        const res = await fetch("/api/pay-with-credits", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ itemId })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            resultEl.className = "credit-result success";
+            resultEl.textContent = `✓ Purchase successful! ${data.roleAssigned ? "Role assigned!" : ""} Remaining credits: £${data.newBalance.toFixed(2)}`;
+            btn.style.display = "none";
+        } else {
+            resultEl.className = "credit-result error";
+            resultEl.textContent = `✗ ${data.error}`;
+            btn.disabled = false;
+            btn.textContent = "💰 Pay with Store Credits";
+        }
+        resultEl.style.display = "block";
+    } catch {
+        resultEl.className = "credit-result error";
+        resultEl.textContent = "✗ Network error. Try again.";
+        resultEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "💰 Pay with Store Credits";
+    }
+}
+
 async function doBypass(itemName, itemPrice, itemId, roleId) {
     const discordUserId = document.getElementById("discord-user-id").value.trim();
     if (!discordUserId) { alert("Please enter a Discord User ID first."); return; }
-
     const btn = document.getElementById("bypass-btn");
     const resultBox = document.getElementById("bypass-result");
     btn.disabled = true;
     btn.textContent = "Processing…";
     resultBox.style.display = "none";
-
     try {
         const res = await fetch("/api/bypass-payment", {
             method: "POST",
@@ -475,22 +369,18 @@ async function doBypass(itemName, itemPrice, itemId, roleId) {
             body: JSON.stringify({ itemId, itemName, itemPrice, roleId, discordUserId })
         });
         const data = await res.json();
-
         if (res.ok) {
             resultBox.className = "result-box success";
-            if (data.roleAssigned) {
-                resultBox.textContent = `✓ Bypass recorded and role assigned to ${discordUserId}!`;
-            } else if (data.roleError) {
-                resultBox.textContent = `✓ Bypass recorded — but role failed: ${data.roleError}`;
-            } else {
-                resultBox.textContent = "✓ Bypass recorded! Set a role ID in the admin panel to enable auto role assignment.";
-            }
+            resultBox.textContent = data.roleAssigned
+                ? `✓ Bypass recorded and role assigned to ${discordUserId}!`
+                : data.roleError
+                ? `✓ Bypass recorded — but role failed: ${data.roleError}`
+                : "✓ Bypass recorded!";
         } else {
             resultBox.className = "result-box error";
             resultBox.textContent = `✗ ${data.error || "Bypass failed — are you logged in as admin?"}`;
         }
         resultBox.style.display = "block";
-
         if (res.ok) {
             setTimeout(() => {
                 btn.disabled = false;

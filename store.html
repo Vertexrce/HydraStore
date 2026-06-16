@@ -6,31 +6,6 @@
 <title>Vertex 6X Store</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<nav class="navbar">
-    <div class="logo">
-        <img src="vertex-logo.png" alt="Vertex 6X">
-    </div>
-    <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="store.html">Store</a></li>
-    </ul>
-    <a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
-</nav>
-
-<section class="store-page">
-    <h1>Vertex 6X Store</h1>
-    <div id="admin-banner" style="display:none;background:#0c172b;border:1px solid #2563eb;border-radius:10px;padding:12px 20px;margin-bottom:24px;color:#4d8dff;font-size:14px;">
-        ⚙️ <strong>Admin mode</strong> — Bypass Payment buttons appear on the checkout page for each item.
-        <a href="/admin" style="color:#4d8dff;margin-left:12px;">Go to Admin Panel →</a>
-    </div>
-    <div class="store-grid" id="store-grid">
-        <div class="store-card" style="opacity:0.5"><h3>Loading...</h3></div>
-    </div>
-</section>
-
 <style>
 .admin-cog-btn {
     font-size: 22px;
@@ -45,36 +20,310 @@
     color: #4d8dff;
     background: rgba(37, 99, 235, 0.12);
 }
+
+/* ── Category tabs ── */
+.category-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+}
+.category-tab {
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1px solid #1a2e52;
+    background: transparent;
+    color: #4d6a9a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+}
+.category-tab:hover {
+    border-color: #2a4a8a;
+    color: #7aa0d4;
+    background: rgba(77,141,255,0.05);
+}
+.category-tab.active {
+    background: #1a3a7a;
+    border-color: #2a5abf;
+    color: #fff;
+}
+
+/* ── Category section ── */
+.category-section {
+    margin-bottom: 48px;
+}
+.category-section.hidden { display: none; }
+.category-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #2a4a7f;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #0f1e38;
+}
+
+/* ── Store cards ── */
+.store-grid-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.store-card-v2 {
+    background: #0c1628;
+    border: 1px solid #162240;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, transform 0.15s;
+}
+.store-card-v2:hover {
+    border-color: #2a4a8a;
+    transform: translateY(-2px);
+}
+
+.store-card-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    background: #070e1c;
+}
+.store-card-img.hidden { display: none; }
+
+.store-card-body {
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.store-card-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+}
+
+.store-card-price {
+    font-size: 26px;
+    font-weight: 800;
+    color: #4d8dff;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+}
+
+.store-card-desc {
+    font-size: 13px;
+    color: #5a7299;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex: 1;
+}
+.store-card-desc img {
+    max-width: 100%;
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.store-buy-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 0;
+    background: linear-gradient(135deg, #2563eb, #1a4fd8);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.3);
+    letter-spacing: 0.2px;
+}
+.store-buy-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.45);
+}
+.store-buy-btn:active { transform: translateY(0); }
+
+/* ── Admin banner ── */
+.admin-banner {
+    display: none;
+    background: #0c172b;
+    border: 1px solid #2563eb;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin-bottom: 28px;
+    color: #4d8dff;
+    font-size: 14px;
+}
+
+/* ── Empty ── */
+.empty-cat {
+    color: #1e2e4a;
+    font-size: 14px;
+    padding: 32px 0;
+    text-align: center;
+}
+
+/* ── Store page wrapper ── */
+.store-page-v2 {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+}
+.store-page-v2 h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 28px;
+    letter-spacing: -0.5px;
+}
 </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <img src="vertex-logo.png" alt="Vertex 6X">
+    </div>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="store.html">Store</a></li>
+    </ul>
+    <a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
+</nav>
+
+<div class="store-page-v2">
+    <h1>Vertex 6X Store</h1>
+
+    <div class="admin-banner" id="admin-banner">
+        ⚙️ <strong>Admin mode</strong> — Bypass Payment buttons appear on the checkout page for each item.
+        <a href="/admin" style="color:#4d8dff;margin-left:12px;">Go to Admin Panel →</a>
+    </div>
+
+    <!-- Category tabs -->
+    <div class="category-tabs" id="category-tabs">
+        <button class="category-tab active" data-cat="all" onclick="filterCat('all', this)">All Items</button>
+    </div>
+
+    <!-- Category sections -->
+    <div id="store-sections">
+        <div style="color:#1e2e4a;padding:60px;text-align:center;">Loading…</div>
+    </div>
+</div>
 
 <script>
+const CATEGORIES = ['Ranks', 'Kits', 'Extras', 'General'];
+let allItems = [];
+let activeFilter = 'all';
+
+function esc(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function renderDescription(desc) {
+    if (!desc) return "";
+    return desc.split("\n").filter(l => l.trim()).map(line => {
+        // Support [img:URL] syntax for inline images
+        if (line.trim().startsWith("[img:") && line.trim().endsWith("]")) {
+            const url = line.trim().slice(5, -1).trim();
+            return `<img src="${esc(url)}" alt="Item image" style="max-width:100%;border-radius:6px;margin-top:6px;display:block;">`;
+        }
+        return `<span>${esc(line.trim())}</span>`;
+    }).join("<br>");
+}
+
+function filterCat(cat, btn) {
+    activeFilter = cat;
+    document.querySelectorAll(".category-tab").forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".category-section").forEach(sec => {
+        if (cat === "all" || sec.dataset.cat === cat) {
+            sec.classList.remove("hidden");
+        } else {
+            sec.classList.add("hidden");
+        }
+    });
+}
+
+function renderSections(items) {
+    const sectionsEl = document.getElementById("store-sections");
+    const tabsEl = document.getElementById("category-tabs");
+
+    // Get present categories in order
+    const seen = new Set();
+    const cats = [];
+    for (const item of items) {
+        const c = item.category || "General";
+        if (!seen.has(c)) { seen.add(c); cats.push(c); }
+    }
+    // Sort by preferred order
+    const order = ["Ranks","Kits","Extras","General"];
+    cats.sort((a,b) => {
+        const ai = order.indexOf(a); const bi = order.indexOf(b);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+
+    // Rebuild tabs
+    tabsEl.innerHTML = `<button class="category-tab active" data-cat="all" onclick="filterCat('all', this)">All Items</button>`;
+    for (const cat of cats) {
+        tabsEl.innerHTML += `<button class="category-tab" data-cat="${esc(cat)}" onclick="filterCat('${esc(cat)}', this)">${esc(cat)}</button>`;
+    }
+
+    if (!items.length) {
+        sectionsEl.innerHTML = `<div class="empty-cat">No items in the store yet.</div>`;
+        return;
+    }
+
+    let html = "";
+    for (const cat of cats) {
+        const catItems = items.filter(i => (i.category || "General") === cat);
+        if (!catItems.length) continue;
+        html += `<div class="category-section" data-cat="${esc(cat)}">
+            <div class="category-title">${esc(cat)}</div>
+            <div class="store-grid-inner">
+                ${catItems.map(item => {
+                    const hasImg = !!item.imageUrl;
+                    return `
+                    <div class="store-card-v2">
+                        ${hasImg ? `<img class="store-card-img" src="${esc(item.imageUrl)}" alt="${esc(item.name)}" onerror="this.classList.add('hidden')">` : ""}
+                        <div class="store-card-body">
+                            <div class="store-card-name">${esc(item.name)}</div>
+                            <div class="store-card-price">${esc(item.price)}</div>
+                            <div class="store-card-desc">${renderDescription(item.description)}</div>
+                            <a href="/checkout/${item.id}" class="store-buy-btn">Buy Now</a>
+                        </div>
+                    </div>`;
+                }).join("")}
+            </div>
+        </div>`;
+    }
+    sectionsEl.innerHTML = html;
+}
+
 async function init() {
     const [statusRes, itemsRes] = await Promise.all([
         fetch("/api/admin-status"),
         fetch("/api/store-items")
     ]);
     const { isAdmin } = await statusRes.json();
-    const items = await itemsRes.json();
+    allItems = await itemsRes.json();
 
     if (isAdmin) document.getElementById("admin-banner").style.display = "block";
 
-    const grid = document.getElementById("store-grid");
-    if (!items.length) {
-        grid.innerHTML = '<p style="color:#3a4d6b;text-align:center;padding:40px;">No items in the store yet.</p>';
-        return;
-    }
-    grid.innerHTML = items.map(item => `
-        <div class="store-card">
-            <h3>${esc(item.name)}</h3>
-            <div class="store-price">${esc(item.price)}</div>
-            <p>${esc(item.description || "").replace(/\n/g, "<br>")}</p>
-            <a href="/checkout/${item.id}" class="store-btn">Buy Now</a>
-        </div>
-    `).join("");
-}
-
-function esc(str) {
-    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    renderSections(allItems);
 }
 
 init();

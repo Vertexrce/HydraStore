@@ -7,282 +7,98 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0e0e0e; color: #e0e0e0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
 
-        body {
-            background: #0e0e0e;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            min-height: 100vh;
-        }
+        .topbar { background: #111; border-bottom: 1px solid #222; padding: 18px 48px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .topbar-left h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+        .topbar-left p { font-size: 13px; color: #666; margin-top: 3px; max-width: 480px; }
+        .topbar-right { display: flex; gap: 10px; align-items: center; }
 
-        /* ── Top bar ── */
-        .topbar {
-            background: #111;
-            border-bottom: 1px solid #222;
-            padding: 18px 48px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .topbar-left h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: -0.5px;
-        }
-        .topbar-left p {
-            font-size: 13px;
-            color: #666;
-            margin-top: 3px;
-            max-width: 480px;
-        }
-        .topbar-right {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        /* ── Buttons ── */
-        .btn {
-            padding: 9px 20px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: opacity 0.15s, transform 0.1s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
+        .btn { padding: 9px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity 0.15s, transform 0.1s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
         .btn:hover { opacity: 0.85; }
         .btn:active { transform: scale(0.98); }
-
         .btn-red { background: #c0392b; color: #fff; }
         .btn-red:hover { background: #a93226; opacity: 1; }
+        .btn-green { background: #059669; color: #fff; }
+        .btn-green:hover { background: #047857; opacity: 1; }
         .btn-outline { background: transparent; color: #ccc; border: 1px solid #333; }
         .btn-outline:hover { border-color: #555; color: #fff; opacity: 1; }
         .btn-ghost { background: #1a1a1a; color: #aaa; border: 1px solid #2a2a2a; }
         .btn-ghost:hover { color: #fff; border-color: #444; opacity: 1; }
         .btn-sm { padding: 7px 14px; font-size: 12px; }
 
-        /* ── Main content ── */
-        .content {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 40px 48px 120px;
-        }
+        .content { max-width: 960px; margin: 0 auto; padding: 40px 48px 120px; }
 
-        /* ── Section block ── */
-        .section {
-            margin-bottom: 48px;
-        }
-        .section-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #1e1e1e;
-        }
-        .section-head h2 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: -0.3px;
-        }
-        .section-head p {
-            font-size: 13px;
-            color: #555;
-            margin-top: 4px;
-            max-width: 560px;
-        }
-        .section-head-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-            margin-left: 24px;
-        }
+        .section { margin-bottom: 48px; }
+        .section-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #1e1e1e; }
+        .section-head h2 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+        .section-head p { font-size: 13px; color: #555; margin-top: 4px; max-width: 560px; }
+        .section-head-actions { display: flex; gap: 8px; flex-shrink: 0; margin-left: 24px; }
 
-        /* ── Form panel ── */
-        .panel {
-            background: #141414;
-            border: 1px solid #1e1e1e;
-            border-radius: 10px;
-            padding: 28px;
-            margin-bottom: 16px;
-        }
+        .panel { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
 
-        /* ── Field grid ── */
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
-        .col-span-2 { grid-column: span 2; }
-        .col-span-3 { grid-column: span 3; }
 
-        /* ── Field ── */
         .field { display: flex; flex-direction: column; gap: 7px; }
-        .field label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-        .field label .badge-stripe {
-            display: inline-block;
-            background: #635bff22;
-            color: #635bff;
-            border: 1px solid #635bff44;
-            border-radius: 3px;
-            font-size: 9px;
-            padding: 1px 5px;
-            margin-left: 5px;
-            letter-spacing: 0.5px;
-            vertical-align: middle;
-        }
-        .field label .badge-paypal {
-            display: inline-block;
-            background: #ffc43922;
-            color: #c98f00;
-            border: 1px solid #ffc43944;
-            border-radius: 3px;
-            font-size: 9px;
-            padding: 1px 5px;
-            margin-left: 5px;
-            letter-spacing: 0.5px;
-            vertical-align: middle;
-        }
-        .field input,
-        .field textarea,
-        .field select {
-            background: #0e0e0e;
-            border: 1px solid #252525;
-            border-radius: 6px;
-            color: #e0e0e0;
-            padding: 10px 13px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.15s;
-            font-family: inherit;
-            width: 100%;
-        }
-        .field input:focus,
-        .field textarea:focus,
-        .field select:focus { border-color: #c0392b; }
-        .field input::placeholder,
-        .field textarea::placeholder { color: #3a3a3a; }
+        .field label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.8px; }
+        .field label .badge-stripe { display: inline-block; background: #635bff22; color: #635bff; border: 1px solid #635bff44; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
+        .field label .badge-paypal { display: inline-block; background: #ffc43922; color: #c98f00; border: 1px solid #ffc43944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
+        .field label .badge-credit { display: inline-block; background: #05966922; color: #34d399; border: 1px solid #05966944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
+        .field input, .field textarea, .field select { background: #0e0e0e; border: 1px solid #252525; border-radius: 6px; color: #e0e0e0; padding: 10px 13px; font-size: 14px; outline: none; transition: border-color 0.15s; font-family: inherit; width: 100%; }
+        .field input:focus, .field textarea:focus, .field select:focus { border-color: #c0392b; }
+        .field input::placeholder, .field textarea::placeholder { color: #3a3a3a; }
         .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-        .field select { appearance: none; cursor: pointer; }
+        .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
         .field .hint { font-size: 11px; color: #3a3a3a; margin-top: 2px; }
 
-        /* ── Item card ── */
-        .item-card {
-            background: #141414;
-            border: 1px solid #1e1e1e;
-            border-radius: 10px;
-            padding: 24px;
-            margin-bottom: 12px;
-            transition: border-color 0.2s;
-        }
+        .item-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 24px; margin-bottom: 12px; transition: border-color 0.2s; }
         .item-card:hover { border-color: #2e2e2e; }
-        .item-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .item-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .item-label { font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* ── Add item panel ── */
-        .add-panel {
-            background: #111;
-            border: 1px dashed #252525;
-            border-radius: 10px;
-            padding: 28px;
-            margin-bottom: 16px;
-        }
-        .add-panel h3 {
-            font-size: 14px;
-            font-weight: 700;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 20px;
-        }
+        .add-panel { background: #111; border: 1px dashed #252525; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
+        .add-panel h3 { font-size: 14px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; }
 
-        /* ── Purchases log ── */
-        .purchase-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            background: #141414;
-            border: 1px solid #1e1e1e;
-            border-radius: 8px;
-            padding: 14px 20px;
-            margin-bottom: 8px;
-        }
+        /* Credit rows */
+        .credit-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #141414; border: 1px solid #1e1e1e; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
+        .credit-row .cr-id { font-size: 13px; color: #7c5cbf; font-weight: 600; }
+        .credit-row .cr-balance { font-size: 20px; font-weight: 700; color: #34d399; }
+        .credit-row .cr-updated { font-size: 11px; color: #444; margin-top: 2px; }
+
+        .purchase-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #141414; border: 1px solid #1e1e1e; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
         .purchase-row .item-name { font-weight: 600; font-size: 15px; color: #fff; }
         .purchase-row .item-date { font-size: 12px; color: #444; margin-top: 3px; }
         .purchase-row .item-discord { font-size: 12px; color: #7c5cbf; margin-top: 2px; }
         .purchase-row .item-note { font-size: 12px; color: #3a3a3a; margin-top: 2px; }
         .purchase-row .item-price { font-size: 20px; font-weight: 700; color: #c0392b; }
 
-        /* ── Status bar ── */
-        .statusbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(14,14,14,0.97);
-            border-top: 1px solid #1e1e1e;
-            padding: 14px 48px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 14px;
-            backdrop-filter: blur(8px);
-        }
+        .statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(14,14,14,0.97); border-top: 1px solid #1e1e1e; padding: 14px 48px; display: flex; justify-content: flex-end; align-items: center; gap: 14px; backdrop-filter: blur(8px); }
         .status-msg { font-size: 13px; color: #444; }
         .status-msg.saved { color: #4ade80; }
         .status-msg.error { color: #f87171; }
 
-        /* ── Empty state ── */
         .empty { text-align: center; color: #333; padding: 40px; font-size: 14px; }
 
-        /* ── Divider ── */
-        .divider { border: none; border-top: 1px solid #1a1a1a; margin: 28px 0; }
+        /* Image preview */
+        .img-preview { margin-top: 8px; max-width: 100%; max-height: 120px; border-radius: 6px; display: none; border: 1px solid #252525; }
 
         @media (max-width: 700px) {
             .content { padding: 24px 20px 100px; }
             .topbar { padding: 14px 20px; }
             .topbar-left p { display: none; }
             .grid-3, .grid-2 { grid-template-columns: 1fr; }
-            .col-span-2, .col-span-3 { grid-column: span 1; }
             .statusbar { padding: 14px 20px; }
         }
     </style>
 </head>
 <body>
 
-<!-- Top bar -->
 <div class="topbar">
     <div class="topbar-left">
         <h1>Shop Admin</h1>
-        <p>Manage store items, Discord role settings, and bypass purchase logs.</p>
+        <p>Manage store items, categories, store credits, and bypass purchase logs.</p>
     </div>
     <div class="topbar-right">
         <a href="/" class="btn btn-outline">← Back to Site</a>
@@ -304,7 +120,6 @@
                 <button class="btn btn-red btn-sm" onclick="saveSettings()">Save Settings</button>
             </div>
         </div>
-
         <div class="panel">
             <div class="grid-3">
                 <div class="field">
@@ -322,13 +137,46 @@
                     <span class="hint">Channel where logs are sent</span>
                 </div>
             </div>
-            <p style="font-size:12px;color:#333;margin-top:4px;">
-                Bot needs <strong style="color:#444">Send Messages</strong> + <strong style="color:#444">Manage Roles</strong> permissions. Bot's role must be above any roles it assigns.
-            </p>
-            <div style="margin-top:12px;">
-                <span id="settings-status" style="font-size:13px;color:#555;"></span>
+            <p style="font-size:12px;color:#333;margin-top:4px;">Bot needs <strong style="color:#444">Send Messages</strong> + <strong style="color:#444">Manage Roles</strong> permissions.</p>
+            <div style="margin-top:12px;"><span id="settings-status" style="font-size:13px;color:#555;"></span></div>
+        </div>
+    </div>
+
+    <!-- ── Store Credits ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>💰 Store Credits</h2>
+                <p>Give store credit to players by Discord User ID. They can use credits instead of paying at checkout.</p>
+            </div>
+            <div class="section-head-actions">
+                <button class="btn btn-ghost btn-sm" onclick="loadCredits()">↻ Refresh</button>
             </div>
         </div>
+
+        <div class="panel" style="margin-bottom:16px;">
+            <div class="grid-3">
+                <div class="field">
+                    <label>Discord User ID <span class="badge-credit">REQUIRED</span></label>
+                    <input type="text" id="credit-discord-id" placeholder="123456789012345678" autocomplete="off">
+                    <span class="hint">Right-click user in Discord → Copy User ID</span>
+                </div>
+                <div class="field">
+                    <label>Amount (£) <span class="badge-credit">use negative to deduct</span></label>
+                    <input type="number" id="credit-amount" placeholder="5.00" step="0.01" min="-999" max="999">
+                </div>
+                <div class="field">
+                    <label>Reason (optional)</label>
+                    <input type="text" id="credit-reason" placeholder="e.g. Competition prize">
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="btn btn-green" onclick="giveCredit()">💰 Give / Adjust Credits</button>
+                <span id="credit-status" style="font-size:13px;color:#555;"></span>
+            </div>
+        </div>
+
+        <div id="credits-list"><div class="empty">Loading credits…</div></div>
     </div>
 
     <!-- ── Product Editor ── -->
@@ -336,7 +184,7 @@
         <div class="section-head">
             <div>
                 <h2>Product Editor</h2>
-                <p>Create or update store items. Add Stripe and/or PayPal links — customers will see both payment options.</p>
+                <p>Create or update store items. Assign a category so they appear in the right section on the store.</p>
             </div>
             <div class="section-head-actions">
                 <span style="font-size:12px;color:#444;align-self:center;" id="item-count"></span>
@@ -357,33 +205,48 @@
                     <input type="text" id="new-price" placeholder="e.g. £9.99">
                 </div>
                 <div class="field">
+                    <label>Category</label>
+                    <select id="new-category">
+                        <option value="Ranks">Ranks</option>
+                        <option value="Kits">Kits</option>
+                        <option value="Extras">Extras</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
                     <label>Discord Role ID</label>
                     <input type="text" id="new-role-id" placeholder="1234567890123456789">
                     <span class="hint">Right-click role → Copy Role ID</span>
+                </div>
+                <div class="field">
+                    <label>Item Image URL (optional)</label>
+                    <input type="url" id="new-image-url" placeholder="https://i.imgur.com/..." oninput="previewImg('new-img-preview', this.value)">
+                    <img id="new-img-preview" class="img-preview">
                 </div>
             </div>
             <div class="grid-2">
                 <div class="field">
                     <label>Stripe Payment Link <span class="badge-stripe">STRIPE</span></label>
                     <input type="url" id="new-stripe-link" placeholder="https://buy.stripe.com/...">
-                    <span class="hint">From Stripe Dashboard → Payment Links</span>
+                    <span class="hint">Stripe Dashboard → Payment Links</span>
                 </div>
                 <div class="field">
                     <label>PayPal Link <span class="badge-paypal">PAYPAL</span></label>
                     <input type="url" id="new-paypal-link" placeholder="https://paypal.me/...">
-                    <span class="hint">PayPal.me link or PayPal button URL</span>
+                    <span class="hint">PayPal.me or PayPal button URL</span>
                 </div>
             </div>
             <div class="grid-1">
                 <div class="field">
-                    <label>Description (one feature per line)</label>
-                    <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit"></textarea>
+                    <label>Description (one feature per line · use [img:URL] to embed an image)</label>
+                    <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit&#10;[img:https://i.imgur.com/example.png]"></textarea>
                 </div>
             </div>
             <button class="btn btn-red" onclick="addItem()">+ Add Product</button>
         </div>
 
-        <!-- Existing items -->
         <div id="items-list"></div>
     </div>
 
@@ -392,7 +255,7 @@
         <div class="section-head">
             <div>
                 <h2>Bypass Purchase Log</h2>
-                <p>Every admin bypass is recorded here, including which Discord user received the role.</p>
+                <p>Every admin bypass and credit purchase is recorded here.</p>
             </div>
             <div class="section-head-actions">
                 <span style="font-size:12px;color:#444;align-self:center;" id="purchase-count"></span>
@@ -403,7 +266,6 @@
 
 </div>
 
-<!-- Status bar -->
 <div class="statusbar">
     <span class="status-msg" id="save-status"></span>
     <button class="btn btn-ghost" onclick="loadPurchases()">↻ Refresh Log</button>
@@ -411,7 +273,28 @@
 </div>
 
 <script>
+const CATEGORIES = ["Ranks", "Kits", "Extras", "General"];
 let items = [];
+
+function esc(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function previewImg(previewId, url) {
+    const img = document.getElementById(previewId);
+    if (!img) return;
+    if (url && url.startsWith("http")) {
+        img.src = url;
+        img.style.display = "block";
+        img.onerror = () => img.style.display = "none";
+    } else {
+        img.style.display = "none";
+    }
+}
+
+function catOptions(selected) {
+    return CATEGORIES.map(c => `<option value="${c}" ${c === selected ? "selected" : ""}>${c}</option>`).join("");
+}
 
 async function loadItems() {
     const res = await fetch("/api/store-items");
@@ -422,12 +305,7 @@ async function loadItems() {
 function renderItems() {
     const list = document.getElementById("items-list");
     document.getElementById("item-count").textContent = items.length + " product" + (items.length !== 1 ? "s" : "");
-
-    if (items.length === 0) {
-        list.innerHTML = '<div class="empty">No products yet — add one above.</div>';
-        return;
-    }
-
+    if (items.length === 0) { list.innerHTML = '<div class="empty">No products yet — add one above.</div>'; return; }
     list.innerHTML = items.map((item, i) => `
         <div class="item-card" id="card-${i}">
             <div class="item-card-header">
@@ -444,35 +322,40 @@ function renderItems() {
                     <input type="text" value="${esc(item.price)}" oninput="items[${i}].price = this.value" placeholder="£0.00">
                 </div>
                 <div class="field">
+                    <label>Category</label>
+                    <select onchange="items[${i}].category = this.value">${catOptions(item.category || "General")}</select>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
                     <label>Discord Role ID</label>
                     <input type="text" value="${esc(item.roleId || '')}" oninput="items[${i}].roleId = this.value" placeholder="1234567890123456789">
                     <span class="hint">Right-click role → Copy Role ID</span>
+                </div>
+                <div class="field">
+                    <label>Item Image URL (optional)</label>
+                    <input type="url" value="${esc(item.imageUrl || '')}" oninput="items[${i}].imageUrl = this.value; previewImg('img-prev-${i}', this.value)" placeholder="https://i.imgur.com/...">
+                    <img id="img-prev-${i}" class="img-preview" src="${esc(item.imageUrl || '')}" style="${item.imageUrl ? 'display:block' : 'display:none'}">
                 </div>
             </div>
             <div class="grid-2">
                 <div class="field">
                     <label>Stripe Payment Link <span class="badge-stripe">STRIPE</span></label>
                     <input type="url" value="${esc(item.stripeLink || '')}" oninput="items[${i}].stripeLink = this.value" placeholder="https://buy.stripe.com/...">
-                    <span class="hint">From Stripe Dashboard → Payment Links</span>
                 </div>
                 <div class="field">
                     <label>PayPal Link <span class="badge-paypal">PAYPAL</span></label>
                     <input type="url" value="${esc(item.paypalLink || '')}" oninput="items[${i}].paypalLink = this.value" placeholder="https://paypal.me/...">
-                    <span class="hint">PayPal.me link or PayPal button URL</span>
                 </div>
             </div>
             <div class="grid-1">
                 <div class="field">
-                    <label>Description (one feature per line)</label>
-                    <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2">${esc(item.description || '')}</textarea>
+                    <label>Description (one feature per line · use [img:URL] to embed an image)</label>
+                    <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2&#10;[img:https://i.imgur.com/example.png]">${esc(item.description || '')}</textarea>
                 </div>
             </div>
         </div>
     `).join("");
-}
-
-function esc(str) {
-    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
 function addItem() {
@@ -482,15 +365,13 @@ function addItem() {
     const stripeLink = document.getElementById("new-stripe-link").value.trim();
     const paypalLink = document.getElementById("new-paypal-link").value.trim();
     const roleId = document.getElementById("new-role-id").value.trim();
+    const category = document.getElementById("new-category").value;
+    const imageUrl = document.getElementById("new-image-url").value.trim();
     if (!name || !price) { alert("Please enter a name and price."); return; }
-    items.push({ id: null, name, price, description, buyLink: "", stripeLink, paypalLink, roleId });
+    items.push({ id: null, name, price, description, imageUrl, buyLink: "", stripeLink, paypalLink, roleId, category });
     renderItems();
-    document.getElementById("new-name").value = "";
-    document.getElementById("new-price").value = "";
-    document.getElementById("new-desc").value = "";
-    document.getElementById("new-stripe-link").value = "";
-    document.getElementById("new-paypal-link").value = "";
-    document.getElementById("new-role-id").value = "";
+    ["new-name","new-price","new-desc","new-stripe-link","new-paypal-link","new-role-id","new-image-url"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("new-img-preview").style.display = "none";
     setStatus("", "");
 }
 
@@ -504,11 +385,7 @@ function deleteItem(index) {
 async function saveAll() {
     setStatus("Saving...", "");
     try {
-        const res = await fetch("/api/store-items", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(items)
-        });
+        const res = await fetch("/api/store-items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(items) });
         setStatus(res.ok ? "✓ Saved successfully" : "✗ Save failed. Try again.", res.ok ? "saved" : "error");
     } catch { setStatus("✗ Network error.", "error"); }
     setTimeout(() => setStatus("", ""), 3000);
@@ -520,6 +397,53 @@ function setStatus(msg, cls) {
     el.className = "status-msg " + cls;
 }
 
+/* ── Credits ── */
+async function giveCredit() {
+    const discordId = document.getElementById("credit-discord-id").value.trim();
+    const amount = document.getElementById("credit-amount").value.trim();
+    const reason = document.getElementById("credit-reason").value.trim();
+    const statusEl = document.getElementById("credit-status");
+    if (!discordId || !amount) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter Discord ID and amount."; return; }
+    statusEl.style.color = "#555"; statusEl.textContent = "Processing…";
+    const res = await fetch("/api/admin/give-credit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ discordId, amount: parseFloat(amount), reason })
+    });
+    const data = await res.json();
+    if (res.ok) {
+        statusEl.style.color = "#4ade80";
+        statusEl.textContent = `✓ Done! New balance: £${data.newBalance.toFixed(2)}`;
+        document.getElementById("credit-discord-id").value = "";
+        document.getElementById("credit-amount").value = "";
+        document.getElementById("credit-reason").value = "";
+        loadCredits();
+    } else {
+        statusEl.style.color = "#f87171";
+        statusEl.textContent = `✗ ${data.error}`;
+    }
+    setTimeout(() => statusEl.textContent = "", 4000);
+}
+
+async function loadCredits() {
+    const res = await fetch("/api/admin/credits");
+    if (!res.ok) return;
+    const credits = await res.json();
+    const container = document.getElementById("credits-list");
+    if (!credits.length) { container.innerHTML = '<div class="empty">No store credits issued yet.</div>'; return; }
+    container.innerHTML = credits.map(c => {
+        const updated = new Date(c.updated_at).toLocaleString();
+        return `<div class="credit-row">
+            <div>
+                <div class="cr-id">👤 Discord ID: ${esc(c.discord_id)}</div>
+                <div class="cr-updated">Last updated: ${updated}</div>
+            </div>
+            <div class="cr-balance">£${parseFloat(c.balance).toFixed(2)}</div>
+        </div>`;
+    }).join("");
+}
+
+/* ── Settings ── */
 async function loadSettings() {
     const res = await fetch("/api/settings");
     if (!res.ok) return;
@@ -535,33 +459,23 @@ async function saveSettings() {
     const discordGuildId = document.getElementById("setting-guild-id").value.trim();
     const statusEl = document.getElementById("settings-status");
     statusEl.style.color = "#555"; statusEl.textContent = "Saving...";
-    const res = await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ discordChannelId, discordBotToken, discordGuildId })
-    });
-    if (res.ok) { statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Saved!"; }
-    else { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Failed to save."; }
+    const res = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ discordChannelId, discordBotToken, discordGuildId }) });
+    statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
+    statusEl.textContent = res.ok ? "✓ Saved!" : "✗ Failed to save.";
     setTimeout(() => statusEl.textContent = "", 3000);
 }
 
 async function testDiscord() {
     const statusEl = document.getElementById("settings-status");
     statusEl.style.color = "#555"; statusEl.textContent = "Sending test...";
-    const res = await fetch("/api/bypass-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 })
-    });
-    if (res.ok) {
-        statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Test sent! Check your Discord.";
-        loadPurchases();
-    } else {
-        statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Failed — check bot token and channel ID.";
-    }
+    const res = await fetch("/api/bypass-payment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 }) });
+    statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
+    statusEl.textContent = res.ok ? "✓ Test sent! Check your Discord." : "✗ Failed — check bot token and channel ID.";
+    if (res.ok) loadPurchases();
     setTimeout(() => statusEl.textContent = "", 4000);
 }
 
+/* ── Purchases ── */
 async function loadPurchases() {
     const res = await fetch("/api/purchases");
     if (!res.ok) return;
@@ -569,31 +483,26 @@ async function loadPurchases() {
     const container = document.getElementById("purchases-list");
     const count = document.getElementById("purchase-count");
     count.textContent = purchases.length + " entr" + (purchases.length !== 1 ? "ies" : "y");
-
-    if (purchases.length === 0) {
-        container.innerHTML = '<div class="empty">No bypass purchases yet.</div>';
-        return;
-    }
-
+    if (!purchases.length) { container.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
     container.innerHTML = purchases.map(p => {
         const date = new Date(p.timestamp).toLocaleString();
-        return `
-            <div class="purchase-row">
-                <div>
-                    <div class="item-name">${p.itemName}</div>
-                    <div class="item-date">${date}</div>
-                    ${p.discordUserId ? `<div class="item-discord">👤 Discord ID: ${p.discordUserId}</div>` : ""}
-                    <div class="item-note">⚡ ${p.note}</div>
-                </div>
-                <div class="item-price">${p.itemPrice || ""}</div>
+        const typeLabel = p.type === "credit" ? "💰 Credit" : p.type === "bypass" ? "⚡ Bypass" : p.type === "click-stripe" ? "💳 Stripe" : p.type === "click-paypal" ? "🟡 PayPal" : "🛒 Click";
+        return `<div class="purchase-row">
+            <div>
+                <div class="item-name">${p.itemName} <span style="font-size:11px;color:#444;font-weight:400;">${typeLabel}</span></div>
+                <div class="item-date">${date}</div>
+                ${p.discordUserId ? `<div class="item-discord">👤 Discord ID: ${p.discordUserId}</div>` : ""}
+                <div class="item-note">${p.note}</div>
             </div>
-        `;
+            <div class="item-price">${p.itemPrice || ""}</div>
+        </div>`;
     }).join("");
 }
 
 loadItems();
 loadPurchases();
 loadSettings();
+loadCredits();
 </script>
 
 </body>

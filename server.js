@@ -28,10 +28,12 @@ async function setupDB() {
             name TEXT NOT NULL,
             price TEXT NOT NULL,
             description TEXT DEFAULT '',
+            image_url TEXT DEFAULT '',
             buy_link TEXT DEFAULT '',
             stripe_link TEXT DEFAULT '',
             paypal_link TEXT DEFAULT '',
             role_id TEXT DEFAULT '',
+            category TEXT DEFAULT 'General',
             sort_order INTEGER DEFAULT 0
         );
 
@@ -50,20 +52,37 @@ async function setupDB() {
             key TEXT PRIMARY KEY,
             value TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS store_credits (
+            discord_id TEXT PRIMARY KEY,
+            balance NUMERIC(10,2) DEFAULT 0,
+            updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS credit_transactions (
+            id BIGSERIAL PRIMARY KEY,
+            discord_id TEXT NOT NULL,
+            amount NUMERIC(10,2) NOT NULL,
+            reason TEXT DEFAULT '',
+            type TEXT DEFAULT 'grant',
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );
     `);
 
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS role_id TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stripe_link TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS paypal_link TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'General'`);
     await pool.query(`ALTER TABLE purchases ADD COLUMN IF NOT EXISTS discord_user_id TEXT DEFAULT ''`);
 
     const { rows } = await pool.query("SELECT COUNT(*) FROM store_items");
     if (parseInt(rows[0].count) === 0) {
         await pool.query(`
-            INSERT INTO store_items (name, price, description, buy_link, stripe_link, paypal_link, role_id, sort_order) VALUES
-            ('VIP', '£9.99', 'Priority Queue\nVIP Chat Tag\nStarter Kit\nDiscord Role', '', '', '', '', 1),
-            ('AK Kit', '£4.99', 'AK-47\nAmmo\nMedical Supplies', '', '', '', '', 2),
-            ('Builder Kit', '£2.99', 'Wood\nStone\nMetal', '', '', '', '', 3)
+            INSERT INTO store_items (name, price, description, buy_link, stripe_link, paypal_link, role_id, category, sort_order) VALUES
+            ('VIP', '£9.99', 'Priority Queue\nVIP Chat Tag\nStarter Kit\nDiscord Role', '', '', '', '', 'Ranks', 1),
+            ('AK Kit', '£4.99', 'AK-47\nAmmo\nMedical Supplies', '', '', '', '', 'Kits', 2),
+            ('Builder Kit', '£2.99', 'Wood\nStone\nMetal', '', '', '', '', 'Kits', 3)
         `);
     }
 }
@@ -126,6 +145,7 @@ app.get("/user", (req, res) => {
     if (!req.user) return res.json({ loggedIn: false });
     res.json({
         loggedIn: true,
+        id: req.user.id,
         username: req.user.username,
         avatar: `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
     });
@@ -159,16 +179,28 @@ app.get("/api/checkout/:itemId", async (req, res) => {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
         if (!rows[0]) return res.status(404).json({ error: "Item not found" });
         const item = rows[0];
+
+        let creditBalance = 0;
+        if (req.user) {
+            const cr = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+            creditBalance = parseFloat(cr.rows[0]?.balance || 0);
+        }
+
         res.json({
             id: item.id,
             name: item.name,
             price: item.price,
             description: item.description,
+            imageUrl: item.image_url || "",
             buyLink: item.buy_link,
             stripeLink: item.stripe_link,
             paypalLink: item.paypal_link,
             roleId: item.role_id,
-            isAdmin: !!req.session.adminLoggedIn
+            category: item.category || "General",
+            isAdmin: !!req.session.adminLoggedIn,
+            isLoggedIn: !!req.user,
+            discordId: req.user?.id || null,
+            creditBalance
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -182,21 +214,7 @@ app.get("/buy/:itemId", async (req, res) => {
         const item = rows[0];
         const link = item.stripe_link || item.paypal_link || item.buy_link;
         if (!link) return res.redirect("/store.html");
-
-        await pool.query(
-            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
-            [Date.now(), item.id, item.name, item.price, "click", "Customer clicked Buy Now"]
-        );
-
-        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        await sendDiscordLog(
-            `🛒 **Purchase Initiated**\n` +
-            `📦 Item: **${item.name}**\n` +
-            `💷 Price: **${item.price}**\n` +
-            `🕐 Time: ${ts}\n` +
-            `📝 Note: Customer clicked Buy Now — redirecting to payment`
-        );
-
+        await logPurchaseClick(item, "click", "Customer clicked Buy Now");
         res.redirect(link);
     } catch (e) {
         res.redirect("/store.html");
@@ -206,22 +224,12 @@ app.get("/buy/:itemId", async (req, res) => {
 app.get("/buy-stripe/:itemId", async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
-        if (!rows[0] || !rows[0].stripe_link) return res.redirect("/store.html");
+        if (!rows[0]) return res.redirect("/store.html");
         const item = rows[0];
-
-        await pool.query(
-            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
-            [Date.now(), item.id, item.name, item.price, "click-stripe", "Customer clicked Pay with Card (Stripe)"]
-        );
-
-        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        await sendDiscordLog(
-            `🛒 **Stripe Purchase Initiated**\n` +
-            `📦 Item: **${item.name}**\n` +
-            `💷 Price: **${item.price}**\n` +
-            `🕐 Time: ${ts}`
-        );
-
+        if (!item.stripe_link) {
+            return res.redirect(`/checkout/${item.id}?err=no-stripe`);
+        }
+        await logPurchaseClick(item, "click-stripe", "Customer clicked Pay with Card (Stripe)");
         res.redirect(item.stripe_link);
     } catch (e) {
         res.redirect("/store.html");
@@ -231,27 +239,34 @@ app.get("/buy-stripe/:itemId", async (req, res) => {
 app.get("/buy-paypal/:itemId", async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
-        if (!rows[0] || !rows[0].paypal_link) return res.redirect("/store.html");
+        if (!rows[0]) return res.redirect("/store.html");
         const item = rows[0];
-
-        await pool.query(
-            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
-            [Date.now(), item.id, item.name, item.price, "click-paypal", "Customer clicked Pay with PayPal"]
-        );
-
-        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        await sendDiscordLog(
-            `🛒 **PayPal Purchase Initiated**\n` +
-            `📦 Item: **${item.name}**\n` +
-            `💷 Price: **${item.price}**\n` +
-            `🕐 Time: ${ts}`
-        );
-
+        if (!item.paypal_link) {
+            return res.redirect(`/checkout/${item.id}?err=no-paypal`);
+        }
+        await logPurchaseClick(item, "click-paypal", "Customer clicked Pay with PayPal");
         res.redirect(item.paypal_link);
     } catch (e) {
         res.redirect("/store.html");
     }
 });
+
+async function logPurchaseClick(item, type, note) {
+    try {
+        await pool.query(
+            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
+            [Date.now(), item.id, item.name, item.price, type, note]
+        );
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `🛒 **Purchase Initiated**\n` +
+            `📦 Item: **${item.name}**\n` +
+            `💷 Price: **${item.price}**\n` +
+            `🕐 Time: ${ts}\n` +
+            `📝 ${note}`
+        );
+    } catch (e) {}
+}
 
 app.get("/api/admin-status", (req, res) => {
     res.json({ isAdmin: !!req.session.adminLoggedIn });
@@ -265,10 +280,12 @@ app.get("/api/store-items", async (req, res) => {
             name: r.name,
             price: r.price,
             description: r.description,
+            imageUrl: r.image_url || "",
             buyLink: r.buy_link,
             stripeLink: r.stripe_link || "",
             paypalLink: r.paypal_link || "",
-            roleId: r.role_id || ""
+            roleId: r.role_id || "",
+            category: r.category || "General"
         })));
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -285,13 +302,13 @@ app.post("/api/store-items", checkAdminJson, async (req, res) => {
             const numericId = item.id && Number(item.id) < 2000000000 ? Number(item.id) : null;
             if (numericId) {
                 await pool.query(
-                    "INSERT INTO store_items (id, name, price, description, buy_link, stripe_link, paypal_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-                    [numericId, item.name, item.price, item.description || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", i]
+                    "INSERT INTO store_items (id, name, price, description, image_url, buy_link, stripe_link, paypal_link, role_id, category, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+                    [numericId, item.name, item.price, item.description || "", item.imageUrl || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", item.category || "General", i]
                 );
             } else {
                 await pool.query(
-                    "INSERT INTO store_items (name, price, description, buy_link, stripe_link, paypal_link, role_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-                    [item.name, item.price, item.description || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", i]
+                    "INSERT INTO store_items (name, price, description, image_url, buy_link, stripe_link, paypal_link, role_id, category, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+                    [item.name, item.price, item.description || "", item.imageUrl || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", item.category || "General", i]
                 );
             }
         }
@@ -301,6 +318,119 @@ app.post("/api/store-items", checkAdminJson, async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+
+/* ── Store Credits ── */
+
+app.get("/api/credits/me", async (req, res) => {
+    if (!req.user) return res.json({ balance: 0, loggedIn: false });
+    try {
+        const { rows } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        res.json({ balance: parseFloat(rows[0]?.balance || 0), loggedIn: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get("/api/admin/credits", checkAdminJson, async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT * FROM store_credits ORDER BY updated_at DESC");
+        res.json(rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post("/api/admin/give-credit", checkAdminJson, async (req, res) => {
+    const { discordId, amount, reason } = req.body;
+    if (!discordId || !amount) return res.status(400).json({ error: "Missing discordId or amount" });
+    const amt = parseFloat(amount);
+    if (isNaN(amt)) return res.status(400).json({ error: "Invalid amount" });
+    try {
+        await pool.query(
+            `INSERT INTO store_credits (discord_id, balance, updated_at)
+             VALUES ($1, $2, NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET balance = GREATEST(0, store_credits.balance + $2), updated_at = NOW()`,
+            [discordId, amt]
+        );
+        await pool.query(
+            "INSERT INTO credit_transactions (discord_id, amount, reason, type) VALUES ($1, $2, $3, $4)",
+            [discordId, amt, reason || "Admin grant", amt >= 0 ? "grant" : "deduct"]
+        );
+        const { rows } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [discordId]);
+        const newBalance = parseFloat(rows[0]?.balance || 0);
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `💰 **Store Credit ${amt >= 0 ? "Added" : "Deducted"}**\n` +
+            `👤 Discord: <@${discordId}>\n` +
+            `💷 Amount: **${amt >= 0 ? "+" : ""}£${amt.toFixed(2)}**\n` +
+            `💼 New Balance: **£${newBalance.toFixed(2)}**\n` +
+            `📝 Reason: ${reason || "Admin grant"}\n` +
+            `🕐 Time: ${ts}`
+        );
+        res.json({ ok: true, newBalance });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post("/api/pay-with-credits", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const { itemId } = req.body;
+    if (!itemId) return res.status(400).json({ error: "Missing itemId" });
+    try {
+        const { rows: itemRows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [itemId]);
+        if (!itemRows[0]) return res.status(404).json({ error: "Item not found" });
+        const item = itemRows[0];
+
+        const priceStr = item.price.replace(/[^0-9.]/g, "");
+        const price = parseFloat(priceStr);
+        if (isNaN(price)) return res.status(400).json({ error: "Could not parse item price" });
+
+        const { rows: creditRows } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        const balance = parseFloat(creditRows[0]?.balance || 0);
+
+        if (balance < price) return res.status(400).json({ error: `Insufficient credits. You have £${balance.toFixed(2)}, need £${price.toFixed(2)}.` });
+
+        await pool.query(
+            "UPDATE store_credits SET balance = balance - $1, updated_at = NOW() WHERE discord_id = $2",
+            [price, req.user.id]
+        );
+        await pool.query(
+            "INSERT INTO credit_transactions (discord_id, amount, reason, type) VALUES ($1, $2, $3, $4)",
+            [req.user.id, -price, `Spent on ${item.name}`, "spend"]
+        );
+        await pool.query(
+            "INSERT INTO purchases (id, item_id, item_name, item_price, discord_user_id, type, note) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+            [Date.now(), item.id, item.name, item.price, req.user.id, "credit", "Paid with store credits"]
+        );
+
+        let roleResult = null;
+        if (item.role_id) {
+            const guildId = await getSetting("discordGuildId");
+            roleResult = await assignDiscordRole(guildId, req.user.id, item.role_id);
+        }
+
+        const { rows: newCreditRows } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        const newBalance = parseFloat(newCreditRows[0]?.balance || 0);
+
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `✅ **Credit Purchase**\n` +
+            `📦 Item: **${item.name}**\n` +
+            `💷 Price: **${item.price}**\n` +
+            `👤 Discord: <@${req.user.id}>\n` +
+            `💼 Remaining Credits: **£${newBalance.toFixed(2)}**\n` +
+            `🎭 Role: ${roleResult?.ok ? `✅ Assigned` : roleResult ? `⚠️ ${roleResult.error}` : "ℹ️ No role set"}\n` +
+            `🕐 Time: ${ts}`
+        );
+
+        res.json({ ok: true, newBalance, roleAssigned: roleResult?.ok || false, roleError: roleResult?.error || null });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/* ── Settings ── */
 
 async function getSetting(key) {
     const { rows } = await pool.query("SELECT value FROM settings WHERE key = $1", [key]);
@@ -351,20 +481,13 @@ async function assignDiscordRole(guildId, userId, roleId) {
             hostname: "discord.com",
             path: `/api/v10/guilds/${guildId}/members/${userId}/roles/${roleId}`,
             method: "PUT",
-            headers: {
-                "Authorization": `Bot ${token}`,
-                "Content-Length": 0
-            }
+            headers: { "Authorization": `Bot ${token}`, "Content-Length": 0 }
         };
         const req = https.request(options, r => {
             let data = "";
             r.on("data", chunk => data += chunk);
             r.on("end", () => {
-                if (r.statusCode === 204) {
-                    resolve({ ok: true });
-                } else {
-                    resolve({ ok: false, error: `Discord API returned ${r.statusCode}: ${data}` });
-                }
+                resolve(r.statusCode === 204 ? { ok: true } : { ok: false, error: `Discord API ${r.statusCode}: ${data}` });
             });
         });
         req.on("error", e => resolve({ ok: false, error: e.message }));
@@ -385,17 +508,11 @@ app.post("/api/bypass-payment", checkAdminJson, async (req, res) => {
 
     try {
         await pool.query(
-            "INSERT INTO purchases (id, item_id, item_name, item_price, discord_user_id, type, note) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            "INSERT INTO purchases (id, item_id, item_name, item_price, discord_user_id, type, note) VALUES ($1,$2,$3,$4,$5,$6,$7)",
             [id, itemId || null, itemName, itemPrice || "", discordUserId || "", "bypass", "Admin bypass — no payment taken"]
         );
-
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        const roleNote = roleResult?.ok
-            ? `✅ Role assigned to <@${discordUserId}>`
-            : roleResult
-            ? `⚠️ Role assignment failed: ${roleResult.error}`
-            : `ℹ️ No role ID or Discord user provided`;
-
+        const roleNote = roleResult?.ok ? `✅ Role assigned to <@${discordUserId}>` : roleResult ? `⚠️ Role failed: ${roleResult.error}` : `ℹ️ No role/user provided`;
         await sendDiscordLog(
             `⚡ **Bypass Payment Used**\n` +
             `📦 Item: **${itemName}**\n` +
@@ -404,13 +521,7 @@ app.post("/api/bypass-payment", checkAdminJson, async (req, res) => {
             `🕐 Time: ${ts}\n` +
             `🎭 Role: ${roleNote}`
         );
-
-        res.json({
-            ok: true,
-            roleAssigned: roleResult?.ok || false,
-            roleError: roleResult?.error || null,
-            entry: { id, itemName, itemPrice, discordUserId, timestamp: new Date().toISOString() }
-        });
+        res.json({ ok: true, roleAssigned: roleResult?.ok || false, roleError: roleResult?.error || null, entry: { id, itemName, itemPrice, discordUserId, timestamp: new Date().toISOString() } });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -420,14 +531,8 @@ app.get("/api/purchases", checkAdminJson, async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM purchases ORDER BY created_at DESC");
         res.json(rows.map(r => ({
-            id: r.id,
-            itemId: r.item_id,
-            itemName: r.item_name,
-            itemPrice: r.item_price,
-            discordUserId: r.discord_user_id || "",
-            type: r.type,
-            note: r.note,
-            timestamp: r.created_at
+            id: r.id, itemId: r.item_id, itemName: r.item_name, itemPrice: r.item_price,
+            discordUserId: r.discord_user_id || "", type: r.type, note: r.note, timestamp: r.created_at
         })));
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -439,11 +544,7 @@ app.get("/api/settings", checkAdminJson, async (req, res) => {
         const channelId = await getSetting("discordChannelId");
         const token = await getSetting("discordBotToken");
         const guildId = await getSetting("discordGuildId");
-        res.json({
-            discordChannelId: channelId,
-            discordBotToken: token ? "••••••••••••••••" : "",
-            discordGuildId: guildId
-        });
+        res.json({ discordChannelId: channelId, discordBotToken: token ? "••••••••••••••••" : "", discordGuildId: guildId });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
