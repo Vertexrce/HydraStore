@@ -229,8 +229,7 @@ function render(item) {
     }
 
     // Add to cart button
-    const cartBtnHtml = `<button id="checkout-cart-btn" onclick="toggleCart(${JSON.stringify({id:item.id,name:item.name,price:item.price,imageUrl:item.imageUrl||"",category:item.category||""})})"
-        class="pay-btn pay-btn-cart" style="margin-top:10px;">${inCart ? "✓ In Cart — View Cart →" : "🛒 Add to Cart"}</button>`;
+    const cartBtnHtml = `<button id="checkout-cart-btn" class="pay-btn pay-btn-cart" style="margin-top:10px;">${inCart ? "✓ In Cart — View Cart →" : "🛒 Add to Cart"}</button>`;
 
     const creditPill = item.isLoggedIn && item.creditBalance > 0
         ? `<div class="credit-pill">💰 Store Credits: £${item.creditBalance.toFixed(2)}</div>` : "";
@@ -267,6 +266,14 @@ function render(item) {
             </div>
         </div>
         ${bypassSection}`;
+
+    // Attach cart button event listener after innerHTML is set
+    const cartBtn = document.getElementById("checkout-cart-btn");
+    if (cartBtn) {
+        cartBtn.addEventListener("click", function() {
+            toggleCart({id: item.id, name: item.name, price: item.price, imageUrl: item.imageUrl || "", category: item.category || ""});
+        });
+    }
 }
 
 function toggleCart(item) {

@@ -315,6 +315,12 @@ app.get("/buy-stripe/:itemId", async (req, res) => {
 
         let lineItems;
         const priceId = (item.stripe_link || "").trim();
+
+        if (priceId.startsWith("https://")) {
+            await logPurchaseClick(item, "click-stripe", "Customer redirected to Stripe payment link");
+            return res.redirect(priceId);
+        }
+
         if (priceId.startsWith("price_")) {
             lineItems = [{ price: priceId, quantity: 1 }];
         } else {
