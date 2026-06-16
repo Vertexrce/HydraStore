@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purchase Complete — Vertex 6X</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #080c14; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+
+nav {
+    background: rgba(8,12,20,0.95);
+    border-bottom: 1px solid #111d35;
+    padding: 0 40px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo img { height: 32px; width: auto; display: block; }
+.nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
+.nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
+.nav-links a { color: #6b80a8; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+
+.page {
+    min-height: calc(100vh - 62px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px 80px;
+}
+
+.card {
+    background: #0c1628;
+    border: 1px solid #162240;
+    border-radius: 16px;
+    padding: 48px 44px;
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+}
+
+.tick {
+    width: 72px;
+    height: 72px;
+    background: rgba(5,150,105,0.12);
+    border: 2px solid rgba(5,150,105,0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    font-size: 32px;
+}
+
+.title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 15px;
+    color: #4d6a9a;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+.info-block {
+    background: #080f1c;
+    border: 1px solid #0f1e38;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.info-label { color: #3d5a8a; }
+.info-value { color: #c0d0e8; font-weight: 600; }
+
+.divider { border: none; border-top: 1px solid #0f1e38; margin: 10px 0; }
+
+.download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 17px;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(5,150,105,0.35);
+    margin-bottom: 12px;
+}
+.download-btn:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(5,150,105,0.5); }
+
+.store-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: #4d8dff;
+    border: 1px solid #1a3a7a;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    margin-top: 4px;
+}
+.store-btn:hover { background: rgba(37,99,235,0.1); border-color: #2a5abf; color: #7aa0d4; }
+
+.role-note {
+    background: rgba(37,99,235,0.06);
+    border: 1px solid #1a3a7a;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #4d6a9a;
+    text-align: left;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+.role-note strong { color: #7aa0d4; }
+
+.loading { color: #1e2e4a; font-size: 15px; text-align: center; padding: 40px; }
+
+@media (max-width: 600px) {
+    nav { padding: 0 20px; }
+    .card { padding: 32px 24px; }
+    .title { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="nav-logo">
+        <img src="/vertex-logo.png" alt="Vertex 6X" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="nav-logo-text" style="display:none">Vertex 6X</span>
+    </a>
+    <ul class="nav-links">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/store.html">Store</a></li>
+    </ul>
+</nav>
+
+<div class="page">
+    <div class="card" id="card">
+        <div class="loading">Loading your purchase…</div>
+    </div>
+</div>
+
+<script>
+async function init() {
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get("session_id");
+
+    if (!sessionId) {
+        document.getElementById("card").innerHTML = `
+            <div class="tick">❌</div>
+            <div class="title">Something went wrong</div>
+            <div class="subtitle">No session found. If you completed payment, contact an admin.</div>
+            <a href="/store.html" class="store-btn">← Back to Store</a>`;
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/checkout-session/${sessionId}`);
+        const data = await res.json();
+
+        const roleHtml = data.roleAssigned
+            ? `<div class="role-note">🎭 <strong>Discord role assigned!</strong> It may take a moment to appear in your profile.</div>`
+            : `<div class="role-note">ℹ️ <strong>Role not auto-assigned</strong> — you weren't logged in with Discord. Contact an admin with your Discord ID and order details to get your role manually.</div>`;
+
+        const downloadHtml = data.zipUrl
+            ? `<a href="${esc(data.zipUrl)}" class="download-btn" download>📁 Download Your Files</a>`
+            : "";
+
+        document.getElementById("card").innerHTML = `
+            <div class="tick">✅</div>
+            <div class="title">Payment Complete!</div>
+            <div class="subtitle">Thanks for your purchase — your order is confirmed.</div>
+            <div class="info-block">
+                <div class="info-row">
+                    <span class="info-label">Item</span>
+                    <span class="info-value">${esc(data.itemName)}</span>
+                </div>
+                <div class="divider"></div>
+                <div class="info-row">
+                    <span class="info-label">Amount paid</span>
+                    <span class="info-value">${esc(data.itemPrice)}</span>
+                </div>
+                ${data.customerEmail ? `<div class="divider"></div>
+                <div class="info-row">
+                    <span class="info-label">Receipt sent to</span>
+                    <span class="info-value">${esc(data.customerEmail)}</span>
+                </div>` : ""}
+            </div>
+            ${roleHtml}
+            ${downloadHtml}
+            <a href="/store.html" class="store-btn">← Back to Store</a>`;
+    } catch (e) {
+        document.getElementById("card").innerHTML = `
+            <div class="tick">✅</div>
+            <div class="title">Payment Complete!</div>
+            <div class="subtitle">Your payment was received. Contact an admin on Discord if you need your role or files.</div>
+            <a href="/store.html" class="store-btn">← Back to Store</a>`;
+    }
+}
+
+function esc(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+init();
+</script>
+</body>
+</html>

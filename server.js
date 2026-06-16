@@ -8,11 +8,66 @@ const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
 const { Pool } = require("pg");
 const https = require("https");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+
+// ── Stripe webhook MUST be registered before express.json() ──
+app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (req, res) => {
+    const sig = req.headers["stripe-signature"];
+    let event;
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.error("Webhook signature failed:", err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === "checkout.session.completed") {
+        const session = event.data.object;
+        const meta = session.metadata || {};
+        const itemId = meta.item_id;
+        const itemName = meta.item_name;
+        const itemPrice = meta.item_price;
+        const roleId = meta.role_id;
+        const zipUrl = meta.zip_url;
+        const discordUserId = meta.discord_user_id;
+        const customerEmail = session.customer_details?.email || "";
+
+        try {
+            await pool.query(
+                "INSERT INTO purchases (id, item_id, item_name, item_price, discord_user_id, type, note) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                [Date.now(), itemId || null, itemName, itemPrice, discordUserId || "", "stripe", `Stripe checkout — ${customerEmail}`]
+            );
+        } catch (e) {
+            console.error("Failed to record purchase:", e.message);
+        }
+
+        let roleResult = null;
+        if (roleId && discordUserId) {
+            const guildId = await getSetting("discordGuildId");
+            roleResult = await assignDiscordRole(guildId, discordUserId, roleId);
+        }
+
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `✅ **Stripe Purchase Completed**\n` +
+            `📦 Item: **${itemName}**\n` +
+            `💷 Price: **${itemPrice}**\n` +
+            `📧 Email: ${customerEmail}\n` +
+            `👤 Discord: ${discordUserId ? `<@${discordUserId}>` : "Not linked"}\n` +
+            `🎭 Role: ${roleResult?.ok ? `✅ Assigned` : roleResult ? `⚠️ ${roleResult.error}` : "ℹ️ No Discord ID"}\n` +
+            `📁 File: ${zipUrl ? "✅ Download ready" : "ℹ️ No file attached"}\n` +
+            `🕐 Time: ${ts}`
+        );
+    }
+
+    res.json({ received: true });
+});
 
 async function setupDB() {
     await pool.query(`
@@ -74,6 +129,7 @@ async function setupDB() {
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS paypal_link TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'General'`);
+    await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS zip_url TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE purchases ADD COLUMN IF NOT EXISTS discord_user_id TEXT DEFAULT ''`);
 
     const { rows } = await pool.query("SELECT COUNT(*) FROM store_items");
@@ -174,6 +230,10 @@ app.get("/checkout/:itemId", async (req, res) => {
     res.sendFile(path.join(__dirname, "checkout.html"));
 });
 
+app.get("/checkout-success", (req, res) => {
+    res.sendFile(path.join(__dirname, "checkout-success.html"));
+});
+
 app.get("/api/checkout/:itemId", async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
@@ -196,11 +256,28 @@ app.get("/api/checkout/:itemId", async (req, res) => {
             stripeLink: item.stripe_link,
             paypalLink: item.paypal_link,
             roleId: item.role_id,
+            zipUrl: item.zip_url || "",
             category: item.category || "General",
             isAdmin: !!req.session.adminLoggedIn,
             isLoggedIn: !!req.user,
             discordId: req.user?.id || null,
             creditBalance
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ── Lookup Stripe session for success page ──
+app.get("/api/checkout-session/:sessionId", async (req, res) => {
+    try {
+        const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+        res.json({
+            itemName: session.metadata?.item_name || "",
+            itemPrice: session.metadata?.item_price || "",
+            zipUrl: session.metadata?.zip_url || "",
+            customerEmail: session.customer_details?.email || "",
+            roleAssigned: session.metadata?.discord_user_id ? true : false
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -221,18 +298,41 @@ app.get("/buy/:itemId", async (req, res) => {
     }
 });
 
+// ── Stripe Checkout Session (uses Price ID stored in stripe_link field) ──
 app.get("/buy-stripe/:itemId", async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
         if (!rows[0]) return res.redirect("/store.html");
         const item = rows[0];
+
         if (!item.stripe_link) {
             return res.redirect(`/checkout/${item.id}?err=no-stripe`);
         }
+
+        const priceId = item.stripe_link.trim();
+        const discordUserId = req.user?.id || "";
+
+        const checkoutSession = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            line_items: [{ price: priceId, quantity: 1 }],
+            mode: "payment",
+            success_url: `${BASE_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${BASE_URL}/checkout/${item.id}`,
+            metadata: {
+                item_id: String(item.id),
+                item_name: item.name,
+                item_price: item.price,
+                role_id: item.role_id || "",
+                zip_url: item.zip_url || "",
+                discord_user_id: discordUserId
+            }
+        });
+
         await logPurchaseClick(item, "click-stripe", "Customer clicked Pay with Card (Stripe)");
-        res.redirect(item.stripe_link);
+        res.redirect(checkoutSession.url);
     } catch (e) {
-        res.redirect("/store.html");
+        console.error("Stripe checkout error:", e.message);
+        res.redirect(`/checkout/${req.params.itemId}?err=stripe-error`);
     }
 });
 
@@ -285,6 +385,7 @@ app.get("/api/store-items", async (req, res) => {
             stripeLink: r.stripe_link || "",
             paypalLink: r.paypal_link || "",
             roleId: r.role_id || "",
+            zipUrl: r.zip_url || "",
             category: r.category || "General"
         })));
     } catch (e) {
@@ -302,13 +403,13 @@ app.post("/api/store-items", checkAdminJson, async (req, res) => {
             const numericId = item.id && Number(item.id) < 2000000000 ? Number(item.id) : null;
             if (numericId) {
                 await pool.query(
-                    "INSERT INTO store_items (id, name, price, description, image_url, buy_link, stripe_link, paypal_link, role_id, category, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
-                    [numericId, item.name, item.price, item.description || "", item.imageUrl || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", item.category || "General", i]
+                    "INSERT INTO store_items (id, name, price, description, image_url, buy_link, stripe_link, paypal_link, role_id, zip_url, category, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
+                    [numericId, item.name, item.price, item.description || "", item.imageUrl || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", item.zipUrl || "", item.category || "General", i]
                 );
             } else {
                 await pool.query(
-                    "INSERT INTO store_items (name, price, description, image_url, buy_link, stripe_link, paypal_link, role_id, category, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
-                    [item.name, item.price, item.description || "", item.imageUrl || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", item.category || "General", i]
+                    "INSERT INTO store_items (name, price, description, image_url, buy_link, stripe_link, paypal_link, role_id, zip_url, category, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+                    [item.name, item.price, item.description || "", item.imageUrl || "", item.buyLink || "", item.stripeLink || "", item.paypalLink || "", item.roleId || "", item.zipUrl || "", item.category || "General", i]
                 );
             }
         }
@@ -424,7 +525,7 @@ app.post("/api/pay-with-credits", async (req, res) => {
             `🕐 Time: ${ts}`
         );
 
-        res.json({ ok: true, newBalance, roleAssigned: roleResult?.ok || false, roleError: roleResult?.error || null });
+        res.json({ ok: true, newBalance, roleAssigned: roleResult?.ok || false, roleError: roleResult?.error || null, zipUrl: item.zip_url || "" });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

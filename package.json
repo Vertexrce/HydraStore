@@ -12,6 +12,7 @@
     "express-session": "^1.18.0",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
-    "pg": "^8.13.0"
+    "pg": "^8.13.0",
+    "stripe": "^17.0.0"
   }
 }
