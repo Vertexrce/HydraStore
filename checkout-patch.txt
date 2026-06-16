@@ -1,0 +1,11 @@
+In your checkout.html, find this line (around line 193):
+
+    const hasStripe = !!item.stripeLink;
+
+Change it to:
+
+    const hasStripe = !!item.stripeEnabled;
+
+That's the only change needed in checkout.html.
+This makes the Stripe button show on every item as long as
+STRIPE_SECRET_KEY is set in your environment — no per-item setup needed.

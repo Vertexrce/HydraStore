@@ -246,6 +246,7 @@ app.get("/api/checkout/:itemId", async (req, res) => {
             creditBalance = parseFloat(cr.rows[0]?.balance || 0);
         }
 
+        const globalPaypal = await getSetting("paypalDefaultLink");
         res.json({
             id: item.id,
             name: item.name,
@@ -254,7 +255,8 @@ app.get("/api/checkout/:itemId", async (req, res) => {
             imageUrl: item.image_url || "",
             buyLink: item.buy_link,
             stripeLink: item.stripe_link,
-            paypalLink: item.paypal_link,
+            stripeEnabled: !!process.env.STRIPE_SECRET_KEY,
+            paypalLink: item.paypal_link || globalPaypal,
             roleId: item.role_id,
             zipUrl: item.zip_url || "",
             category: item.category || "General",
@@ -298,23 +300,41 @@ app.get("/buy/:itemId", async (req, res) => {
     }
 });
 
-// ── Stripe Checkout Session (uses Price ID stored in stripe_link field) ──
+// ── Stripe Checkout Session — uses per-item Price ID if set, else auto-prices from item.price ──
 app.get("/buy-stripe/:itemId", async (req, res) => {
     try {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
         if (!rows[0]) return res.redirect("/store.html");
         const item = rows[0];
 
-        if (!item.stripe_link) {
+        if (!process.env.STRIPE_SECRET_KEY) {
             return res.redirect(`/checkout/${item.id}?err=no-stripe`);
         }
 
-        const priceId = item.stripe_link.trim();
         const discordUserId = req.user?.id || "";
+
+        let lineItems;
+        const priceId = (item.stripe_link || "").trim();
+        if (priceId.startsWith("price_")) {
+            lineItems = [{ price: priceId, quantity: 1 }];
+        } else {
+            const priceNum = parseFloat(item.price.replace(/[^0-9.]/g, ""));
+            if (isNaN(priceNum) || priceNum <= 0) {
+                return res.redirect(`/checkout/${item.id}?err=stripe-error`);
+            }
+            lineItems = [{
+                price_data: {
+                    currency: "gbp",
+                    unit_amount: Math.round(priceNum * 100),
+                    product_data: { name: item.name }
+                },
+                quantity: 1
+            }];
+        }
 
         const checkoutSession = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
-            line_items: [{ price: priceId, quantity: 1 }],
+            line_items: lineItems,
             mode: "payment",
             success_url: `${BASE_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${BASE_URL}/checkout/${item.id}`,
@@ -341,11 +361,12 @@ app.get("/buy-paypal/:itemId", async (req, res) => {
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
         if (!rows[0]) return res.redirect("/store.html");
         const item = rows[0];
-        if (!item.paypal_link) {
+        const paypalLink = item.paypal_link || await getSetting("paypalDefaultLink");
+        if (!paypalLink) {
             return res.redirect(`/checkout/${item.id}?err=no-paypal`);
         }
         await logPurchaseClick(item, "click-paypal", "Customer clicked Pay with PayPal");
-        res.redirect(item.paypal_link);
+        res.redirect(paypalLink);
     } catch (e) {
         res.redirect("/store.html");
     }
@@ -645,7 +666,8 @@ app.get("/api/settings", checkAdminJson, async (req, res) => {
         const channelId = await getSetting("discordChannelId");
         const token = await getSetting("discordBotToken");
         const guildId = await getSetting("discordGuildId");
-        res.json({ discordChannelId: channelId, discordBotToken: token ? "••••••••••••••••" : "", discordGuildId: guildId });
+        const paypalDefaultLink = await getSetting("paypalDefaultLink");
+        res.json({ discordChannelId: channelId, discordBotToken: token ? "••••••••••••••••" : "", discordGuildId: guildId, paypalDefaultLink });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -653,10 +675,11 @@ app.get("/api/settings", checkAdminJson, async (req, res) => {
 
 app.post("/api/settings", checkAdminJson, async (req, res) => {
     try {
-        const { discordChannelId, discordBotToken, discordGuildId } = req.body;
+        const { discordChannelId, discordBotToken, discordGuildId, paypalDefaultLink } = req.body;
         if (discordChannelId !== undefined) await setSetting("discordChannelId", discordChannelId);
         if (discordBotToken && !discordBotToken.startsWith("•")) await setSetting("discordBotToken", discordBotToken);
         if (discordGuildId !== undefined) await setSetting("discordGuildId", discordGuildId);
+        if (paypalDefaultLink !== undefined) await setSetting("paypalDefaultLink", paypalDefaultLink);
         res.json({ ok: true });
     } catch (e) {
         res.status(500).json({ error: e.message });

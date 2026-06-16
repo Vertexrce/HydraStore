@@ -7,82 +7,86 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0e0e0e; color: #e0e0e0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+        body { background: #080c14; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
 
-        .topbar { background: #111; border-bottom: 1px solid #222; padding: 18px 48px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .topbar { background: #070e1c; border-bottom: 1px solid #111d35; padding: 18px 48px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .topbar-left h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
-        .topbar-left p { font-size: 13px; color: #666; margin-top: 3px; max-width: 480px; }
+        .topbar-left p { font-size: 13px; color: #3d5a8a; margin-top: 3px; max-width: 480px; }
         .topbar-right { display: flex; gap: 10px; align-items: center; }
 
         .btn { padding: 9px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity 0.15s, transform 0.1s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
         .btn:hover { opacity: 0.85; }
         .btn:active { transform: scale(0.98); }
-        .btn-red { background: #c0392b; color: #fff; }
-        .btn-red:hover { background: #a93226; opacity: 1; }
+        .btn-blue { background: linear-gradient(135deg, #1d4ed8, #1e3a8a); color: #fff; }
+        .btn-blue:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); opacity: 1; }
         .btn-green { background: #059669; color: #fff; }
         .btn-green:hover { background: #047857; opacity: 1; }
-        .btn-outline { background: transparent; color: #ccc; border: 1px solid #333; }
-        .btn-outline:hover { border-color: #555; color: #fff; opacity: 1; }
-        .btn-ghost { background: #1a1a1a; color: #aaa; border: 1px solid #2a2a2a; }
-        .btn-ghost:hover { color: #fff; border-color: #444; opacity: 1; }
+        .btn-outline { background: transparent; color: #7aa0d4; border: 1px solid #1a3060; }
+        .btn-outline:hover { border-color: #2a5abf; color: #fff; opacity: 1; }
+        .btn-ghost { background: #0c1628; color: #6b88b8; border: 1px solid #1a3060; }
+        .btn-ghost:hover { color: #fff; border-color: #2a5abf; opacity: 1; }
         .btn-sm { padding: 7px 14px; font-size: 12px; }
+        .btn-danger { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+        .btn-danger:hover { background: #991b1b; opacity: 1; }
 
         .content { max-width: 960px; margin: 0 auto; padding: 40px 48px 120px; }
 
         .section { margin-bottom: 48px; }
-        .section-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #1e1e1e; }
+        .section-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #162240; }
         .section-head h2 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-        .section-head p { font-size: 13px; color: #555; margin-top: 4px; max-width: 560px; }
+        .section-head p { font-size: 13px; color: #3d5a8a; margin-top: 4px; max-width: 560px; }
         .section-head-actions { display: flex; gap: 8px; flex-shrink: 0; margin-left: 24px; }
 
-        .panel { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
+        .panel { background: #0c1628; border: 1px solid #162240; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
 
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
 
         .field { display: flex; flex-direction: column; gap: 7px; }
-        .field label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.8px; }
+        .field label { font-size: 11px; font-weight: 600; color: #3d5a8a; text-transform: uppercase; letter-spacing: 0.8px; }
         .field label .badge-stripe { display: inline-block; background: #635bff22; color: #635bff; border: 1px solid #635bff44; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
         .field label .badge-paypal { display: inline-block; background: #ffc43922; color: #c98f00; border: 1px solid #ffc43944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
         .field label .badge-credit { display: inline-block; background: #05966922; color: #34d399; border: 1px solid #05966944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
-        .field input, .field textarea, .field select { background: #0e0e0e; border: 1px solid #252525; border-radius: 6px; color: #e0e0e0; padding: 10px 13px; font-size: 14px; outline: none; transition: border-color 0.15s; font-family: inherit; width: 100%; }
-        .field input:focus, .field textarea:focus, .field select:focus { border-color: #c0392b; }
-        .field input::placeholder, .field textarea::placeholder { color: #3a3a3a; }
+        .field label .badge-auto { display: inline-block; background: #1d4ed822; color: #60a5fa; border: 1px solid #1d4ed844; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
+        .field input, .field textarea, .field select { background: #060d1a; border: 1px solid #1a2e4a; border-radius: 6px; color: #e0e6f0; padding: 10px 13px; font-size: 14px; outline: none; transition: border-color 0.15s; font-family: inherit; width: 100%; }
+        .field input:focus, .field textarea:focus, .field select:focus { border-color: #2563eb; }
+        .field input::placeholder, .field textarea::placeholder { color: #1e3060; }
         .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-        .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-        .field .hint { font-size: 11px; color: #3a3a3a; margin-top: 2px; }
+        .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%233d5a8a'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+        .field .hint { font-size: 11px; color: #1e3a6a; margin-top: 2px; }
 
-        .item-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 24px; margin-bottom: 12px; transition: border-color 0.2s; }
-        .item-card:hover { border-color: #2e2e2e; }
+        .item-card { background: #0c1628; border: 1px solid #162240; border-radius: 10px; padding: 24px; margin-bottom: 12px; transition: border-color 0.2s; }
+        .item-card:hover { border-color: #1e3a7a; }
         .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .item-label { font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+        .item-label { font-size: 12px; font-weight: 700; color: #3d5a8a; text-transform: uppercase; letter-spacing: 1px; }
 
-        .add-panel { background: #111; border: 1px dashed #252525; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
-        .add-panel h3 { font-size: 14px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; }
+        .add-panel { background: #060d1a; border: 1px dashed #1a2e4a; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
+        .add-panel h3 { font-size: 14px; font-weight: 700; color: #3d5a8a; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; }
 
-        /* Credit rows */
-        .credit-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #141414; border: 1px solid #1e1e1e; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
+        .credit-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #0c1628; border: 1px solid #162240; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
         .credit-row .cr-id { font-size: 13px; color: #7c5cbf; font-weight: 600; }
         .credit-row .cr-balance { font-size: 20px; font-weight: 700; color: #34d399; }
-        .credit-row .cr-updated { font-size: 11px; color: #444; margin-top: 2px; }
+        .credit-row .cr-updated { font-size: 11px; color: #1e3060; margin-top: 2px; }
 
-        .purchase-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #141414; border: 1px solid #1e1e1e; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
+        .purchase-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #0c1628; border: 1px solid #162240; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
         .purchase-row .item-name { font-weight: 600; font-size: 15px; color: #fff; }
-        .purchase-row .item-date { font-size: 12px; color: #444; margin-top: 3px; }
+        .purchase-row .item-date { font-size: 12px; color: #2a4070; margin-top: 3px; }
         .purchase-row .item-discord { font-size: 12px; color: #7c5cbf; margin-top: 2px; }
-        .purchase-row .item-note { font-size: 12px; color: #3a3a3a; margin-top: 2px; }
-        .purchase-row .item-price { font-size: 20px; font-weight: 700; color: #c0392b; }
+        .purchase-row .item-note { font-size: 12px; color: #1e3060; margin-top: 2px; }
+        .purchase-row .item-price { font-size: 20px; font-weight: 700; color: #4d8dff; }
 
-        .statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(14,14,14,0.97); border-top: 1px solid #1e1e1e; padding: 14px 48px; display: flex; justify-content: flex-end; align-items: center; gap: 14px; backdrop-filter: blur(8px); }
-        .status-msg { font-size: 13px; color: #444; }
+        .statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(6,12,20,0.97); border-top: 1px solid #162240; padding: 14px 48px; display: flex; justify-content: flex-end; align-items: center; gap: 14px; backdrop-filter: blur(8px); }
+        .status-msg { font-size: 13px; color: #2a4a7f; }
         .status-msg.saved { color: #4ade80; }
         .status-msg.error { color: #f87171; }
 
-        .empty { text-align: center; color: #333; padding: 40px; font-size: 14px; }
+        .empty { text-align: center; color: #1e3060; padding: 40px; font-size: 14px; }
 
-        /* Image preview */
-        .img-preview { margin-top: 8px; max-width: 100%; max-height: 120px; border-radius: 6px; display: none; border: 1px solid #252525; }
+        .img-preview { margin-top: 8px; max-width: 100%; max-height: 120px; border-radius: 6px; display: none; border: 1px solid #162240; }
+
+        .info-note { background: rgba(29,78,216,0.08); border: 1px solid #1a3a7a; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #4d6a9a; line-height: 1.6; margin-top: 8px; }
+        .info-note strong { color: #7aa0d4; }
 
         @media (max-width: 700px) {
             .content { padding: 24px 20px 100px; }
@@ -98,11 +102,11 @@
 <div class="topbar">
     <div class="topbar-left">
         <h1>Shop Admin</h1>
-        <p>Manage store items, categories, store credits, and bypass purchase logs.</p>
+        <p>Manage store items, payment settings, store credits, and purchase logs.</p>
     </div>
     <div class="topbar-right">
         <a href="/" class="btn btn-outline">← Back to Site</a>
-        <a href="/admin-logout" class="btn btn-red">Logout</a>
+        <a href="/admin-logout" class="btn btn-danger">Logout</a>
     </div>
 </div>
 
@@ -113,11 +117,11 @@
         <div class="section-head">
             <div>
                 <h2>Discord Settings</h2>
-                <p>Required for purchase logs and automatic role assignment when a bypass is used.</p>
+                <p>Required for purchase logs and automatic role assignment.</p>
             </div>
             <div class="section-head-actions">
                 <button class="btn btn-ghost btn-sm" onclick="testDiscord()">🔔 Send Test</button>
-                <button class="btn btn-red btn-sm" onclick="saveSettings()">Save Settings</button>
+                <button class="btn btn-blue btn-sm" onclick="saveSettings()">Save Settings</button>
             </div>
         </div>
         <div class="panel">
@@ -134,11 +138,42 @@
                 <div class="field">
                     <label>Log Channel ID</label>
                     <input type="text" id="setting-channel-id" placeholder="1234567890123456789" autocomplete="off">
-                    <span class="hint">Channel where logs are sent</span>
+                    <span class="hint">Channel where purchase logs are sent</span>
                 </div>
             </div>
-            <p style="font-size:12px;color:#333;margin-top:4px;">Bot needs <strong style="color:#444">Send Messages</strong> + <strong style="color:#444">Manage Roles</strong> permissions.</p>
-            <div style="margin-top:12px;"><span id="settings-status" style="font-size:13px;color:#555;"></span></div>
+            <p style="font-size:12px;color:#1e3a6a;margin-top:4px;">Bot needs <strong style="color:#3d5a8a">Send Messages</strong> + <strong style="color:#3d5a8a">Manage Roles</strong> permissions.</p>
+            <div style="margin-top:12px;"><span id="settings-status" style="font-size:13px;color:#2a4a7f;"></span></div>
+        </div>
+    </div>
+
+    <!-- ── Payment Settings ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>💳 Payment Settings</h2>
+                <p>Global payment defaults. Stripe charges automatically from each item's price — no setup per item needed.</p>
+            </div>
+            <div class="section-head-actions">
+                <button class="btn btn-blue btn-sm" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="grid-2">
+                <div class="field">
+                    <label>Stripe <span class="badge-auto">AUTO</span></label>
+                    <input type="text" id="setting-stripe-info" value="Configured via STRIPE_SECRET_KEY env variable" disabled style="color:#3d5a8a;cursor:default;">
+                    <span class="hint">Stripe card button appears on every item automatically. No Price ID needed per item — it charges the item's price directly.</span>
+                </div>
+                <div class="field">
+                    <label>Global PayPal Link <span class="badge-paypal">PAYPAL</span></label>
+                    <input type="url" id="setting-paypal-link" placeholder="https://paypal.me/yourname" autocomplete="off">
+                    <span class="hint">Used for all items unless an item has its own PayPal link set below.</span>
+                </div>
+            </div>
+            <div class="info-note">
+                💡 <strong>How Stripe works:</strong> As long as <code>STRIPE_SECRET_KEY</code> is set in your Railway environment, the Stripe card button appears on every item and charges the correct price automatically — no configuration needed here.<br><br>
+                💡 <strong>Optional per-item Price ID:</strong> If you want to override and use a specific Stripe product, paste a <code>price_xxx</code> ID into the item's Stripe field below. Leave it blank to use auto-pricing.
+            </div>
         </div>
     </div>
 
@@ -172,7 +207,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
                 <button class="btn btn-green" onclick="giveCredit()">💰 Give / Adjust Credits</button>
-                <span id="credit-status" style="font-size:13px;color:#555;"></span>
+                <span id="credit-status" style="font-size:13px;color:#2a4a7f;"></span>
             </div>
         </div>
 
@@ -184,11 +219,11 @@
         <div class="section-head">
             <div>
                 <h2>Product Editor</h2>
-                <p>Create or update store items. Assign a category so they appear in the right section on the store.</p>
+                <p>Create or update store items. Stripe card payment works automatically on every item.</p>
             </div>
             <div class="section-head-actions">
-                <span style="font-size:12px;color:#444;align-self:center;" id="item-count"></span>
-                <button class="btn btn-red btn-sm" onclick="saveAll()">Save Products</button>
+                <span style="font-size:12px;color:#2a4070;align-self:center;" id="item-count"></span>
+                <button class="btn btn-blue btn-sm" onclick="saveAll()">Save Products</button>
             </div>
         </div>
 
@@ -228,14 +263,21 @@
             </div>
             <div class="grid-2">
                 <div class="field">
-                    <label>Stripe Payment Link <span class="badge-stripe">STRIPE</span></label>
-                    <input type="url" id="new-stripe-link" placeholder="https://buy.stripe.com/...">
-                    <span class="hint">Stripe Dashboard → Payment Links</span>
+                    <label>Stripe Price ID <span class="badge-stripe">OPTIONAL</span></label>
+                    <input type="text" id="new-stripe-link" placeholder="price_1abc... or leave blank">
+                    <span class="hint">Leave blank — Stripe charges automatically. Only fill in if you want a specific Stripe product.</span>
                 </div>
                 <div class="field">
-                    <label>PayPal Link <span class="badge-paypal">PAYPAL</span></label>
+                    <label>PayPal Link <span class="badge-paypal">OPTIONAL</span></label>
                     <input type="url" id="new-paypal-link" placeholder="https://paypal.me/...">
-                    <span class="hint">PayPal.me or PayPal button URL</span>
+                    <span class="hint">Leave blank to use the global PayPal link set above.</span>
+                </div>
+            </div>
+            <div class="grid-1">
+                <div class="field">
+                    <label>Zip File URL (optional — for digital downloads)</label>
+                    <input type="url" id="new-zip-url" placeholder="https://drive.google.com/... or Dropbox link">
+                    <span class="hint">Customers get a download button after paying. Paste any direct download link.</span>
                 </div>
             </div>
             <div class="grid-1">
@@ -244,7 +286,7 @@
                     <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit&#10;[img:https://i.imgur.com/example.png]"></textarea>
                 </div>
             </div>
-            <button class="btn btn-red" onclick="addItem()">+ Add Product</button>
+            <button class="btn btn-blue" onclick="addItem()">+ Add Product</button>
         </div>
 
         <div id="items-list"></div>
@@ -254,11 +296,11 @@
     <div class="section">
         <div class="section-head">
             <div>
-                <h2>Bypass Purchase Log</h2>
-                <p>Every admin bypass and credit purchase is recorded here.</p>
+                <h2>Purchase Log</h2>
+                <p>Every admin bypass, Stripe payment, credit purchase, and click is recorded here.</p>
             </div>
             <div class="section-head-actions">
-                <span style="font-size:12px;color:#444;align-self:center;" id="purchase-count"></span>
+                <span style="font-size:12px;color:#2a4070;align-self:center;" id="purchase-count"></span>
             </div>
         </div>
         <div id="purchases-list"></div>
@@ -269,7 +311,7 @@
 <div class="statusbar">
     <span class="status-msg" id="save-status"></span>
     <button class="btn btn-ghost" onclick="loadPurchases()">↻ Refresh Log</button>
-    <button class="btn btn-red" onclick="saveAll()">💾 Save All Changes</button>
+    <button class="btn btn-blue" onclick="saveAll()">💾 Save All Changes</button>
 </div>
 
 <script>
@@ -310,7 +352,7 @@ function renderItems() {
         <div class="item-card" id="card-${i}">
             <div class="item-card-header">
                 <span class="item-label">Product ${i + 1} — ${esc(item.name || "Untitled")}</span>
-                <button class="btn btn-ghost btn-sm" onclick="deleteItem(${i})">🗑 Delete</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteItem(${i})">🗑 Delete</button>
             </div>
             <div class="grid-3">
                 <div class="field">
@@ -340,12 +382,21 @@ function renderItems() {
             </div>
             <div class="grid-2">
                 <div class="field">
-                    <label>Stripe Payment Link <span class="badge-stripe">STRIPE</span></label>
-                    <input type="url" value="${esc(item.stripeLink || '')}" oninput="items[${i}].stripeLink = this.value" placeholder="https://buy.stripe.com/...">
+                    <label>Stripe Price ID <span class="badge-stripe">OPTIONAL</span></label>
+                    <input type="text" value="${esc(item.stripeLink || '')}" oninput="items[${i}].stripeLink = this.value" placeholder="price_1abc... or leave blank">
+                    <span class="hint">Leave blank — auto-charges this item's price. Only fill if using a specific Stripe product.</span>
                 </div>
                 <div class="field">
-                    <label>PayPal Link <span class="badge-paypal">PAYPAL</span></label>
-                    <input type="url" value="${esc(item.paypalLink || '')}" oninput="items[${i}].paypalLink = this.value" placeholder="https://paypal.me/...">
+                    <label>PayPal Link <span class="badge-paypal">OPTIONAL</span></label>
+                    <input type="url" value="${esc(item.paypalLink || '')}" oninput="items[${i}].paypalLink = this.value" placeholder="Leave blank to use global PayPal link">
+                    <span class="hint">Overrides the global PayPal link for this item only.</span>
+                </div>
+            </div>
+            <div class="grid-1">
+                <div class="field">
+                    <label>Zip File URL <span class="badge-auto">DOWNLOAD</span></label>
+                    <input type="url" value="${esc(item.zipUrl || '')}" oninput="items[${i}].zipUrl = this.value" placeholder="https://drive.google.com/... or Dropbox link">
+                    <span class="hint">Customers get a download button on the success page after paying.</span>
                 </div>
             </div>
             <div class="grid-1">
@@ -364,13 +415,14 @@ function addItem() {
     const description = document.getElementById("new-desc").value.trim();
     const stripeLink = document.getElementById("new-stripe-link").value.trim();
     const paypalLink = document.getElementById("new-paypal-link").value.trim();
+    const zipUrl = document.getElementById("new-zip-url").value.trim();
     const roleId = document.getElementById("new-role-id").value.trim();
     const category = document.getElementById("new-category").value;
     const imageUrl = document.getElementById("new-image-url").value.trim();
     if (!name || !price) { alert("Please enter a name and price."); return; }
-    items.push({ id: null, name, price, description, imageUrl, buyLink: "", stripeLink, paypalLink, roleId, category });
+    items.push({ id: null, name, price, description, imageUrl, buyLink: "", stripeLink, paypalLink, zipUrl, roleId, category });
     renderItems();
-    ["new-name","new-price","new-desc","new-stripe-link","new-paypal-link","new-role-id","new-image-url"].forEach(id => document.getElementById(id).value = "");
+    ["new-name","new-price","new-desc","new-stripe-link","new-paypal-link","new-zip-url","new-role-id","new-image-url"].forEach(id => document.getElementById(id).value = "");
     document.getElementById("new-img-preview").style.display = "none";
     setStatus("", "");
 }
@@ -404,7 +456,7 @@ async function giveCredit() {
     const reason = document.getElementById("credit-reason").value.trim();
     const statusEl = document.getElementById("credit-status");
     if (!discordId || !amount) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter Discord ID and amount."; return; }
-    statusEl.style.color = "#555"; statusEl.textContent = "Processing…";
+    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Processing…";
     const res = await fetch("/api/admin/give-credit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -451,15 +503,17 @@ async function loadSettings() {
     document.getElementById("setting-channel-id").value = s.discordChannelId || "";
     document.getElementById("setting-bot-token").value = s.discordBotToken || "";
     document.getElementById("setting-guild-id").value = s.discordGuildId || "";
+    document.getElementById("setting-paypal-link").value = s.paypalDefaultLink || "";
 }
 
 async function saveSettings() {
     const discordChannelId = document.getElementById("setting-channel-id").value.trim();
     const discordBotToken = document.getElementById("setting-bot-token").value.trim();
     const discordGuildId = document.getElementById("setting-guild-id").value.trim();
+    const paypalDefaultLink = document.getElementById("setting-paypal-link").value.trim();
     const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#555"; statusEl.textContent = "Saving...";
-    const res = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ discordChannelId, discordBotToken, discordGuildId }) });
+    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Saving...";
+    const res = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ discordChannelId, discordBotToken, discordGuildId, paypalDefaultLink }) });
     statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
     statusEl.textContent = res.ok ? "✓ Saved!" : "✗ Failed to save.";
     setTimeout(() => statusEl.textContent = "", 3000);
@@ -467,7 +521,7 @@ async function saveSettings() {
 
 async function testDiscord() {
     const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#555"; statusEl.textContent = "Sending test...";
+    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Sending test...";
     const res = await fetch("/api/bypass-payment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 }) });
     statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
     statusEl.textContent = res.ok ? "✓ Test sent! Check your Discord." : "✗ Failed — check bot token and channel ID.";
@@ -486,13 +540,13 @@ async function loadPurchases() {
     if (!purchases.length) { container.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
     container.innerHTML = purchases.map(p => {
         const date = new Date(p.timestamp).toLocaleString();
-        const typeLabel = p.type === "credit" ? "💰 Credit" : p.type === "bypass" ? "⚡ Bypass" : p.type === "click-stripe" ? "💳 Stripe" : p.type === "click-paypal" ? "🟡 PayPal" : "🛒 Click";
+        const typeLabel = p.type === "credit" ? "💰 Credit" : p.type === "bypass" ? "⚡ Bypass" : p.type === "stripe" ? "✅ Stripe Paid" : p.type === "click-stripe" ? "💳 Stripe Click" : p.type === "click-paypal" ? "🟡 PayPal" : "🛒 Click";
         return `<div class="purchase-row">
             <div>
-                <div class="item-name">${p.itemName} <span style="font-size:11px;color:#444;font-weight:400;">${typeLabel}</span></div>
+                <div class="item-name">${p.itemName} <span style="font-size:11px;color:#2a4070;font-weight:400;">${typeLabel}</span></div>
                 <div class="item-date">${date}</div>
                 ${p.discordUserId ? `<div class="item-discord">👤 Discord ID: ${p.discordUserId}</div>` : ""}
-                <div class="item-note">${p.note}</div>
+                <div class="item-note">${p.note || ""}</div>
             </div>
             <div class="item-price">${p.itemPrice || ""}</div>
         </div>`;
