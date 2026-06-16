@@ -306,6 +306,95 @@
         <div id="purchases-list"></div>
     </div>
 
+    <!-- ── Game Servers ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>🖥️ Game Servers</h2>
+                <p>Add your Rust server RCON credentials. These are used to deliver kits in-game.</p>
+            </div>
+            <div class="section-head-actions">
+                <button class="btn btn-blue btn-sm" onclick="saveServers()">💾 Save Servers</button>
+            </div>
+        </div>
+
+        <div class="add-panel">
+            <h3>+ Add Server</h3>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Server Name</label>
+                    <input type="text" id="new-srv-name" placeholder="e.g. EU Main">
+                </div>
+                <div class="field">
+                    <label>RCON Host / IP</label>
+                    <input type="text" id="new-srv-host" placeholder="123.45.67.89">
+                </div>
+                <div class="field">
+                    <label>RCON Port</label>
+                    <input type="number" id="new-srv-port" placeholder="28016" value="28016">
+                </div>
+            </div>
+            <div class="grid-1">
+                <div class="field">
+                    <label>RCON Password</label>
+                    <input type="password" id="new-srv-pass" placeholder="Your server RCON password" autocomplete="off">
+                    <span class="hint">This is stored securely. Find it in your server startup parameters (rcon.password).</span>
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="addServer()">+ Add Server</button>
+        </div>
+
+        <div id="servers-list"></div>
+        <span id="servers-status" style="font-size:13px;color:#2a4a7f;display:block;margin-top:8px;"></span>
+    </div>
+
+    <!-- ── Kits Config ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>🎁 Kits Config</h2>
+                <p>Configure kits for the Kits page. Players must have the required Discord role to see and claim each kit.</p>
+            </div>
+            <div class="section-head-actions">
+                <span style="font-size:12px;color:#2a4070;align-self:center;" id="kits-count"></span>
+                <button class="btn btn-blue btn-sm" onclick="saveKits()">💾 Save Kits</button>
+            </div>
+        </div>
+
+        <div class="add-panel">
+            <h3>+ Add Kit</h3>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Kit Name</label>
+                    <input type="text" id="new-kit-name" placeholder="e.g. VIP Kit (must match in-game kit name exactly)">
+                </div>
+                <div class="field">
+                    <label>Required Role ID <span class="badge-credit">Role required to claim</span></label>
+                    <input type="text" id="new-kit-role" placeholder="1234567890123456789">
+                    <span class="hint">Right-click the role in Discord → Copy Role ID. Leave blank for everyone.</span>
+                </div>
+                <div class="field">
+                    <label>Cooldown (minutes)</label>
+                    <input type="number" id="new-kit-cd" placeholder="60" value="60" min="1">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Game Server</label>
+                    <select id="new-kit-server"><option value="">— Select server —</option></select>
+                </div>
+                <div class="field">
+                    <label>Description (optional)</label>
+                    <input type="text" id="new-kit-desc" placeholder="e.g. AK-47, Ammo, Med Supplies">
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="addKit()">+ Add Kit</button>
+        </div>
+
+        <div id="kits-admin-list"></div>
+        <span id="kits-status" style="font-size:13px;color:#2a4a7f;display:block;margin-top:8px;"></span>
+    </div>
+
 </div>
 
 <div class="statusbar">
@@ -557,6 +646,182 @@ loadItems();
 loadPurchases();
 loadSettings();
 loadCredits();
+loadServers();
+loadKits();
+
+/* ── Game Servers ── */
+let servers = [];
+
+async function loadServers() {
+    const res = await fetch("/api/admin/game-servers");
+    if (!res.ok) return;
+    servers = await res.json();
+    renderServers();
+    refreshServerDropdown();
+}
+
+function renderServers() {
+    const list = document.getElementById("servers-list");
+    if (!servers.length) { list.innerHTML = '<div class="empty">No servers added yet.</div>'; return; }
+    list.innerHTML = servers.map((s, i) => `
+        <div class="item-card">
+            <div class="item-card-header">
+                <span class="item-label">🖥️ ${esc(s.name)}</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteServer(${i})">🗑 Delete</button>
+            </div>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Name</label>
+                    <input type="text" value="${esc(s.name)}" oninput="servers[${i}].name=this.value;refreshServerDropdown()">
+                </div>
+                <div class="field">
+                    <label>RCON Host</label>
+                    <input type="text" value="${esc(s.rconHost)}" oninput="servers[${i}].rconHost=this.value">
+                </div>
+                <div class="field">
+                    <label>RCON Port</label>
+                    <input type="number" value="${s.rconPort||28016}" oninput="servers[${i}].rconPort=this.value">
+                </div>
+            </div>
+            <div class="field">
+                <label>RCON Password</label>
+                <input type="password" placeholder="(unchanged)" autocomplete="off" oninput="servers[${i}].rconPassword=this.value">
+            </div>
+        </div>`).join("");
+}
+
+function refreshServerDropdown() {
+    const sel = document.getElementById("new-kit-server");
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select server —</option>' +
+        servers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+    if (current) sel.value = current;
+}
+
+function addServer() {
+    const name = document.getElementById("new-srv-name").value.trim();
+    const rconHost = document.getElementById("new-srv-host").value.trim();
+    const rconPort = document.getElementById("new-srv-port").value.trim() || "28016";
+    const rconPassword = document.getElementById("new-srv-pass").value.trim();
+    if (!name || !rconHost) { alert("Server name and RCON host are required."); return; }
+    servers.push({ name, rconHost, rconPort, rconPassword });
+    renderServers();
+    refreshServerDropdown();
+    ["new-srv-name","new-srv-host","new-srv-pass"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("new-srv-port").value = "28016";
+}
+
+function deleteServer(i) {
+    if (!confirm(`Delete server "${servers[i].name}"?`)) return;
+    servers.splice(i, 1);
+    renderServers();
+    refreshServerDropdown();
+}
+
+async function saveServers() {
+    const statusEl = document.getElementById("servers-status");
+    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Saving…";
+    try {
+        const res = await fetch("/api/admin/game-servers", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(servers) });
+        if (res.ok) {
+            statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Servers saved!";
+            await loadServers();
+        } else {
+            const d = await res.json();
+            statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${d.error}`;
+        }
+    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    setTimeout(() => statusEl.textContent = "", 3000);
+}
+
+/* ── Kits Config ── */
+let kits = [];
+
+async function loadKits() {
+    const res = await fetch("/api/admin/web-kits");
+    if (!res.ok) return;
+    kits = await res.json();
+    renderKitsAdmin();
+}
+
+function renderKitsAdmin() {
+    const list = document.getElementById("kits-admin-list");
+    const countEl = document.getElementById("kits-count");
+    countEl.textContent = kits.length + " kit" + (kits.length !== 1 ? "s" : "");
+    if (!kits.length) { list.innerHTML = '<div class="empty">No kits configured yet — add one above.</div>'; return; }
+    list.innerHTML = kits.map((k, i) => `
+        <div class="item-card">
+            <div class="item-card-header">
+                <span class="item-label">🎁 ${esc(k.name)}</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteKit(${i})">🗑 Delete</button>
+            </div>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Kit Name <span class="badge-auto">must match in-game</span></label>
+                    <input type="text" value="${esc(k.name)}" oninput="kits[${i}].name=this.value">
+                </div>
+                <div class="field">
+                    <label>Required Role ID <span class="badge-credit">Role</span></label>
+                    <input type="text" value="${esc(k.requiredRoleId||'')}" oninput="kits[${i}].requiredRoleId=this.value" placeholder="Leave blank = everyone">
+                </div>
+                <div class="field">
+                    <label>Cooldown (minutes)</label>
+                    <input type="number" value="${k.cooldownMinutes||60}" oninput="kits[${i}].cooldownMinutes=this.value" min="1">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Game Server</label>
+                    <select onchange="kits[${i}].serverId=this.value||null">
+                        <option value="">— Select server —</option>
+                        ${servers.map(s => `<option value="${s.id}" ${String(k.serverId)===String(s.id)?"selected":""}>${esc(s.name)}</option>`).join("")}
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Description</label>
+                    <input type="text" value="${esc(k.description||'')}" oninput="kits[${i}].description=this.value" placeholder="Short description">
+                </div>
+            </div>
+        </div>`).join("");
+}
+
+function addKit() {
+    const name = document.getElementById("new-kit-name").value.trim();
+    const requiredRoleId = document.getElementById("new-kit-role").value.trim();
+    const cooldownMinutes = parseInt(document.getElementById("new-kit-cd").value) || 60;
+    const serverId = document.getElementById("new-kit-server").value || null;
+    const description = document.getElementById("new-kit-desc").value.trim();
+    if (!name) { alert("Kit name is required — it must match the exact in-game kit name."); return; }
+    if (!serverId) { alert("Please select a game server for this kit."); return; }
+    kits.push({ name, requiredRoleId, cooldownMinutes, serverId, description, enabled: true });
+    renderKitsAdmin();
+    ["new-kit-name","new-kit-role","new-kit-desc"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("new-kit-cd").value = "60";
+    document.getElementById("new-kit-server").value = "";
+}
+
+function deleteKit(i) {
+    if (!confirm(`Delete kit "${kits[i].name}"?`)) return;
+    kits.splice(i, 1);
+    renderKitsAdmin();
+}
+
+async function saveKits() {
+    const statusEl = document.getElementById("kits-status");
+    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Saving…";
+    try {
+        const res = await fetch("/api/admin/web-kits", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(kits) });
+        if (res.ok) {
+            statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Kits saved!";
+            await loadKits();
+        } else {
+            const d = await res.json();
+            statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${d.error}`;
+        }
+    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    setTimeout(() => statusEl.textContent = "", 3000);
+}
 </script>
 
 </body>
