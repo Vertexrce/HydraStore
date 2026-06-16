@@ -6,168 +6,111 @@
 <title>Checkout — Vertex 6X</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #080c14; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
 
-    body {
-        background: #080c14;
-        color: #e0e6f0;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        min-height: 100vh;
-    }
+nav {
+    background: rgba(8,12,20,0.95);
+    border-bottom: 1px solid #111d35;
+    padding: 0 40px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo img { height: 32px; width: auto; display: block; }
+.nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
+.nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
+.nav-links a { color: #6b80a8; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.nav-right { display: flex; align-items: center; gap: 6px; }
+.nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
+.nav-cog:hover { color: #4d8dff; }
+.cart-icon-btn { position: relative; color: #6b80a8; text-decoration: none; font-size: 20px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s; line-height: 1; }
+.cart-icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.cart-badge { position: absolute; top: 2px; right: 2px; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
 
-    nav {
-        background: rgba(8, 12, 20, 0.92);
-        border-bottom: 1px solid #111d35;
-        padding: 0 40px;
-        height: 62px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        backdrop-filter: blur(10px);
-    }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .nav-logo img { height: 32px; width: auto; display: block; }
-    .nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
-    .nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
-    .nav-links a { color: #6b80a8; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
-    .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
-    .nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
-    .nav-cog:hover { color: #4d8dff; }
+.page { min-height: calc(100vh - 62px); display: flex; flex-direction: column; align-items: center; padding: 48px 20px 80px; }
+.back-link { align-self: flex-start; max-width: 560px; width: 100%; margin: 0 auto 24px; display: block; color: #3a4d6b; text-decoration: none; font-size: 13px; transition: color 0.15s; }
+.back-link:hover { color: #4d8dff; }
 
-    .page {
-        min-height: calc(100vh - 62px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 48px 20px 80px;
-    }
-    .back-link { align-self: flex-start; max-width: 560px; width: 100%; margin: 0 auto 24px; display: block; color: #3a4d6b; text-decoration: none; font-size: 13px; transition: color 0.15s; }
-    .back-link:hover { color: #4d8dff; }
+.checkout-card { background: #0c1628; border: 1px solid #162240; border-radius: 16px; overflow: hidden; width: 100%; max-width: 560px; margin-bottom: 16px; }
+.checkout-card-img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+.checkout-card-body { padding: 32px 36px; }
 
-    /* ── Checkout card ── */
-    .checkout-card {
-        background: #0c1628;
-        border: 1px solid #162240;
-        border-radius: 16px;
-        overflow: hidden;
-        width: 100%;
-        max-width: 560px;
-        margin-bottom: 16px;
-    }
-    .checkout-card-img {
-        width: 100%;
-        max-height: 220px;
-        object-fit: cover;
-        display: block;
-    }
-    .checkout-card-body { padding: 32px 36px; }
+.item-tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #3d5a8a; background: rgba(77,141,255,0.08); border: 1px solid #1a2e52; border-radius: 4px; padding: 3px 8px; margin-bottom: 14px; }
+.item-name { font-size: 30px; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 4px; }
+.item-price { font-size: 38px; font-weight: 800; color: #4d8dff; letter-spacing: -1px; margin-bottom: 24px; }
+.item-divider { border: none; border-top: 1px solid #0f1e38; margin-bottom: 20px; }
+.item-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 8px; }
+.item-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #8aa0c8; }
+.item-features li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #2a4a7f; flex-shrink: 0; margin-top: 6px; }
+.item-features img { max-width: 100%; border-radius: 6px; margin-top: 4px; }
 
-    .item-tag {
-        display: inline-block;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 1.2px;
-        text-transform: uppercase;
-        color: #3d5a8a;
-        background: rgba(77, 141, 255, 0.08);
-        border: 1px solid #1a2e52;
-        border-radius: 4px;
-        padding: 3px 8px;
-        margin-bottom: 14px;
-    }
-    .item-name { font-size: 30px; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 4px; }
-    .item-price { font-size: 38px; font-weight: 800; color: #4d8dff; letter-spacing: -1px; margin-bottom: 24px; }
-    .item-divider { border: none; border-top: 1px solid #0f1e38; margin-bottom: 20px; }
-    .item-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 8px; }
-    .item-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #8aa0c8; }
-    .item-features li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #2a4a7f; flex-shrink: 0; margin-top: 6px; }
-    .item-features img { max-width: 100%; border-radius: 6px; margin-top: 4px; }
+.err-banner { background: rgba(127,29,29,0.5); border: 1px solid #7f1d1d; border-radius: 8px; color: #fca5a5; font-size: 13px; padding: 12px 16px; margin-bottom: 16px; display: none; }
 
-    /* ── Error banner ── */
-    .err-banner {
-        background: rgba(127,29,29,0.5);
-        border: 1px solid #7f1d1d;
-        border-radius: 8px;
-        color: #fca5a5;
-        font-size: 13px;
-        padding: 12px 16px;
-        margin-bottom: 16px;
-        display: none;
-    }
+/* ── Pay buttons ── */
+.pay-buttons { display: flex; flex-direction: column; gap: 12px; }
+.pay-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 17px;
+    border: none; border-radius: 10px;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; text-decoration: none; text-align: center;
+    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.pay-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+.pay-btn:active { transform: translateY(0); }
+.pay-btn-stripe { background: linear-gradient(135deg, #635bff, #4f46e5); color: #fff; box-shadow: 0 4px 20px rgba(99,91,255,0.35); }
+.pay-btn-stripe:hover { box-shadow: 0 6px 28px rgba(99,91,255,0.5); }
+.pay-btn-paypal { background: linear-gradient(135deg, #ffc439, #f0a500); color: #1a1a1a; box-shadow: 0 4px 20px rgba(255,196,57,0.3); }
+.pay-btn-paypal:hover { box-shadow: 0 6px 28px rgba(255,196,57,0.45); }
+.pay-btn-credit { background: linear-gradient(135deg, #059669, #047857); color: #fff; box-shadow: 0 4px 20px rgba(5,150,105,0.3); }
+.pay-btn-credit:hover { box-shadow: 0 6px 28px rgba(5,150,105,0.45); }
+.pay-btn-cart { background: transparent; border: 1px solid #1a3a7a; color: #4d8dff; box-shadow: none; }
+.pay-btn-cart:hover { background: rgba(37,99,235,0.1); border-color: #2a5abf; box-shadow: none; }
 
-    /* ── Pay buttons ── */
-    .pay-buttons { display: flex; flex-direction: column; gap: 12px; }
-    .pay-btn {
-        display: flex; align-items: center; justify-content: center; gap: 10px;
-        width: 100%; padding: 16px;
-        border: none; border-radius: 10px;
-        font-size: 16px; font-weight: 700;
-        cursor: pointer; text-decoration: none; text-align: center;
-        transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-    }
-    .pay-btn:hover { opacity: 0.92; transform: translateY(-1px); }
-    .pay-btn:active { transform: translateY(0); }
-    .pay-btn-stripe { background: linear-gradient(135deg, #635bff, #4f46e5); color: #fff; box-shadow: 0 4px 20px rgba(99,91,255,0.35); }
-    .pay-btn-stripe:hover { box-shadow: 0 6px 28px rgba(99,91,255,0.5); }
-    .pay-btn-paypal { background: linear-gradient(135deg, #ffc439, #f0a500); color: #1a1a1a; box-shadow: 0 4px 20px rgba(255,196,57,0.3); }
-    .pay-btn-paypal:hover { box-shadow: 0 6px 28px rgba(255,196,57,0.45); }
-    .pay-btn-credit { background: linear-gradient(135deg, #059669, #047857); color: #fff; box-shadow: 0 4px 20px rgba(5,150,105,0.3); }
-    .pay-btn-credit:hover { box-shadow: 0 6px 28px rgba(5,150,105,0.45); }
+.pay-divider { display: flex; align-items: center; gap: 12px; color: #1e2e4a; font-size: 12px; }
+.pay-divider::before, .pay-divider::after { content: ''; flex: 1; height: 1px; background: #0f1e38; }
 
-    .pay-divider { display: flex; align-items: center; gap: 12px; color: #1e2e4a; font-size: 12px; }
-    .pay-divider::before, .pay-divider::after { content: ''; flex: 1; height: 1px; background: #0f1e38; }
+.no-link-msg { display: flex; align-items: center; justify-content: center; width: 100%; padding: 16px; background: #080f1c; color: #2a3a55; border: 1px dashed #0f1e38; border-radius: 10px; font-size: 14px; gap: 8px; }
 
-    .no-link-msg {
-        display: flex; align-items: center; justify-content: center;
-        width: 100%; padding: 16px;
-        background: #080f1c; color: #2a3a55;
-        border: 1px dashed #0f1e38; border-radius: 10px;
-        font-size: 14px; gap: 8px;
-    }
+.credit-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.3); border-radius: 20px; padding: 6px 14px; font-size: 13px; color: #34d399; font-weight: 600; margin-bottom: 14px; }
 
-    /* ── Credit balance pill ── */
-    .credit-pill {
-        display: inline-flex; align-items: center; gap: 6px;
-        background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.3);
-        border-radius: 20px; padding: 6px 14px;
-        font-size: 13px; color: #34d399; font-weight: 600;
-        margin-bottom: 14px;
-    }
+.credit-result { margin-top: 10px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; }
+.credit-result.success { background: rgba(5,46,22,0.8); border: 1px solid #166534; color: #4ade80; }
+.credit-result.error { background: rgba(45,10,10,0.8); border: 1px solid #7f1d1d; color: #f87171; }
 
-    /* ── Credit result ── */
-    .credit-result { margin-top: 10px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; }
-    .credit-result.success { background: rgba(5,46,22,0.8); border: 1px solid #166534; color: #4ade80; }
-    .credit-result.error { background: rgba(45,10,10,0.8); border: 1px solid #7f1d1d; color: #f87171; }
+.bypass-card { background: #0c1020; border: 1px solid #261a40; border-radius: 16px; padding: 28px 40px; width: 100%; max-width: 560px; }
+.bypass-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.bypass-header h3 { font-size: 15px; font-weight: 700; color: #a78bfa; }
+.bypass-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #5b3fa0; background: rgba(124,58,237,0.12); border: 1px solid #2e1a52; border-radius: 4px; padding: 2px 7px; }
+.bypass-desc { font-size: 13px; color: #3d3060; margin-bottom: 18px; }
+.bypass-input { background: #07090f; border: 1px solid #1e1534; border-radius: 8px; color: #c4b5f8; padding: 12px 14px; font-size: 14px; width: 100%; outline: none; margin-bottom: 12px; transition: border-color 0.15s; font-family: inherit; }
+.bypass-input:focus { border-color: #7c3aed; }
+.bypass-input::placeholder { color: #2a1f42; }
+.bypass-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; background: linear-gradient(135deg,#6d28d9,#4f46e5); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.1s; box-shadow: 0 4px 16px rgba(109,40,217,0.3); }
+.bypass-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.bypass-btn:active { transform: translateY(0); }
+.bypass-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+.no-role-warn { font-size: 11px; color: #4a3520; background: rgba(245,158,11,0.06); border: 1px solid #2a1e0a; border-radius: 6px; padding: 8px 12px; margin-top: 12px; }
+.result-box { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; }
+.result-box.success { background: rgba(5,46,22,0.8); border: 1px solid #166534; color: #4ade80; }
+.result-box.error { background: rgba(45,10,10,0.8); border: 1px solid #7f1d1d; color: #f87171; }
 
-    /* ── Admin bypass ── */
-    .bypass-card { background: #0c1020; border: 1px solid #261a40; border-radius: 16px; padding: 28px 40px; width: 100%; max-width: 560px; }
-    .bypass-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-    .bypass-header h3 { font-size: 15px; font-weight: 700; color: #a78bfa; }
-    .bypass-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #5b3fa0; background: rgba(124,58,237,0.12); border: 1px solid #2e1a52; border-radius: 4px; padding: 2px 7px; }
-    .bypass-desc { font-size: 13px; color: #3d3060; margin-bottom: 18px; }
-    .bypass-input { background: #07090f; border: 1px solid #1e1534; border-radius: 8px; color: #c4b5f8; padding: 12px 14px; font-size: 14px; width: 100%; outline: none; margin-bottom: 12px; transition: border-color 0.15s; font-family: inherit; }
-    .bypass-input:focus { border-color: #7c3aed; }
-    .bypass-input::placeholder { color: #2a1f42; }
-    .bypass-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; background: linear-gradient(135deg,#6d28d9,#4f46e5); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.1s; box-shadow: 0 4px 16px rgba(109,40,217,0.3); }
-    .bypass-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-    .bypass-btn:active { transform: translateY(0); }
-    .bypass-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
-    .no-role-warn { font-size: 11px; color: #4a3520; background: rgba(245,158,11,0.06); border: 1px solid #2a1e0a; border-radius: 6px; padding: 8px 12px; margin-top: 12px; }
-    .result-box { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; }
-    .result-box.success { background: rgba(5,46,22,0.8); border: 1px solid #166534; color: #4ade80; }
-    .result-box.error { background: rgba(45,10,10,0.8); border: 1px solid #7f1d1d; color: #f87171; }
+.loading { text-align: center; color: #1e2e4a; padding: 80px 20px; font-size: 15px; }
 
-    .loading { text-align: center; color: #1e2e4a; padding: 80px 20px; font-size: 15px; }
-
-    @media (max-width: 600px) {
-        nav { padding: 0 20px; }
-        .checkout-card-body, .bypass-card { padding: 24px 20px; }
-        .item-name { font-size: 24px; }
-        .item-price { font-size: 30px; }
-    }
+@media (max-width: 600px) {
+    nav { padding: 0 20px; }
+    .checkout-card-body, .bypass-card { padding: 24px 20px; }
+    .item-name { font-size: 24px; }
+    .item-price { font-size: 30px; }
+}
 </style>
 </head>
 <body>
@@ -181,7 +124,13 @@
         <li><a href="/index.html">Home</a></li>
         <li><a href="/store.html">Store</a></li>
     </ul>
-    <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
+    <div class="nav-right">
+        <a href="/cart.html" class="cart-icon-btn" title="Cart">
+            🛒
+            <span class="cart-badge" id="nav-cart-count"></span>
+        </a>
+        <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
+    </div>
 </nav>
 
 <div class="page">
@@ -193,37 +142,48 @@
 </div>
 
 <script>
+const CART_KEY = "vertex6x_cart";
+function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } }
+function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateNavBadge(); }
+function updateNavBadge() {
+    const cart = getCart();
+    const badge = document.getElementById("nav-cart-count");
+    if (badge) { badge.textContent = cart.length; badge.style.display = cart.length ? "flex" : "none"; }
+}
+
 const itemId = location.pathname.split("/").pop();
 
-// Show error from query string (e.g. ?err=no-stripe)
 const urlParams = new URLSearchParams(location.search);
 const errParam = urlParams.get("err");
 if (errParam) {
     const banner = document.getElementById("err-banner");
     banner.style.display = "block";
-    if (errParam === "no-stripe") banner.textContent = "⚠️ Stripe payment link hasn't been set up for this item yet. Please use PayPal or contact an admin.";
-    else if (errParam === "no-paypal") banner.textContent = "⚠️ PayPal link hasn't been set up for this item yet. Please use another payment method or contact an admin.";
+    if (errParam === "no-stripe") banner.textContent = "⚠️ Stripe payment hasn't been set up for this item yet. Please use PayPal or contact an admin.";
+    else if (errParam === "no-paypal") banner.textContent = "⚠️ PayPal hasn't been set up for this item yet. Please use card or contact an admin.";
     else banner.textContent = "⚠️ Payment error. Please try another method or contact an admin.";
 }
 
 async function init() {
+    updateNavBadge();
     try {
         const res = await fetch(`/api/checkout/${itemId}`);
         if (!res.ok) throw new Error();
-        const item = await res.json();
-        render(item);
+        render(await res.json());
     } catch {
         document.getElementById("checkout-content").innerHTML =
             '<p style="color:#f87171;text-align:center;padding:40px">Item not found.</p>';
     }
 }
 
+function esc(str) { return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function escJs(str) { return String(str||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
+
 function renderDescription(desc) {
     if (!desc) return "";
     return desc.split("\n").filter(l => l.trim()).map(line => {
         if (line.trim().startsWith("[img:") && line.trim().endsWith("]")) {
-            const url = line.trim().slice(5, -1).trim();
-            return `<li style="list-style:none;padding:0;"><img src="${esc(url)}" alt="Item image" style="max-width:100%;border-radius:6px;margin:4px 0;display:block;"></li>`;
+            const url = line.trim().slice(5,-1).trim();
+            return `<li style="list-style:none;padding:0;"><img src="${esc(url)}" alt="Item image" style="max-width:100%;border-radius:6px;margin:4px 0;display:block;" onerror="this.style.display='none'"></li>`;
         }
         return `<li>${esc(line.trim())}</li>`;
     }).join("");
@@ -232,11 +192,13 @@ function renderDescription(desc) {
 function render(item) {
     const hasStripe = !!item.stripeLink;
     const hasPaypal = !!item.paypalLink;
+    const priceNum = parseFloat((item.price||"").replace(/[^0-9.]/g,""));
     const hasCredit = item.isLoggedIn && item.creditBalance > 0;
-
-    // Parse price
-    const priceNum = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
     const canUseCredit = hasCredit && !isNaN(priceNum) && item.creditBalance >= priceNum;
+
+    // Cart button
+    const cart = getCart();
+    const inCart = !!cart.find(i => i.id === item.id);
 
     let payHtml = "";
     if (!hasStripe && !hasPaypal && !canUseCredit) {
@@ -254,103 +216,94 @@ function render(item) {
         </a>`);
         if (canUseCredit) {
             if (parts.length) parts.push(`<div class="pay-divider">or</div>`);
-            parts.push(`
-                <button class="pay-btn pay-btn-credit" id="credit-pay-btn" onclick="payWithCredits(${item.id})">
-                    💰 Pay with Store Credits (£${item.creditBalance.toFixed(2)} available)
-                </button>
-                <div class="credit-result" id="credit-result"></div>
-            `);
+            parts.push(`<button class="pay-btn pay-btn-credit" id="credit-pay-btn" onclick="payWithCredits(${item.id})">
+                💰 Pay with Store Credits (£${item.creditBalance.toFixed(2)} available)
+            </button>
+            <div class="credit-result" id="credit-result"></div>`);
         } else if (item.isLoggedIn && hasCredit && !canUseCredit) {
-            parts.push(`<p style="font-size:12px;color:#2a4a6a;text-align:center;margin-top:4px;">💰 You have £${item.creditBalance.toFixed(2)} credits — not enough for this item (£${isNaN(priceNum) ? item.price : priceNum.toFixed(2)})</p>`);
+            parts.push(`<p style="font-size:12px;color:#2a4a6a;text-align:center;margin-top:4px;">💰 You have £${item.creditBalance.toFixed(2)} credits — not enough for this item</p>`);
         } else if (!item.isLoggedIn) {
             parts.push(`<p style="font-size:12px;color:#2a4a6a;text-align:center;margin-top:4px;"><a href="/auth/discord" style="color:#4d8dff;">Login with Discord</a> to use store credits</p>`);
         }
         payHtml = `<div class="pay-buttons">${parts.join("")}</div>`;
     }
 
-    const creditPill = item.isLoggedIn && item.creditBalance > 0
-        ? `<div class="credit-pill">💰 Store Credits: £${item.creditBalance.toFixed(2)}</div>`
-        : "";
+    // Add to cart button
+    const cartBtnHtml = `<button id="checkout-cart-btn" onclick="toggleCart(${JSON.stringify({id:item.id,name:item.name,price:item.price,imageUrl:item.imageUrl||"",category:item.category||""})})"
+        class="pay-btn pay-btn-cart" style="margin-top:10px;">${inCart ? "✓ In Cart — View Cart →" : "🛒 Add to Cart"}</button>`;
 
-    const noRoleWarning = !item.roleId
-        ? `<p class="no-role-warn">⚠️ No role ID configured for this item. Add one in the admin panel to enable auto role assignment.</p>`
-        : "";
+    const creditPill = item.isLoggedIn && item.creditBalance > 0
+        ? `<div class="credit-pill">💰 Store Credits: £${item.creditBalance.toFixed(2)}</div>` : "";
+
+    const noRoleWarning = !item.roleId ? `<p class="no-role-warn">⚠️ No role ID configured for this item.</p>` : "";
 
     const bypassSection = item.isAdmin ? `
         <div class="bypass-card">
-            <div class="bypass-header">
-                <h3>⚡ Admin Bypass</h3>
-                <span class="bypass-badge">Admin Only</span>
-            </div>
+            <div class="bypass-header"><h3>⚡ Admin Bypass</h3><span class="bypass-badge">Admin Only</span></div>
             <p class="bypass-desc">Enter the customer's Discord User ID to skip payment and assign their role instantly.</p>
             <input class="bypass-input" id="discord-user-id" type="text" placeholder="Discord User ID  (e.g. 123456789012345678)" autocomplete="off">
             <button class="bypass-btn" id="bypass-btn"
-                onclick="doBypass('${escJs(item.name)}', '${escJs(item.price)}', ${item.id}, '${escJs(item.roleId || "")}')">
+                onclick="doBypass('${escJs(item.name)}','${escJs(item.price)}',${item.id},'${escJs(item.roleId||"")}')">
                 ⚡ Bypass &amp; Assign Role
             </button>
             ${noRoleWarning}
             <div class="result-box" id="bypass-result"></div>
-        </div>
-    ` : "";
+        </div>` : "";
 
-    const imgHtml = item.imageUrl
-        ? `<img class="checkout-card-img" src="${esc(item.imageUrl)}" alt="${esc(item.name)}" onerror="this.style.display='none'">`
-        : "";
+    const imgHtml = item.imageUrl ? `<img class="checkout-card-img" src="${esc(item.imageUrl)}" alt="${esc(item.name)}" onerror="this.style.display='none'">` : "";
 
     document.getElementById("checkout-content").innerHTML = `
         <div class="checkout-card">
             ${imgHtml}
             <div class="checkout-card-body">
-                <span class="item-tag">${esc(item.category || "Vertex 6X Store")}</span>
+                <span class="item-tag">${esc(item.category||"Vertex 6X Store")}</span>
                 <div class="item-name">${esc(item.name)}</div>
                 <div class="item-price">${esc(item.price)}</div>
                 <hr class="item-divider">
                 ${item.description ? `<ul class="item-features">${renderDescription(item.description)}</ul>` : ""}
                 ${creditPill}
                 ${payHtml}
+                ${cartBtnHtml}
             </div>
         </div>
-        ${bypassSection}
-    `;
+        ${bypassSection}`;
 }
 
-function esc(str) {
-    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-function escJs(str) {
-    return String(str || "").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+function toggleCart(item) {
+    const cart = getCart();
+    const existing = cart.find(i => i.id === item.id);
+    const btn = document.getElementById("checkout-cart-btn");
+    if (existing) {
+        window.location.href = "/cart.html";
+    } else {
+        cart.push(item);
+        saveCart(cart);
+        if (btn) { btn.textContent = "✓ In Cart — View Cart →"; }
+    }
 }
 
 async function payWithCredits(itemId) {
     const btn = document.getElementById("credit-pay-btn");
     const resultEl = document.getElementById("credit-result");
-    btn.disabled = true;
-    btn.textContent = "Processing…";
-    resultEl.style.display = "none";
+    btn.disabled = true; btn.textContent = "Processing…"; resultEl.style.display = "none";
     try {
-        const res = await fetch("/api/pay-with-credits", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ itemId })
-        });
+        const res = await fetch("/api/pay-with-credits", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({itemId}) });
         const data = await res.json();
         if (res.ok) {
             resultEl.className = "credit-result success";
-            resultEl.textContent = `✓ Purchase successful! ${data.roleAssigned ? "Role assigned!" : ""} Remaining credits: £${data.newBalance.toFixed(2)}`;
+            resultEl.textContent = `✓ Purchase successful! ${data.roleAssigned?"Role assigned! ":""}Remaining credits: £${data.newBalance.toFixed(2)}`;
             btn.style.display = "none";
         } else {
             resultEl.className = "credit-result error";
             resultEl.textContent = `✗ ${data.error}`;
-            btn.disabled = false;
-            btn.textContent = "💰 Pay with Store Credits";
+            btn.disabled = false; btn.textContent = "💰 Pay with Store Credits";
         }
         resultEl.style.display = "block";
     } catch {
         resultEl.className = "credit-result error";
         resultEl.textContent = "✗ Network error. Try again.";
         resultEl.style.display = "block";
-        btn.disabled = false;
-        btn.textContent = "💰 Pay with Store Credits";
+        btn.disabled = false; btn.textContent = "💰 Pay with Store Credits";
     }
 }
 
@@ -359,50 +312,28 @@ async function doBypass(itemName, itemPrice, itemId, roleId) {
     if (!discordUserId) { alert("Please enter a Discord User ID first."); return; }
     const btn = document.getElementById("bypass-btn");
     const resultBox = document.getElementById("bypass-result");
-    btn.disabled = true;
-    btn.textContent = "Processing…";
-    resultBox.style.display = "none";
+    btn.disabled = true; btn.textContent = "Processing…"; resultBox.style.display = "none";
     try {
-        const res = await fetch("/api/bypass-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ itemId, itemName, itemPrice, roleId, discordUserId })
-        });
+        const res = await fetch("/api/bypass-payment", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({itemId,itemName,itemPrice,roleId,discordUserId}) });
         const data = await res.json();
         if (res.ok) {
             resultBox.className = "result-box success";
-            resultBox.textContent = data.roleAssigned
-                ? `✓ Bypass recorded and role assigned to ${discordUserId}!`
-                : data.roleError
-                ? `✓ Bypass recorded — but role failed: ${data.roleError}`
-                : "✓ Bypass recorded!";
+            resultBox.textContent = data.roleAssigned ? `✓ Bypass recorded and role assigned to ${discordUserId}!` : data.roleError ? `✓ Bypass recorded — role failed: ${data.roleError}` : "✓ Bypass recorded!";
         } else {
             resultBox.className = "result-box error";
-            resultBox.textContent = `✗ ${data.error || "Bypass failed — are you logged in as admin?"}`;
+            resultBox.textContent = `✗ ${data.error||"Bypass failed — are you logged in as admin?"}`;
         }
         resultBox.style.display = "block";
         if (res.ok) {
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = "⚡ Bypass & Assign Role";
-                document.getElementById("discord-user-id").value = "";
-                resultBox.style.display = "none";
-            }, 4000);
-        } else {
-            btn.disabled = false;
-            btn.textContent = "⚡ Bypass & Assign Role";
-        }
+            setTimeout(() => { btn.disabled=false; btn.textContent="⚡ Bypass & Assign Role"; document.getElementById("discord-user-id").value=""; resultBox.style.display="none"; }, 4000);
+        } else { btn.disabled=false; btn.textContent="⚡ Bypass & Assign Role"; }
     } catch {
-        resultBox.className = "result-box error";
-        resultBox.textContent = "✗ Network error. Try again.";
-        resultBox.style.display = "block";
-        btn.disabled = false;
-        btn.textContent = "⚡ Bypass & Assign Role";
+        resultBox.className="result-box error"; resultBox.textContent="✗ Network error.";
+        resultBox.style.display="block"; btn.disabled=false; btn.textContent="⚡ Bypass & Assign Role";
     }
 }
 
 init();
 </script>
-
 </body>
 </html>
