@@ -186,17 +186,23 @@ async function setupDB() {
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-passport.use(
-    new DiscordStrategy(
+function makeDiscordStrategy(callbackURL) {
+    return new DiscordStrategy(
         {
             clientID: process.env.CLIENT_ID,
             clientSecret: process.env.CLIENT_SECRET,
-            callbackURL: process.env.CALLBACK_URL,
+            callbackURL,
             scope: ["identify"]
         },
         (accessToken, refreshToken, profile, done) => done(null, profile)
-    )
-);
+    );
+}
+
+function getCallbackURL(req) {
+    const host = req.hostname;
+    const proto = req.protocol;
+    return `${proto}://${host}/auth/discord/callback`;
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -229,11 +235,19 @@ function checkAdminJson(req, res, next) {
     res.status(401).json({ error: "Unauthorized" });
 }
 
-app.get("/auth/discord", passport.authenticate("discord"));
+app.get("/auth/discord", (req, res, next) => {
+    const callbackURL = getCallbackURL(req);
+    passport.use(makeDiscordStrategy(callbackURL));
+    passport.authenticate("discord")(req, res, next);
+});
 
 app.get(
     "/auth/discord/callback",
-    passport.authenticate("discord", { failureRedirect: "/" }),
+    (req, res, next) => {
+        const callbackURL = getCallbackURL(req);
+        passport.use(makeDiscordStrategy(callbackURL));
+        passport.authenticate("discord", { failureRedirect: "/" })(req, res, next);
+    },
     (req, res) => res.redirect("/")
 );
 
