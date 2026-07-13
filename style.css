@@ -75,12 +75,14 @@ text-align:center;
 padding:0 20px;
 }
 
-.hero-logo{
-width:220px;
-height:auto;
-display:block;
-margin:0 auto 20px;
-filter:drop-shadow(0 0 20px #7c3aed);
+.hero-title{
+font-size:64px;
+font-weight:900;
+color:#ffffff;
+letter-spacing:4px;
+text-transform:uppercase;
+margin-bottom:20px;
+text-shadow:0 0 30px #7c3aed, 0 0 60px rgba(124,58,237,0.5);
 }
 
 .hero h3{
@@ -299,8 +301,9 @@ height:auto;
 min-height:100vh;
 }
 
-.hero-logo{
-width:150px;
+.hero-title{
+font-size:38px;
+letter-spacing:2px;
 }
 
 .hero h3{
