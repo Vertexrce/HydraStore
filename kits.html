@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kits — Vertex 6X</title>
+<title>Kits — Vestige 6X</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #080c14; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+body { background: #0a0420; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
 
 nav {
     background: rgba(8,12,20,0.95);
-    border-bottom: 1px solid #111d35;
+    border-bottom: 1px solid #1e0a40;
     padding: 0 40px;
     height: 62px;
     display: flex;
@@ -26,36 +26,36 @@ nav {
 .nav-logo img { height: 32px; width: auto; display: block; }
 .nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
 .nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
-.nav-links a { color: #6b80a8; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+.nav-links a { color: #9a71d4; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
 .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.05); }
-.nav-links a.active { color: #4d8dff; }
+.nav-links a.active { color: #a855f7; }
 .nav-right { display: flex; align-items: center; gap: 6px; }
 .nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
-.nav-cog:hover { color: #4d8dff; }
-.cart-icon-btn { position: relative; color: #6b80a8; text-decoration: none; font-size: 20px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s; line-height: 1; }
+.nav-cog:hover { color: #a855f7; }
+.cart-icon-btn { position: relative; color: #9a71d4; text-decoration: none; font-size: 20px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s; line-height: 1; }
 .cart-icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-.cart-badge { position: absolute; top: 2px; right: 2px; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
+.cart-badge { position: absolute; top: 2px; right: 2px; background: #7c3aed; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
 
 .page { max-width: 900px; margin: 0 auto; padding: 48px 20px 80px; }
 
 .page-header { margin-bottom: 36px; }
 .page-header h1 { font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
-.page-header p { color: #3d5a8a; font-size: 14px; margin-top: 6px; }
+.page-header p { color: #7c3aed; font-size: 14px; margin-top: 6px; }
 
 .section-title {
     display: flex; align-items: center; gap: 10px;
     font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
     color: #2a4070; margin-bottom: 16px; padding-bottom: 12px;
-    border-bottom: 1px solid #0f1e38;
+    border-bottom: 1px solid #1a0a40;
 }
 .section-title span { font-size: 16px; }
 
 .prompt-card {
-    background: #0c1628; border: 1px solid #162240; border-radius: 14px;
+    background: #130929; border: 1px solid #1e0840; border-radius: 14px;
     padding: 36px; text-align: center; margin-bottom: 32px;
 }
 .prompt-card h2 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px; }
-.prompt-card p { font-size: 14px; color: #3d5a8a; margin-bottom: 20px; line-height: 1.6; }
+.prompt-card p { font-size: 14px; color: #7c3aed; margin-bottom: 20px; line-height: 1.6; }
 .prompt-btn {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 12px 28px; border-radius: 8px; border: none;
@@ -72,13 +72,13 @@ nav {
     color: #e0e6f0; padding: 11px 14px; font-size: 14px; outline: none;
     transition: border-color 0.15s; font-family: inherit;
 }
-.gamertag-input:focus { border-color: #2563eb; }
+.gamertag-input:focus { border-color: #7c3aed; }
 .gamertag-input::placeholder { color: #1e3060; }
 
 .kits-grid { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
 
 .kit-card {
-    background: #0c1628; border: 1px solid #162240; border-radius: 14px;
+    background: #130929; border: 1px solid #1e0840; border-radius: 14px;
     padding: 24px 28px; display: flex; align-items: center; gap: 24px;
     transition: border-color 0.2s;
 }
@@ -86,20 +86,20 @@ nav {
 
 .kit-icon {
     width: 52px; height: 52px; border-radius: 10px;
-    background: rgba(77,141,255,0.08); border: 1px solid #1a2e52;
+    background: rgba(77,141,255,0.08); border: 1px solid #2d1060;
     display: flex; align-items: center; justify-content: center;
     font-size: 24px; flex-shrink: 0;
 }
 
 .kit-info { flex: 1; min-width: 0; }
 .kit-name { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-.kit-desc { font-size: 13px; color: #3d5a8a; line-height: 1.5; }
+.kit-desc { font-size: 13px; color: #7c3aed; line-height: 1.5; }
 .kit-server { font-size: 11px; color: #1e3060; margin-top: 4px; }
 .kit-cd-badge {
     display: inline-flex; align-items: center; gap: 5px;
-    background: rgba(77,141,255,0.08); border: 1px solid #1a2e52;
+    background: rgba(77,141,255,0.08); border: 1px solid #2d1060;
     border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700;
-    color: #3d5a8a; margin-top: 6px;
+    color: #7c3aed; margin-top: 6px;
 }
 
 .kit-action { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -113,13 +113,13 @@ nav {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     transform: rotate(-90deg);
 }
-.ready-circle .circle-bg { fill: none; stroke: #0f1e38; stroke-width: 4; }
+.ready-circle .circle-bg { fill: none; stroke: #1a0a40; stroke-width: 4; }
 .ready-circle .circle-progress { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
 .ready-circle .circle-progress.ready-color { stroke: #059669; }
-.ready-circle .circle-progress.cooldown-color { stroke: #1d4ed8; }
+.ready-circle .circle-progress.cooldown-color { stroke: #5b21b6; }
 .ready-text { position: relative; text-align: center; pointer-events: none; }
 .ready-text .label { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
-.ready-text .sublabel { font-size: 9px; color: #3d5a8a; margin-top: 1px; }
+.ready-text .sublabel { font-size: 9px; color: #7c3aed; margin-top: 1px; }
 .ready-text.is-ready .label { color: #34d399; }
 .ready-text.is-cooldown .label { color: #60a5fa; font-size: 10px; }
 
@@ -133,7 +133,7 @@ nav {
 .claim-btn:active:not(:disabled) { transform: translateY(0); }
 .claim-btn.ready { background: #059669; color: #fff; box-shadow: 0 4px 16px rgba(5,150,105,0.3); }
 .claim-btn.ready:hover { box-shadow: 0 6px 24px rgba(5,150,105,0.45); }
-.claim-btn.cooldown { background: #0c1628; color: #1e3060; border: 1px solid #1a2e52; cursor: default; }
+.claim-btn.cooldown { background: #130929; color: #1e3060; border: 1px solid #2d1060; cursor: default; }
 .claim-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .claim-result { font-size: 12px; font-weight: 600; text-align: center; max-width: 120px; }
@@ -165,8 +165,8 @@ nav {
 
 <nav>
     <a href="/" class="nav-logo">
-        <img src="/vertex-logo.png" alt="Vertex 6X" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-        <span class="nav-logo-text" style="display:none">Vertex 6X</span>
+        <img src="/vestige-logo.jpg" alt="Vestige 6X" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="nav-logo-text" style="display:none">Vestige 6X</span>
     </a>
     <ul class="nav-links">
         <li><a href="/index.html">Home</a></li>
@@ -190,7 +190,7 @@ nav {
 </div>
 
 <script>
-const CART_KEY = "vertex6x_cart";
+const CART_KEY = "vestige6x_cart";
 function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } }
 function updateNavBadge() {
     const badge = document.getElementById("nav-cart-count");
@@ -244,7 +244,7 @@ function render() {
     let html = `<div class="gamertag-pill" onclick="promptChangeGamertag()">🎮 ${esc(state.gamertag)} <span style="color:#1e4a3a;font-size:10px;">✎ change</span></div>`;
 
     if (!state.kits.length) {
-        html += `<div class="empty-kits">🔒 No kits available for your roles.<br><span style="font-size:13px;color:#1a2e52;margin-top:6px;display:block;">Purchase a rank to unlock kits.</span></div>`;
+        html += `<div class="empty-kits">🔒 No kits available for your roles.<br><span style="font-size:13px;color:#2d1060;margin-top:6px;display:block;">Purchase a rank to unlock kits.</span></div>`;
     } else {
         html += `<div class="section-title"><span>🎁</span> YOUR KITS</div><div class="kits-grid" id="kits-grid">`;
         for (const kit of state.kits) {
@@ -393,7 +393,7 @@ async function linkGamertag() {
     const statusEl = document.getElementById("gt-status");
     const gamertag = input?.value?.trim();
     if (!gamertag) { if (statusEl) { statusEl.textContent = "Enter your in-game name."; } return; }
-    if (statusEl) { statusEl.style.color = "#3d5a8a"; statusEl.textContent = "Linking…"; }
+    if (statusEl) { statusEl.style.color = "#7c3aed"; statusEl.textContent = "Linking…"; }
     try {
         const r = await fetch("/api/kits/gamertag", {
             method: "POST",

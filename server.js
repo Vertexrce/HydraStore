@@ -661,7 +661,7 @@ async function getDiscordMemberRoles(guildId, userId, botToken) {
         const opts = {
             hostname: "discord.com",
             path: `/api/v10/guilds/${guildId}/members/${userId}`,
-            headers: { "Authorization": `Bot ${botToken}`, "User-Agent": "Vertex6X/1.0" }
+            headers: { "Authorization": `Bot ${botToken}`, "User-Agent": "Vestige6X/1.0" }
         };
         const req = https.get(opts, (r) => {
             let data = "";

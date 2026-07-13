@@ -1,4 +1,4 @@
-# Vertex 6X — Stripe Webhook + Zip File Update
+# Vestige 6X — Stripe Webhook + Zip File Update
 
 ## What changed
 - `server.js` — full replacement with Stripe Checkout Sessions, webhook, zip file support

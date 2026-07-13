@@ -6,7 +6,7 @@ font-family:Arial,sans-serif;
 }
 
 body{
-background:#050b18;
+background:#0a0420;
 color:white;
 overflow-x:hidden;
 }
@@ -41,7 +41,7 @@ transition:.3s;
 }
 
 .navbar a:hover{
-color:#4d8dff;
+color:#a855f7;
 }
 
 .logo img{
@@ -50,7 +50,7 @@ width:auto;
 }
 
 .discord-btn{
-background:#2563eb;
+background:#7c3aed;
 padding:12px 20px;
 border-radius:10px;
 }
@@ -80,21 +80,21 @@ width:220px;
 height:auto;
 display:block;
 margin:0 auto 20px;
-filter:drop-shadow(0 0 20px #2563eb);
+filter:drop-shadow(0 0 20px #7c3aed);
 }
 
 .hero h3{
 font-size:28px;
-color:#d7e3ff;
+color:#e9d5ff;
 letter-spacing:3px;
 }
 
 .hero h1{
 font-size:70px;
 font-weight:900;
-color:#4d8dff;
+color:#a855f7;
 margin:20px 0;
-text-shadow:0 0 25px #2563eb;
+text-shadow:0 0 25px #7c3aed;
 }
 
 .hero-buttons{
@@ -112,12 +112,12 @@ font-weight:bold;
 }
 
 .btn-primary{
-background:#2563eb;
+background:#7c3aed;
 color:white;
 }
 
 .btn-secondary{
-border:2px solid #2563eb;
+border:2px solid #7c3aed;
 color:white;
 }
 
@@ -128,15 +128,15 @@ padding:80px 50px;
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 gap:20px;
-background:#07101f;
+background:#0c0520;
 }
 
 .stat-card{
-background:#0c172b;
+background:#130929;
 padding:30px;
 border-radius:15px;
 text-align:center;
-border:1px solid #1c4cff;
+border:1px solid #6d28d9;
 }
 
 .stat-card h2{
@@ -154,7 +154,7 @@ padding:80px 50px;
 text-align:center;
 margin-bottom:40px;
 font-size:42px;
-color:#4d8dff;
+color:#a855f7;
 }
 
 .news-grid{
@@ -164,10 +164,10 @@ gap:20px;
 }
 
 .news-card{
-background:#0c172b;
+background:#130929;
 padding:25px;
 border-radius:15px;
-border:1px solid #1c4cff;
+border:1px solid #6d28d9;
 }
 
 /* STORE SECTION */
@@ -179,7 +179,7 @@ text-align:center;
 
 .store h2{
 font-size:42px;
-color:#4d8dff;
+color:#a855f7;
 margin-bottom:40px;
 }
 
@@ -192,10 +192,10 @@ margin:auto;
 }
 
 .store-card{
-background:#0c172b;
+background:#130929;
 padding:30px;
 border-radius:20px;
-border:2px solid #2563eb;
+border:2px solid #7c3aed;
 text-align:center;
 height:auto;
 }
@@ -214,11 +214,11 @@ line-height:1.7;
 font-size:42px;
 font-weight:bold;
 margin:25px 0;
-color:#4d8dff;
+color:#a855f7;
 }
 
 .store-card button{
-background:#2563eb;
+background:#7c3aed;
 border:none;
 padding:15px 25px;
 border-radius:10px;
@@ -247,7 +247,7 @@ padding:80px 50px;
 text-align:center;
 margin-bottom:40px;
 font-size:42px;
-color:#4d8dff;
+color:#a855f7;
 }
 
 .feature-grid{
@@ -257,11 +257,11 @@ gap:20px;
 }
 
 .feature-box{
-background:#0c172b;
+background:#130929;
 padding:30px;
 border-radius:15px;
 text-align:center;
-border:1px solid #1c4cff;
+border:1px solid #6d28d9;
 }
 
 /* FOOTER */
@@ -269,8 +269,8 @@ border:1px solid #1c4cff;
 footer{
 padding:30px;
 text-align:center;
-background:#030814;
-border-top:1px solid #1c4cff;
+background:#06021a;
+border-top:1px solid #6d28d9;
 }
 
 /* MOBILE */
@@ -348,7 +348,7 @@ color:white;
 }
 
 .user-box a{
-color:#4d8dff;
+color:#a855f7;
 text-decoration:none;
 font-weight:bold;
 }
@@ -368,7 +368,7 @@ gap:10px;
 width:40px;
 height:40px;
 border-radius:50%;
-border:2px solid #2563eb;
+border:2px solid #7c3aed;
 }
 
 .logout-btn{

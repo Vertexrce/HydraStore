@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Admin — Vertex 6X</title>
+    <title>Shop Admin — Vestige 6X</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #080c14; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+        body { background: #0a0420; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
 
-        .topbar { background: #070e1c; border-bottom: 1px solid #111d35; padding: 18px 48px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .topbar { background: #0c0520; border-bottom: 1px solid #1e0a40; padding: 18px 48px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .topbar-left h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
-        .topbar-left p { font-size: 13px; color: #3d5a8a; margin-top: 3px; max-width: 480px; }
+        .topbar-left p { font-size: 13px; color: #7c3aed; margin-top: 3px; max-width: 480px; }
         .topbar-right { display: flex; gap: 10px; align-items: center; }
 
         .btn { padding: 9px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity 0.15s, transform 0.1s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
         .btn:hover { opacity: 0.85; }
         .btn:active { transform: scale(0.98); }
-        .btn-blue { background: linear-gradient(135deg, #1d4ed8, #1e3a8a); color: #fff; }
-        .btn-blue:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); opacity: 1; }
+        .btn-blue { background: linear-gradient(135deg, #5b21b6, #1e3a8a); color: #fff; }
+        .btn-blue:hover { background: linear-gradient(135deg, #7c3aed, #5b21b6); opacity: 1; }
         .btn-green { background: #059669; color: #fff; }
         .btn-green:hover { background: #047857; opacity: 1; }
         .btn-outline { background: transparent; color: #7aa0d4; border: 1px solid #1a3060; }
-        .btn-outline:hover { border-color: #2a5abf; color: #fff; opacity: 1; }
-        .btn-ghost { background: #0c1628; color: #6b88b8; border: 1px solid #1a3060; }
-        .btn-ghost:hover { color: #fff; border-color: #2a5abf; opacity: 1; }
+        .btn-outline:hover { border-color: #7c3aed; color: #fff; opacity: 1; }
+        .btn-ghost { background: #130929; color: #6b88b8; border: 1px solid #1a3060; }
+        .btn-ghost:hover { color: #fff; border-color: #7c3aed; opacity: 1; }
         .btn-sm { padding: 7px 14px; font-size: 12px; }
         .btn-danger { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
         .btn-danger:hover { background: #991b1b; opacity: 1; }
@@ -32,60 +32,60 @@
         .content { max-width: 960px; margin: 0 auto; padding: 40px 48px 120px; }
 
         .section { margin-bottom: 48px; }
-        .section-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #162240; }
+        .section-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #1e0840; }
         .section-head h2 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-        .section-head p { font-size: 13px; color: #3d5a8a; margin-top: 4px; max-width: 560px; }
+        .section-head p { font-size: 13px; color: #7c3aed; margin-top: 4px; max-width: 560px; }
         .section-head-actions { display: flex; gap: 8px; flex-shrink: 0; margin-left: 24px; }
 
-        .panel { background: #0c1628; border: 1px solid #162240; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
+        .panel { background: #130929; border: 1px solid #1e0840; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
 
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
 
         .field { display: flex; flex-direction: column; gap: 7px; }
-        .field label { font-size: 11px; font-weight: 600; color: #3d5a8a; text-transform: uppercase; letter-spacing: 0.8px; }
+        .field label { font-size: 11px; font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.8px; }
         .field label .badge-stripe { display: inline-block; background: #635bff22; color: #635bff; border: 1px solid #635bff44; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
         .field label .badge-paypal { display: inline-block; background: #ffc43922; color: #c98f00; border: 1px solid #ffc43944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
         .field label .badge-credit { display: inline-block; background: #05966922; color: #34d399; border: 1px solid #05966944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
-        .field label .badge-auto { display: inline-block; background: #1d4ed822; color: #60a5fa; border: 1px solid #1d4ed844; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
+        .field label .badge-auto { display: inline-block; background: #5b21b622; color: #60a5fa; border: 1px solid #5b21b644; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
         .field input, .field textarea, .field select { background: #060d1a; border: 1px solid #1a2e4a; border-radius: 6px; color: #e0e6f0; padding: 10px 13px; font-size: 14px; outline: none; transition: border-color 0.15s; font-family: inherit; width: 100%; }
-        .field input:focus, .field textarea:focus, .field select:focus { border-color: #2563eb; }
+        .field input:focus, .field textarea:focus, .field select:focus { border-color: #7c3aed; }
         .field input::placeholder, .field textarea::placeholder { color: #1e3060; }
         .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
         .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%233d5a8a'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-        .field .hint { font-size: 11px; color: #1e3a6a; margin-top: 2px; }
+        .field .hint { font-size: 11px; color: #3b1464; margin-top: 2px; }
 
-        .item-card { background: #0c1628; border: 1px solid #162240; border-radius: 10px; padding: 24px; margin-bottom: 12px; transition: border-color 0.2s; }
+        .item-card { background: #130929; border: 1px solid #1e0840; border-radius: 10px; padding: 24px; margin-bottom: 12px; transition: border-color 0.2s; }
         .item-card:hover { border-color: #1e3a7a; }
         .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .item-label { font-size: 12px; font-weight: 700; color: #3d5a8a; text-transform: uppercase; letter-spacing: 1px; }
+        .item-label { font-size: 12px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; }
 
         .add-panel { background: #060d1a; border: 1px dashed #1a2e4a; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
-        .add-panel h3 { font-size: 14px; font-weight: 700; color: #3d5a8a; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; }
+        .add-panel h3 { font-size: 14px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; }
 
-        .credit-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #0c1628; border: 1px solid #162240; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
+        .credit-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #130929; border: 1px solid #1e0840; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
         .credit-row .cr-id { font-size: 13px; color: #7c5cbf; font-weight: 600; }
         .credit-row .cr-balance { font-size: 20px; font-weight: 700; color: #34d399; }
         .credit-row .cr-updated { font-size: 11px; color: #1e3060; margin-top: 2px; }
 
-        .purchase-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #0c1628; border: 1px solid #162240; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
+        .purchase-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #130929; border: 1px solid #1e0840; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
         .purchase-row .item-name { font-weight: 600; font-size: 15px; color: #fff; }
         .purchase-row .item-date { font-size: 12px; color: #2a4070; margin-top: 3px; }
         .purchase-row .item-discord { font-size: 12px; color: #7c5cbf; margin-top: 2px; }
         .purchase-row .item-note { font-size: 12px; color: #1e3060; margin-top: 2px; }
-        .purchase-row .item-price { font-size: 20px; font-weight: 700; color: #4d8dff; }
+        .purchase-row .item-price { font-size: 20px; font-weight: 700; color: #a855f7; }
 
-        .statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(6,12,20,0.97); border-top: 1px solid #162240; padding: 14px 48px; display: flex; justify-content: flex-end; align-items: center; gap: 14px; backdrop-filter: blur(8px); }
-        .status-msg { font-size: 13px; color: #2a4a7f; }
+        .statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(6,12,20,0.97); border-top: 1px solid #1e0840; padding: 14px 48px; display: flex; justify-content: flex-end; align-items: center; gap: 14px; backdrop-filter: blur(8px); }
+        .status-msg { font-size: 13px; color: #5b21b6; }
         .status-msg.saved { color: #4ade80; }
         .status-msg.error { color: #f87171; }
 
         .empty { text-align: center; color: #1e3060; padding: 40px; font-size: 14px; }
 
-        .img-preview { margin-top: 8px; max-width: 100%; max-height: 120px; border-radius: 6px; display: none; border: 1px solid #162240; }
+        .img-preview { margin-top: 8px; max-width: 100%; max-height: 120px; border-radius: 6px; display: none; border: 1px solid #1e0840; }
 
-        .info-note { background: rgba(29,78,216,0.08); border: 1px solid #1a3a7a; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #4d6a9a; line-height: 1.6; margin-top: 8px; }
+        .info-note { background: rgba(29,78,216,0.08); border: 1px solid #4c1d95; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #8b5cf6; line-height: 1.6; margin-top: 8px; }
         .info-note strong { color: #7aa0d4; }
 
         @media (max-width: 700px) {
@@ -141,8 +141,8 @@
                     <span class="hint">Channel where purchase logs are sent</span>
                 </div>
             </div>
-            <p style="font-size:12px;color:#1e3a6a;margin-top:4px;">Bot needs <strong style="color:#3d5a8a">Send Messages</strong> + <strong style="color:#3d5a8a">Manage Roles</strong> permissions.</p>
-            <div style="margin-top:12px;"><span id="settings-status" style="font-size:13px;color:#2a4a7f;"></span></div>
+            <p style="font-size:12px;color:#3b1464;margin-top:4px;">Bot needs <strong style="color:#7c3aed">Send Messages</strong> + <strong style="color:#7c3aed">Manage Roles</strong> permissions.</p>
+            <div style="margin-top:12px;"><span id="settings-status" style="font-size:13px;color:#5b21b6;"></span></div>
         </div>
     </div>
 
@@ -161,7 +161,7 @@
             <div class="grid-2">
                 <div class="field">
                     <label>Stripe <span class="badge-auto">AUTO</span></label>
-                    <input type="text" id="setting-stripe-info" value="Configured via STRIPE_SECRET_KEY env variable" disabled style="color:#3d5a8a;cursor:default;">
+                    <input type="text" id="setting-stripe-info" value="Configured via STRIPE_SECRET_KEY env variable" disabled style="color:#7c3aed;cursor:default;">
                     <span class="hint">Stripe card button appears on every item automatically. No Price ID needed per item — it charges the item's price directly.</span>
                 </div>
                 <div class="field">
@@ -207,7 +207,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
                 <button class="btn btn-green" onclick="giveCredit()">💰 Give / Adjust Credits</button>
-                <span id="credit-status" style="font-size:13px;color:#2a4a7f;"></span>
+                <span id="credit-status" style="font-size:13px;color:#5b21b6;"></span>
             </div>
         </div>
 
@@ -317,8 +317,8 @@
                 <button class="btn btn-blue btn-sm" onclick="loadServers()">🔄 Refresh</button>
             </div>
         </div>
-        <div style="background:#060d1a;border:1px solid #1a2e52;border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:#2a4a7f;line-height:1.7;">
-            💡 To add a server: use <code style="color:#4d8dff;background:#0c1628;padding:1px 6px;border-radius:4px;">/game-server add</code> in Discord, then click <strong>Refresh</strong> above.
+        <div style="background:#060d1a;border:1px solid #2d1060;border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:#5b21b6;line-height:1.7;">
+            💡 To add a server: use <code style="color:#a855f7;background:#130929;padding:1px 6px;border-radius:4px;">/game-server add</code> in Discord, then click <strong>Refresh</strong> above.
             The server will appear in the Kits Config dropdown automatically.
         </div>
         <div id="servers-list"></div>
@@ -368,7 +368,7 @@
         </div>
 
         <div id="kits-admin-list"></div>
-        <span id="kits-status" style="font-size:13px;color:#2a4a7f;display:block;margin-top:8px;"></span>
+        <span id="kits-status" style="font-size:13px;color:#5b21b6;display:block;margin-top:8px;"></span>
     </div>
 
 </div>
@@ -521,7 +521,7 @@ async function giveCredit() {
     const reason = document.getElementById("credit-reason").value.trim();
     const statusEl = document.getElementById("credit-status");
     if (!discordId || !amount) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter Discord ID and amount."; return; }
-    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Processing…";
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Processing…";
     const res = await fetch("/api/admin/give-credit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -577,7 +577,7 @@ async function saveSettings() {
     const discordGuildId = document.getElementById("setting-guild-id").value.trim();
     const paypalDefaultLink = document.getElementById("setting-paypal-link").value.trim();
     const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Saving...";
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Saving...";
     const res = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ discordChannelId, discordBotToken, discordGuildId, paypalDefaultLink }) });
     statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
     statusEl.textContent = res.ok ? "✓ Saved!" : "✗ Failed to save.";
@@ -586,7 +586,7 @@ async function saveSettings() {
 
 async function testDiscord() {
     const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Sending test...";
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Sending test...";
     const res = await fetch("/api/bypass-payment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 }) });
     statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
     statusEl.textContent = res.ok ? "✓ Test sent! Check your Discord." : "✗ Failed — check bot token and channel ID.";
@@ -744,7 +744,7 @@ function deleteKit(i) {
 
 async function saveKits() {
     const statusEl = document.getElementById("kits-status");
-    statusEl.style.color = "#2a4a7f"; statusEl.textContent = "Saving…";
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Saving…";
     try {
         const res = await fetch("/api/admin/web-kits", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(kits) });
         if (res.ok) {

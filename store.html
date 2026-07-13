@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vertex 6X Store</title>
+<title>Vestige 6X Store</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="style.css">
 <style>
 .admin-cog-btn {
     font-size: 22px;
-    color: #4a5a7a;
+    color: #6b21a8;
     text-decoration: none;
     padding: 6px 10px;
     border-radius: 8px;
     transition: color 0.2s, background 0.2s;
     line-height: 1;
 }
-.admin-cog-btn:hover { color: #4d8dff; background: rgba(37,99,235,0.12); }
+.admin-cog-btn:hover { color: #a855f7; background: rgba(124,58,237,0.12); }
 
 .nav-right { display: flex; align-items: center; gap: 6px; }
 .cart-icon-btn {
     position: relative;
-    color: #6b80a8;
+    color: #9a71d4;
     text-decoration: none;
     font-size: 20px;
     padding: 6px 10px;
@@ -34,7 +34,7 @@
     position: absolute;
     top: 2px;
     right: 2px;
-    background: #2563eb;
+    background: #7c3aed;
     color: #fff;
     font-size: 9px;
     font-weight: 700;
@@ -51,16 +51,16 @@
 .category-tab {
     padding: 8px 20px;
     border-radius: 20px;
-    border: 1px solid #1a2e52;
+    border: 1px solid #2d1060;
     background: transparent;
-    color: #4d6a9a;
+    color: #8b5cf6;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
 }
-.category-tab:hover { border-color: #2a4a8a; color: #7aa0d4; background: rgba(77,141,255,0.05); }
-.category-tab.active { background: #1a3a7a; border-color: #2a5abf; color: #fff; }
+.category-tab:hover { border-color: #5b21b6; color: #7aa0d4; background: rgba(77,141,255,0.05); }
+.category-tab.active { background: #4c1d95; border-color: #7c3aed; color: #fff; }
 
 /* ── Category section ── */
 .category-section { margin-bottom: 48px; }
@@ -70,32 +70,32 @@
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #2a4a7f;
+    color: #5b21b6;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #0f1e38;
+    border-bottom: 1px solid #1a0a40;
 }
 
 /* ── Store grid ── */
 .store-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 
 .store-card-v2 {
-    background: #0c1628;
-    border: 1px solid #162240;
+    background: #130929;
+    border: 1px solid #1e0840;
     border-radius: 14px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     transition: border-color 0.2s, transform 0.15s;
 }
-.store-card-v2:hover { border-color: #2a4a8a; transform: translateY(-2px); }
+.store-card-v2:hover { border-color: #5b21b6; transform: translateY(-2px); }
 
-.store-card-img { width: 100%; height: 160px; object-fit: cover; display: block; background: #070e1c; }
+.store-card-img { width: 100%; height: 160px; object-fit: cover; display: block; background: #0c0520; }
 .store-card-img.hidden { display: none; }
 .store-card-body { padding: 22px 24px; display: flex; flex-direction: column; flex: 1; }
 .store-card-name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; letter-spacing: -0.3px; }
-.store-card-price { font-size: 26px; font-weight: 800; color: #4d8dff; margin-bottom: 14px; letter-spacing: -0.5px; }
-.store-card-desc { font-size: 13px; color: #5a7299; line-height: 1.6; margin-bottom: 20px; flex: 1; }
+.store-card-price { font-size: 26px; font-weight: 800; color: #a855f7; margin-bottom: 14px; letter-spacing: -0.5px; }
+.store-card-desc { font-size: 13px; color: #8b5cf6; line-height: 1.6; margin-bottom: 20px; flex: 1; }
 .store-card-desc img { max-width: 100%; border-radius: 6px; margin-top: 8px; }
 
 /* ── Buttons ── */
@@ -105,7 +105,7 @@
     display: block;
     width: 100%;
     padding: 15px 0;
-    background: linear-gradient(135deg, #2563eb, #1a4fd8);
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
     color: #fff;
     border: none;
     border-radius: 9px;
@@ -115,9 +115,9 @@
     text-decoration: none;
     cursor: pointer;
     transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-    box-shadow: 0 4px 18px rgba(37,99,235,0.3);
+    box-shadow: 0 4px 18px rgba(124,58,237,0.3);
 }
-.store-buy-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(37,99,235,0.45); }
+.store-buy-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,0.45); }
 .store-buy-btn:active { transform: translateY(0); }
 
 .store-cart-btn {
@@ -128,8 +128,8 @@
     width: 100%;
     padding: 11px 0;
     background: transparent;
-    color: #4d8dff;
-    border: 1px solid #1a3a7a;
+    color: #a855f7;
+    border: 1px solid #4c1d95;
     border-radius: 9px;
     font-size: 14px;
     font-weight: 600;
@@ -137,18 +137,18 @@
     cursor: pointer;
     transition: all 0.15s;
 }
-.store-cart-btn:hover { background: rgba(37,99,235,0.1); border-color: #2a5abf; color: #7aa0d4; }
-.store-cart-btn.added { color: #34d399; border-color: #065f46; background: rgba(5,150,105,0.08); }
+.store-cart-btn:hover { background: rgba(124,58,237,0.1); border-color: #7c3aed; color: #7aa0d4; }
+.store-cart-btn.added { color: #34d399; border-color: #4c1d95; background: rgba(5,150,105,0.08); }
 
 /* ── Admin banner ── */
 .admin-banner {
     display: none;
-    background: #0c172b;
-    border: 1px solid #2563eb;
+    background: #130929;
+    border: 1px solid #7c3aed;
     border-radius: 10px;
     padding: 12px 20px;
     margin-bottom: 28px;
-    color: #4d8dff;
+    color: #a855f7;
     font-size: 14px;
 }
 
@@ -161,8 +161,8 @@
     bottom: 28px;
     left: 50%;
     transform: translateX(-50%) translateY(80px);
-    background: #0f2040;
-    border: 1px solid #1e3a6a;
+    background: #120838;
+    border: 1px solid #3b1464;
     color: #7aa0d4;
     font-size: 13px;
     font-weight: 600;
@@ -183,7 +183,7 @@
 
 <nav class="navbar">
     <div class="logo">
-        <img src="vertex-logo.png" alt="Vertex 6X">
+        <img src="vestige-logo.jpg" alt="Vestige 6X">
     </div>
     <ul>
         <li><a href="index.html">Home</a></li>
@@ -200,11 +200,11 @@
 </nav>
 
 <div class="store-page-v2">
-    <h1>Vertex 6X Store</h1>
+    <h1>Vestige 6X Store</h1>
 
     <div class="admin-banner" id="admin-banner">
         ⚙️ <strong>Admin mode</strong> — Bypass Payment buttons appear on the checkout page for each item.
-        <a href="/admin" style="color:#4d8dff;margin-left:12px;">Go to Admin Panel →</a>
+        <a href="/admin" style="color:#a855f7;margin-left:12px;">Go to Admin Panel →</a>
     </div>
 
     <div class="category-tabs" id="category-tabs">
@@ -212,14 +212,14 @@
     </div>
 
     <div id="store-sections">
-        <div style="color:#1e2e4a;padding:60px;text-align:center;">Loading…</div>
+        <div style="color:#2a1060;padding:60px;text-align:center;">Loading…</div>
     </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const CART_KEY = "vertex6x_cart";
+const CART_KEY = "vestige6x_cart";
 
 function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } }
 function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateNavBadge(); }
@@ -300,7 +300,7 @@ function renderSections(items) {
         tabsEl.innerHTML += `<button class="category-tab" data-cat="${esc(cat)}" onclick="filterCat('${esc(cat)}', this)">${esc(cat)}</button>`;
     });
 
-    if (!items.length) { sectionsEl.innerHTML = `<div style="color:#1e2e4a;text-align:center;padding:60px;">No items yet.</div>`; return; }
+    if (!items.length) { sectionsEl.innerHTML = `<div style="color:#2a1060;text-align:center;padding:60px;">No items yet.</div>`; return; }
 
     let html = "";
     for (const cat of cats) {

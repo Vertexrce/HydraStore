@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cart — Vertex 6X</title>
+<title>Cart — Vestige 6X</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    background: #080c14;
+    background: #0a0420;
     color: #e0e6f0;
     font-family: 'Segoe UI', Arial, sans-serif;
     min-height: 100vh;
@@ -17,7 +17,7 @@ body {
 
 nav {
     background: rgba(8,12,20,0.95);
-    border-bottom: 1px solid #111d35;
+    border-bottom: 1px solid #1e0a40;
     padding: 0 40px;
     height: 62px;
     display: flex;
@@ -32,14 +32,14 @@ nav {
 .nav-logo img { height: 32px; width: auto; }
 .nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
 .nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
-.nav-links a { color: #6b80a8; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+.nav-links a { color: #9a71d4; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
 .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .nav-right { display: flex; align-items: center; gap: 10px; }
 .nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
-.nav-cog:hover { color: #4d8dff; }
-.cart-icon-btn { position: relative; color: #6b80a8; text-decoration: none; font-size: 20px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
+.nav-cog:hover { color: #a855f7; }
+.cart-icon-btn { position: relative; color: #9a71d4; text-decoration: none; font-size: 20px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
 .cart-icon-btn:hover { color: #fff; }
-.cart-badge { position: absolute; top: 2px; right: 2px; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
+.cart-badge { position: absolute; top: 2px; right: 2px; background: #7c3aed; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
 
 /* ── Page ── */
 .page {
@@ -57,7 +57,7 @@ nav {
 .page-header h1 { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
 .clear-btn {
     background: transparent;
-    border: 1px solid #1a2e52;
+    border: 1px solid #2d1060;
     color: #3a4d6b;
     font-size: 12px;
     padding: 6px 14px;
@@ -69,8 +69,8 @@ nav {
 
 /* ── Cart items ── */
 .cart-item {
-    background: #0c1628;
-    border: 1px solid #162240;
+    background: #130929;
+    border: 1px solid #1e0840;
     border-radius: 14px;
     display: flex;
     align-items: stretch;
@@ -78,14 +78,14 @@ nav {
     margin-bottom: 14px;
     transition: border-color 0.15s;
 }
-.cart-item:hover { border-color: #1e3a6a; }
+.cart-item:hover { border-color: #3b1464; }
 
 .cart-item-img {
     width: 110px;
     min-height: 110px;
     object-fit: cover;
     flex-shrink: 0;
-    background: #070e1c;
+    background: #0c0520;
 }
 .cart-item-img.no-img { display: none; }
 
@@ -102,10 +102,10 @@ nav {
     font-weight: 700;
     letter-spacing: 1.2px;
     text-transform: uppercase;
-    color: #2a4a7f;
+    color: #5b21b6;
 }
 .cart-item-name { font-size: 18px; font-weight: 700; color: #fff; }
-.cart-item-price { font-size: 22px; font-weight: 800; color: #4d8dff; letter-spacing: -0.3px; }
+.cart-item-price { font-size: 22px; font-weight: 800; color: #a855f7; letter-spacing: -0.3px; }
 
 .cart-item-actions {
     display: flex;
@@ -122,7 +122,7 @@ nav {
     align-items: center;
     gap: 8px;
     padding: 11px 20px;
-    background: linear-gradient(135deg, #2563eb, #1a4fd8);
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -131,10 +131,10 @@ nav {
     cursor: pointer;
     text-decoration: none;
     transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-    box-shadow: 0 3px 14px rgba(37,99,235,0.3);
+    box-shadow: 0 3px 14px rgba(124,58,237,0.3);
     white-space: nowrap;
 }
-.checkout-item-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 5px 18px rgba(37,99,235,0.45); }
+.checkout-item-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 5px 18px rgba(124,58,237,0.45); }
 .checkout-item-btn:active { transform: translateY(0); }
 
 .remove-btn {
@@ -151,8 +151,8 @@ nav {
 
 /* ── Summary ── */
 .cart-summary {
-    background: #0c1628;
-    border: 1px solid #162240;
+    background: #130929;
+    border: 1px solid #1e0840;
     border-radius: 14px;
     padding: 24px 28px;
     margin-top: 8px;
@@ -162,7 +162,7 @@ nav {
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
-    color: #4d6a9a;
+    color: #8b5cf6;
     margin-bottom: 10px;
 }
 .summary-total {
@@ -170,15 +170,15 @@ nav {
     justify-content: space-between;
     align-items: center;
     padding-top: 14px;
-    border-top: 1px solid #0f1e38;
+    border-top: 1px solid #1a0a40;
     margin-top: 6px;
 }
 .summary-total-label { font-size: 16px; font-weight: 700; color: #fff; }
-.summary-total-price { font-size: 28px; font-weight: 800; color: #4d8dff; letter-spacing: -0.5px; }
+.summary-total-price { font-size: 28px; font-weight: 800; color: #a855f7; letter-spacing: -0.5px; }
 
 .summary-note {
     font-size: 12px;
-    color: #1e2e4a;
+    color: #2a1060;
     margin-top: 14px;
     line-height: 1.6;
 }
@@ -189,20 +189,20 @@ nav {
     padding: 80px 20px;
 }
 .empty-cart .icon { font-size: 56px; margin-bottom: 16px; opacity: 0.3; }
-.empty-cart h2 { font-size: 22px; font-weight: 700; color: #1e2e4a; margin-bottom: 10px; }
+.empty-cart h2 { font-size: 22px; font-weight: 700; color: #2a1060; margin-bottom: 10px; }
 .empty-cart p { font-size: 14px; color: #1a2a40; margin-bottom: 24px; }
 .empty-cart a {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 12px 28px;
-    background: linear-gradient(135deg, #2563eb, #1a4fd8);
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
     color: #fff;
     border-radius: 9px;
     text-decoration: none;
     font-size: 14px;
     font-weight: 700;
-    box-shadow: 0 4px 18px rgba(37,99,235,0.3);
+    box-shadow: 0 4px 18px rgba(124,58,237,0.3);
     transition: opacity 0.15s;
 }
 .empty-cart a:hover { opacity: 0.9; }
@@ -213,8 +213,8 @@ nav {
     bottom: 28px;
     left: 50%;
     transform: translateX(-50%) translateY(80px);
-    background: #0f2040;
-    border: 1px solid #1e3a6a;
+    background: #120838;
+    border: 1px solid #3b1464;
     color: #7aa0d4;
     font-size: 13px;
     font-weight: 600;
@@ -231,7 +231,7 @@ nav {
     .page { padding: 28px 16px 80px; }
     .cart-item { flex-direction: column; }
     .cart-item-img { width: 100%; height: 140px; }
-    .cart-item-actions { flex-direction: row; align-items: center; padding: 14px 16px; border-top: 1px solid #0f1e38; }
+    .cart-item-actions { flex-direction: row; align-items: center; padding: 14px 16px; border-top: 1px solid #1a0a40; }
 }
 </style>
 </head>
@@ -239,8 +239,8 @@ nav {
 
 <nav>
     <a href="/" class="nav-logo">
-        <img src="/vertex-logo.png" alt="Vertex 6X" onerror="this.style.display='none'">
-        <span class="nav-logo-text">Vertex 6X</span>
+        <img src="/vestige-logo.jpg" alt="Vestige 6X" onerror="this.style.display='none'">
+        <span class="nav-logo-text">Vestige 6X</span>
     </a>
     <ul class="nav-links">
         <li><a href="/index.html">Home</a></li>
@@ -263,7 +263,7 @@ nav {
 <div class="toast" id="toast"></div>
 
 <script>
-const CART_KEY = "vertex6x_cart";
+const CART_KEY = "vestige6x_cart";
 
 function getCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; }

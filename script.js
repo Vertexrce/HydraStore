@@ -1,6 +1,6 @@
-// Vertex 6X Script
+// Vestige 6X Script
 
-console.log("Vertex 6X Loaded");
+console.log("Vestige 6X Loaded");
 
 // Smooth scrolling for navbar links
 
