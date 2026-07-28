@@ -35,7 +35,17 @@ if (BOT_DB_PATH) {
     }
 }
 
-function getBotLinkedGamertag(discordUserId) {
+async function getBotLinkedGamertag(discordUserId) {
+    // 1. Check Postgres mirror first (works on Railway where SQLite isn't shared)
+    try {
+        const { rows } = await pool.query(
+            "SELECT account_name FROM linked_accounts_mirror WHERE discord_user_id=$1",
+            [String(discordUserId)]
+        );
+        if (rows[0]) return rows[0].account_name;
+    } catch { /* fall through */ }
+
+    // 2. Fall back to bot SQLite (only works if same machine / BOT_DB_PATH set)
     if (!_botDbPath) return null;
     try {
         const { DatabaseSync } = require("node:sqlite");
@@ -738,8 +748,8 @@ app.post("/api/admin/give-kit", checkAdminJson, async (req, res) => {
             if (rows[0]) {
                 gamertag = rows[0].gamertag;
             } else {
-                // Try Valora bot SQLite
-                const botGamertag = getBotLinkedGamertag(gamertag);
+                // Try Valora bot SQLite / Postgres mirror
+                const botGamertag = await getBotLinkedGamertag(gamertag);
                 if (botGamertag) gamertag = botGamertag;
                 else return res.status(404).json({ error: `No linked gamertag found for Discord ID ${player}. Ask them to link on the Kits page first.` });
             }
@@ -780,8 +790,8 @@ app.get("/api/kits/gamertag", async (req, res) => {
         const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
         if (rows[0]) return res.json({ gamertag: rows[0].gamertag });
 
-        // Fall back to Valora bot SQLite if configured
-        const botGamertag = getBotLinkedGamertag(req.user.id);
+        // Fall back to Valora bot SQLite / Postgres mirror
+        const botGamertag = await getBotLinkedGamertag(req.user.id);
         if (botGamertag) {
             // Auto-import into web DB
             await pool.query(
