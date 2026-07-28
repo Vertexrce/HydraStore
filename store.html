@@ -7,230 +7,291 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="style.css">
 <style>
-.admin-cog-btn { font-size: 22px; color: #6b21a8; text-decoration: none; padding: 6px 10px; border-radius: 8px; transition: color 0.2s, background 0.2s; line-height: 1; }
-.admin-cog-btn:hover { color: #a855f7; background: rgba(124,58,237,0.12); }
+/* ── Store-specific overrides ── */
+.nav-cog-btn { font-size: 20px; color: #4a2080; text-decoration: none; padding: 6px 10px; border-radius: 8px; transition: color 0.2s, background 0.2s; line-height: 1; }
+.nav-cog-btn:hover { color: #a855f7; background: rgba(124,58,237,0.12); }
 .nav-right { display: flex; align-items: center; gap: 6px; }
 .cart-icon-btn { position: relative; color: #9a71d4; text-decoration: none; font-size: 20px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s, background 0.15s; line-height: 1; }
 .cart-icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .cart-badge { position: absolute; top: 2px; right: 2px; background: #7c3aed; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
+
+/* ── Hamburger ── */
+.hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+.hamburger span { display: block; width: 24px; height: 2px; background: #a855f7; border-radius: 2px; transition: all 0.25s; }
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.mobile-menu {
+  display: none; position: fixed; top: 62px; left: 0; right: 0;
+  background: rgba(10,4,32,0.98); backdrop-filter: blur(12px);
+  border-bottom: 1px solid #1e0a40; z-index: 99;
+  flex-direction: column; padding: 16px 20px 20px; gap: 4px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a { color: #c4b5fd; text-decoration: none; font-size: 15px; font-weight: 600; padding: 12px 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
+.mobile-menu a:hover { background: rgba(124,58,237,0.12); color: #fff; }
+
+/* ── Category tabs ── */
 .category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
 .category-tab { padding: 8px 20px; border-radius: 20px; border: 1px solid #2d1060; background: transparent; color: #8b5cf6; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
 .category-tab:hover { border-color: #5b21b6; background: rgba(77,141,255,0.05); }
 .category-tab.active { background: #4c1d95; border-color: #7c3aed; color: #fff; }
+
+/* ── Store grid ── */
 .category-section { margin-bottom: 48px; }
 .category-section.hidden { display: none; }
 .category-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #5b21b6; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #1a0a40; }
-.store-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.store-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
 .store-card-v2 { background: #130929; border: 1px solid #1e0840; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.15s; }
 .store-card-v2:hover { border-color: #5b21b6; transform: translateY(-2px); }
 .store-card-img { width: 100%; height: 160px; object-fit: cover; display: block; background: #0c0520; }
 .store-card-img.hidden { display: none; }
-.store-card-body { padding: 22px 24px; display: flex; flex-direction: column; flex: 1; }
-.store-card-name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-.store-card-price { font-size: 26px; font-weight: 800; color: #a855f7; margin-bottom: 14px; }
-.store-card-desc { font-size: 13px; color: #8b5cf6; line-height: 1.6; margin-bottom: 20px; flex: 1; white-space: pre-line; }
-.card-btns { display: flex; flex-direction: column; gap: 10px; }
-.store-buy-btn { display: block; width: 100%; padding: 15px 0; background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; border: none; border-radius: 9px; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: opacity 0.15s, transform 0.1s; box-shadow: 0 4px 18px rgba(124,58,237,0.3); }
-.store-buy-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.store-cart-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 0; background: transparent; border: 1px solid #2d1060; border-radius: 9px; color: #8b5cf6; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.store-card-body { padding: 20px 22px; display: flex; flex-direction: column; flex: 1; }
+.store-card-name { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.store-card-price { font-size: 24px; font-weight: 800; color: #a855f7; margin-bottom: 12px; }
+.store-card-desc { font-size: 12px; color: #8b5cf6; line-height: 1.6; margin-bottom: 18px; flex: 1; white-space: pre-line; }
+.card-btns { display: flex; flex-direction: column; gap: 9px; }
+.store-buy-btn { display: block; width: 100%; padding: 13px 0; background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; border: none; border-radius: 9px; font-size: 15px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: opacity 0.15s; box-shadow: 0 4px 18px rgba(124,58,237,0.25); }
+.store-buy-btn:hover { opacity: 0.9; }
+.store-cart-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 0; background: transparent; border: 1px solid #2d1060; border-radius: 9px; color: #8b5cf6; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
 .store-cart-btn:hover:not(:disabled) { border-color: #7c3aed; color: #fff; background: rgba(124,58,237,0.1); }
 .store-cart-btn.added { border-color: #059669; color: #34d399; cursor: default; }
 .store-cart-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Gems pill */
-.gems-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3); border-radius: 20px; padding: 6px 14px; font-size: 13px; color: #a855f7; font-weight: 600; }
+/* ── Gems ── */
+.gems-display { display: none; align-items: center; gap: 6px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 700; color: #a855f7; cursor: pointer; }
+.gems-display:hover { background: rgba(168,85,247,0.18); }
 
-/* Link banner */
-.link-banner { background: #130929; border: 1px solid #7c3aed; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.link-banner p { font-size: 14px; color: #9a71d4; }
-.link-banner a { background: #7c3aed; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; }
-.link-banner a:hover { background: #5b21b6; }
+/* ── Banners ── */
+.admin-banner { display: none; background: #4c1d95; border: 1px solid #7c3aed; padding: 12px 20px; border-radius: 10px; margin-bottom: 24px; font-size: 13px; color: #e9d5ff; }
+.link-banner { display: none; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.25); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; align-items: center; gap: 14px; font-size: 13px; color: #c4b5fd; }
+.link-banner-btn { background: #7c3aed; color: #fff; border: none; border-radius: 7px; padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; white-space: nowrap; }
 
-.page-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
-.page-title-group h1 { font-size: 36px; font-weight: 900; color: #a855f7; }
-.page-title-group p { color: #9a71d4; font-size: 14px; margin-top: 4px; }
+/* ── Store page wrapper ── */
+.store-page { max-width: 1060px; margin: 0 auto; padding: 36px 20px 80px; }
 
-.admin-bar { background: rgba(124,58,237,0.1); border: 1px solid #2d1060; border-radius: 8px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; color: #7c3aed; display: none; }
-.admin-bar a { color: #a855f7; font-weight: 700; text-decoration: none; }
-
-.store-page { padding: 100px 50px 80px; max-width: 1200px; margin: 0 auto; }
-
-@media(max-width:768px){ .store-page { padding: 80px 16px 50px; } }
+@media (max-width: 768px) {
+  .navbar { padding: 0 16px !important; }
+  .navbar ul { display: none !important; }
+  .hamburger { display: flex !important; }
+  .store-grid-inner { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="logo"><span style="font-size:20px;font-weight:900;color:#a855f7;letter-spacing:3px;text-shadow:0 0 14px rgba(168,85,247,0.4);">SOLARIX</span></div>
+  <div class="logo">
+    <a href="/" style="text-decoration:none;"><span class="logo-text">SOLARIX</span></a>
+  </div>
+
   <ul>
     <li><a href="/">Home</a></li>
+    <li><a href="/clans">Clans</a></li>
     <li><a href="/kits">Kits</a></li>
-    <li><a href="/store.html">Store</a></li>
+    <li><a href="/store.html" class="active">Store</a></li>
   </ul>
+
   <div class="nav-right">
+    <div class="gems-display" id="gems-display" onclick="alert('Use your gems at checkout!')">
+      💎 <span id="gems-balance">0</span>
+    </div>
     <a href="/cart.html" class="cart-icon-btn" title="Cart">
-      🛒<span class="cart-badge" id="cart-badge"></span>
+      🛒
+      <span class="cart-badge" id="cart-badge"></span>
     </a>
-    <a href="/admin-login.html" class="admin-cog-btn" title="Admin">⚙</a>
+    <a href="https://discord.gg/playsolarix" class="discord-btn" target="_blank">Discord</a>
+    <a href="/admin-login.html" class="nav-cog-btn" title="Admin">⚙</a>
     <div id="account-area">
       <a href="/auth/discord" class="discord-btn">Login</a>
     </div>
   </div>
+  <div class="hamburger" id="hamburger" onclick="this.classList.toggle('open');document.getElementById('mobile-menu').classList.toggle('open');">
+    <span></span><span></span><span></span>
+  </div>
 </nav>
 
-<div class="store-page">
-  <div class="admin-bar" id="admin-banner">
-    ⚙️ Admin — <a href="/admin.html">Manage Store</a>
-  </div>
-
-  <!-- Link gamertag banner (shown if logged in but not linked) -->
-  <div id="link-banner" class="link-banner" style="display:none;">
-    <p>🔗 Link your in-game name so kits and store items know who you are in-game.</p>
-    <a href="/kits">Link Gamertag →</a>
-  </div>
-
-  <div class="page-header-row">
-    <div class="page-title-group">
-      <h1>Store</h1>
-      <p>Buy ranks, kits, and bundles for Solarix servers</p>
-    </div>
-    <div id="gems-display" style="display:none;">
-      <span class="gems-pill">💎 <span id="gems-balance">0</span> gems</span>
-    </div>
-  </div>
-
-  <div id="category-tabs" class="category-tabs"></div>
-  <div id="category-sections"></div>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/">Home</a>
+  <a href="/clans">Clans</a>
+  <a href="/kits">Kits</a>
+  <a href="/store.html">Store</a>
+  <a href="/link">🔗 Link Account</a>
+  <div id="mob-account"></div>
 </div>
 
-<script>
-const CART_KEY = "solarix_cart";
+<div class="store-page">
+  <div class="admin-banner" id="admin-banner">⚙️ Admin mode — <a href="/admin.html" style="color:#e9d5ff;">Manage Store</a></div>
+  <div class="link-banner" id="link-banner">
+    <span>🔗 Link your in-game name to claim kits from the Kits page.</span>
+    <a href="/link" class="link-banner-btn">Link Account</a>
+  </div>
 
-function getCart() {
-    try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
-}
-function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    updateNavBadge();
-}
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-size:28px;font-weight:800;color:#fff;">Store</h1>
+      <p style="font-size:13px;color:#7c3aed;margin-top:4px;">Premium items for Solarix players.</p>
+    </div>
+  </div>
+
+  <div class="category-tabs" id="category-tabs">
+    <button class="category-tab active" onclick="filterCat('all',this)">All</button>
+  </div>
+
+  <div id="store-sections"></div>
+</div>
+
+<script src="script.js"></script>
+<script>
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
 function updateNavBadge() {
-    const cart = getCart();
+  try {
+    const cart = JSON.parse(localStorage.getItem("solarix_cart") || "[]");
     const badge = document.getElementById("cart-badge");
     if (!badge) return;
     if (cart.length) { badge.style.display = "flex"; badge.textContent = cart.length; }
-    else { badge.style.display = "none"; }
-}
-
-function esc(str) {
-    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
-function renderDescription(desc) {
-    if (!desc) return "";
-    return desc.split("\n").map(l => {
-        const imgMatch = l.match(/^\[img:(https?:\/\/.+)\]$/i);
-        if (imgMatch) return `<img src="${esc(imgMatch[1])}" style="max-width:100%;border-radius:6px;margin-top:8px;" onerror="this.style.display='none'">`;
-        return `<span>${esc(l)}</span><br>`;
-    }).join("");
-}
-
-function addToCart(item) {
-    const cart = getCart();
-    if (cart.find(c => c.id === item.id)) return;
-    cart.push(item);
-    saveCart(cart);
-    const btn = document.getElementById(`cart-btn-${item.id}`);
-    if (btn) { btn.textContent = "✓ Added to Cart"; btn.classList.add("added"); btn.disabled = true; }
-}
-
-function renderSections(items) {
-    const tabsEl = document.getElementById("category-tabs");
-    const sectionsEl = document.getElementById("category-sections");
-    const inCart = new Set(getCart().map(c => c.id));
-    const cats = [...new Set(items.map(i => i.category || "General"))];
-
-    if (!items.length) { sectionsEl.innerHTML = `<div style="color:#2a1060;text-align:center;padding:60px;">No items yet.</div>`; return; }
-
-    tabsEl.innerHTML = `<button class="category-tab active" onclick="filterCat('all', this)">All</button>` +
-        cats.map(c => `<button class="category-tab" onclick="filterCat('${esc(c)}', this)">${esc(c)}</button>`).join("");
-
-    let html = "";
-    for (const cat of cats) {
-        const catItems = items.filter(i => (i.category || "General") === cat);
-        if (!catItems.length) continue;
-        html += `<div class="category-section" data-cat="${esc(cat)}">
-            <div class="category-title">${esc(cat)}</div>
-            <div class="store-grid-inner">
-                ${catItems.map(item => {
-                    const already = inCart.has(item.id);
-                    return `<div class="store-card-v2">
-                        ${item.imageUrl ? `<img class="store-card-img" src="${esc(item.imageUrl)}" alt="${esc(item.name)}" onerror="this.classList.add('hidden')">` : ""}
-                        <div class="store-card-body">
-                            <div class="store-card-name">${esc(item.name)}</div>
-                            <div class="store-card-price">${esc(item.price)}</div>
-                            <div class="store-card-desc">${renderDescription(item.description)}</div>
-                            <div class="card-btns">
-                                <a href="/checkout/${item.id}" class="store-buy-btn">💳 Buy Now</a>
-                                <button
-                                    id="cart-btn-${item.id}"
-                                    class="store-cart-btn ${already ? 'added' : ''}"
-                                    onclick='addToCart(${JSON.stringify({id:item.id,name:item.name,price:item.price,imageUrl:item.imageUrl||"",category:item.category||""})})'
-                                    ${already ? "disabled" : ""}
-                                >${already ? "✓ Added to Cart" : "🛒 Add to Cart"}</button>
-                            </div>
-                        </div>
-                    </div>`;
-                }).join("")}
-            </div>
-        </div>`;
-    }
-    sectionsEl.innerHTML = html;
+    else badge.style.display = "none";
+  } catch {}
 }
 
 function filterCat(cat, btn) {
-    document.querySelectorAll(".category-tab").forEach(t => t.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".category-section").forEach(s => {
-        s.classList.toggle("hidden", cat !== "all" && s.dataset.cat !== cat);
+  document.querySelectorAll(".category-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".category-section").forEach(s => {
+    s.classList.toggle("hidden", cat !== "all" && s.dataset.cat !== cat);
+  });
+}
+
+function buildBuyBtn(item, user) {
+  if (item.stripeLink) {
+    return `<a href="${esc(item.stripeLink)}" class="store-buy-btn" target="_blank">Buy — ${esc(item.price)}</a>`;
+  }
+  if (item.paypalLink) {
+    return `<a href="${esc(item.paypalLink)}" class="store-buy-btn" target="_blank">Buy via PayPal — ${esc(item.price)}</a>`;
+  }
+  if (item.buyLink) {
+    return `<a href="${esc(item.buyLink)}" class="store-buy-btn" target="_blank">Buy — ${esc(item.price)}</a>`;
+  }
+  if (user?.loggedIn) {
+    return `<button class="store-buy-btn" onclick="payWithCredits(${item.id}, this)">Pay with Gems (${esc(item.price)})</button>`;
+  }
+  return `<a href="/auth/discord" class="store-buy-btn">Login to Buy</a>`;
+}
+
+function renderSections(items, user) {
+  const cats = [...new Set(items.map(i => i.category || "General"))];
+  const tabBar = document.getElementById("category-tabs");
+  const sectionsEl = document.getElementById("store-sections");
+
+  // Add category tabs
+  cats.forEach(cat => {
+    const btn = document.createElement("button");
+    btn.className = "category-tab";
+    btn.textContent = cat;
+    btn.onclick = () => filterCat(cat, btn);
+    tabBar.appendChild(btn);
+  });
+
+  sectionsEl.innerHTML = cats.map(cat => {
+    const catItems = items.filter(i => (i.category || "General") === cat);
+    return `
+      <div class="category-section" data-cat="${esc(cat)}">
+        <div class="category-title">${esc(cat)}</div>
+        <div class="store-grid-inner">
+          ${catItems.map(item => `
+            <div class="store-card-v2">
+              ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" class="store-card-img" alt="${esc(item.name)}" onerror="this.classList.add('hidden')">` : ""}
+              <div class="store-card-body">
+                <div class="store-card-name">${esc(item.name)}</div>
+                <div class="store-card-price">${esc(item.price)}</div>
+                <div class="store-card-desc">${esc(item.description)}</div>
+                <div class="card-btns">
+                  ${buildBuyBtn(item, user)}
+                  <button class="store-cart-btn" onclick="addToCart(${item.id},'${esc(item.name)}','${esc(item.price)}',this)">
+                    🛒 Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>`).join("")}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function addToCart(id, name, price, btn) {
+  const cart = JSON.parse(localStorage.getItem("solarix_cart") || "[]");
+  if (!cart.find(i => i.id === id)) cart.push({ id, name, price });
+  localStorage.setItem("solarix_cart", JSON.stringify(cart));
+  updateNavBadge();
+  if (btn) { btn.textContent = "✓ Added"; btn.classList.add("added"); btn.disabled = true; }
+}
+
+async function payWithCredits(itemId, btn) {
+  btn.disabled = true; btn.textContent = "Processing…";
+  try {
+    const r = await fetch("/api/pay-with-credits", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId })
     });
+    const data = await r.json();
+    if (r.ok) {
+      btn.textContent = "✅ Purchased!";
+      btn.style.background = "#059669";
+      // Refresh gems
+      const gRes = await fetch("/api/credits/me");
+      const gData = await gRes.json();
+      if (gData.loggedIn) document.getElementById("gems-balance").textContent = Math.floor(gData.balance);
+    } else {
+      alert(data.error || "Purchase failed.");
+      btn.disabled = false; btn.textContent = "Pay with Gems";
+    }
+  } catch {
+    alert("Network error."); btn.disabled = false; btn.textContent = "Pay with Gems";
+  }
 }
 
 async function init() {
-    updateNavBadge();
-    const [statusRes, itemsRes, userRes] = await Promise.all([
-        fetch("/api/admin-status"),
-        fetch("/api/store-items"),
-        fetch("/user")
-    ]);
-    const { isAdmin } = await statusRes.json();
-    const items = await itemsRes.json();
-    const user = await userRes.json();
+  updateNavBadge();
+  const [statusRes, itemsRes, userRes] = await Promise.all([
+    fetch("/api/admin-status"),
+    fetch("/api/store-items"),
+    fetch("/user")
+  ]);
+  const { isAdmin } = await statusRes.json();
+  const items = await itemsRes.json();
+  const user = await userRes.json();
 
-    if (isAdmin) document.getElementById("admin-banner").style.display = "block";
+  if (isAdmin) document.getElementById("admin-banner").style.display = "block";
 
-    if (user.loggedIn) {
-        document.getElementById("account-area").innerHTML = `
-            <div class="user-box">
-                <img src="${user.avatar}" class="avatar">
-                <span>${user.username}</span>
-                <a href="/logout" class="logout-btn">Logout</a>
-            </div>`;
-        // Load gems balance
-        fetch("/api/credits/me").then(r => r.json()).then(data => {
-            if (data.loggedIn) {
-                document.getElementById("gems-display").style.display = "block";
-                document.getElementById("gems-balance").textContent = Math.floor(data.balance);
-            }
-        });
-        // Check if gamertag linked
-        fetch("/api/kits/gamertag").then(r => r.json()).then(data => {
-            if (!data.gamertag) {
-                document.getElementById("link-banner").style.display = "flex";
-            }
-        });
-    }
+  if (user.loggedIn) {
+    document.getElementById("account-area").innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <img src="${esc(user.avatar)}" style="width:32px;height:32px;border-radius:50%;border:2px solid #7c3aed;" alt="">
+        <span style="font-size:13px;color:#e0e6f0;font-weight:600;">${esc(user.username)}</span>
+        <a href="/link" style="color:#a855f7;font-size:14px;text-decoration:none;" title="Link Account">🔗</a>
+        <a href="/logout" style="color:#f87171;font-size:13px;font-weight:600;text-decoration:none;">Logout</a>
+      </div>`;
+    document.getElementById("mob-account").innerHTML =
+      `<a href="/link">🔗 Link Account</a><a href="/logout" style="color:#f87171">Logout</a>`;
 
-    renderSections(items);
+    // Load gems
+    fetch("/api/credits/me").then(r => r.json()).then(data => {
+      if (data.loggedIn) {
+        document.getElementById("gems-display").style.display = "flex";
+        document.getElementById("gems-balance").textContent = Math.floor(data.balance);
+      }
+    });
+
+    // Show link banner if not linked
+    fetch("/api/link-status").then(r => r.json()).then(data => {
+      if (data.loggedIn && !data.webLinked) {
+        document.getElementById("link-banner").style.display = "flex";
+      }
+    });
+  }
+
+  renderSections(items, user);
 }
 
 init();
