@@ -69,12 +69,14 @@
 
 /* ── Store page wrapper ── */
 .store-page { max-width: 1060px; margin: 0 auto; padding: 36px 20px 80px; }
+.nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
 
 @media (max-width: 768px) {
   .navbar { padding: 0 16px !important; }
   .navbar ul { display: none !important; }
   .hamburger { display: flex !important; }
   .store-grid-inner { grid-template-columns: 1fr; }
+  .nav-right .nav-discord-server { display: none; }
 }
 </style>
 </head>
@@ -100,7 +102,7 @@
       🛒
       <span class="cart-badge" id="cart-badge"></span>
     </a>
-    <a href="https://discord.gg/playsolarix" class="discord-btn" target="_blank">Discord</a>
+    <a href="https://discord.gg/playsolarix" class="discord-btn nav-discord-server" target="_blank">Discord</a>
     <a href="/admin-login.html" class="nav-cog-btn" title="Admin">⚙</a>
     <div id="account-area">
       <a href="/auth/discord" class="discord-btn">Login</a>

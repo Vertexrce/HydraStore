@@ -20,7 +20,8 @@ nav {
 .nav-links a { color: #9a71d4; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
 .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .nav-links a.active { color: #a855f7; }
-.nav-right { display: flex; align-items: center; gap: 8px; }
+.nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+@media (max-width: 768px) { .nav-right .nav-discord-server { display: none; } }
 .nav-btn { background: #7c3aed; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; transition: opacity 0.15s; }
 .nav-btn:hover { opacity: 0.85; }
 .nav-cog { color: #4a2080; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; }
@@ -179,7 +180,7 @@ nav {
     <li><a href="/store.html">Store</a></li>
   </ul>
   <div class="nav-right">
-    <a href="https://discord.gg/playsolarix" class="nav-btn" target="_blank">Discord</a>
+    <a href="https://discord.gg/playsolarix" class="nav-btn nav-discord-server" target="_blank">Discord</a>
     <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
     <div id="account-area"><a href="/auth/discord" class="nav-btn">Login</a></div>
   </div>

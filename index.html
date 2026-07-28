@@ -209,6 +209,7 @@
   .modal-box { padding: 20px; }
   .servers-grid { grid-template-columns: 1fr; }
   .nav-right .discord-btn, .nav-right .admin-cog-btn { font-size: 13px; padding: 8px 14px; }
+  .nav-right .nav-discord-server { display: none; }  /* move Discord join link to mobile menu only */
 }
 </style>
 </head>
@@ -229,8 +230,8 @@
     <li><a href="#rules">Rules</a></li>
   </ul>
 
-  <div class="nav-right">
-    <a href="https://discord.gg/playsolarix" class="discord-btn" target="_blank">Discord</a>
+  <div class="nav-right" style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;">
+    <a href="https://discord.gg/playsolarix" class="discord-btn nav-discord-server" target="_blank">Discord</a>
     <a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
     <div id="account-area">
       <a href="/auth/discord" class="discord-btn">Login</a>
@@ -388,12 +389,6 @@ function buildServerCard(s, i) {
     ? `<strong>${s.players}</strong> / ${s.maxPlayers}${s.queued > 0 ? ` <span style="color:#f59e0b;font-size:11px">(+${s.queued} queued)</span>` : ""}`
     : "— / 100";
 
-  const btn = isComingSoon
-    ? `<button class="server-copy-btn-v2" disabled>🔒 Coming Soon</button>`
-    : isOffline
-      ? `<button class="server-copy-btn-v2" disabled>⚫ Offline</button>`
-      : `<button class="server-copy-btn-v2" id="scb-${i}" onclick="copyServer(${i}, '${encodeURIComponent(s.name)}')">🔗 Copy Server Name</button>`;
-
   return `
     <div class="server-card-v2${isComingSoon ? " coming-soon" : ""}">
       <div class="server-region-row">
@@ -409,24 +404,12 @@ function buildServerCard(s, i) {
       <div class="server-card-name">${escHtml(s.name)}</div>
       <div class="server-card-location">${escHtml(s.location || "")}</div>
       <div class="server-players">Players ${players}</div>
-      ${btn}
       ${s.rate ? `<div class="server-card-rate">${escHtml(s.rate)}</div>` : ""}
     </div>`;
 }
 
 function escHtml(str) {
   return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-
-function copyServer(i, nameEncoded) {
-  const name = decodeURIComponent(nameEncoded);
-  navigator.clipboard.writeText(name).catch(() => {});
-  const btn = document.getElementById(`scb-${i}`);
-  if (btn) {
-    btn.textContent = "✅ Copied!";
-    btn.classList.add("copied");
-    setTimeout(() => { btn.textContent = "🔗 Copy Server Name"; btn.classList.remove("copied"); }, 2500);
-  }
 }
 
 // ── Account / link banner ─────────────────────────────────────────────────────

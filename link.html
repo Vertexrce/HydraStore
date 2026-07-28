@@ -16,7 +16,8 @@ nav {
   backdrop-filter: blur(10px);
 }
 .nav-logo-text { font-size: 18px; font-weight: 900; color: #a855f7; letter-spacing: 3px; text-shadow: 0 0 12px rgba(168,85,247,0.4); text-decoration: none; }
-.nav-right { display: flex; align-items: center; gap: 8px; }
+.nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+@media (max-width: 768px) { .nav-right .nav-discord-server { display: none; } }
 .nav-btn { background: #7c3aed; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; transition: opacity 0.15s; }
 .nav-btn:hover { opacity: 0.85; }
 .nav-links { display: flex; gap: 4px; list-style: none; }
@@ -192,7 +193,7 @@ nav {
     <li><a href="/link" class="active">Link</a></li>
   </ul>
   <div class="nav-right">
-    <a href="https://discord.gg/playsolarix" class="nav-btn" target="_blank">Discord</a>
+    <a href="https://discord.gg/playsolarix" class="nav-btn nav-discord-server" target="_blank">Discord</a>
     <div id="account-area"><a href="/auth/discord" class="nav-btn">Login</a></div>
   </div>
   <div class="hamburger" id="hamburger" onclick="this.classList.toggle('open');document.getElementById('mobile-menu').classList.toggle('open');">

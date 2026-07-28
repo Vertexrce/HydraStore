@@ -30,39 +30,52 @@ if (BOT_DB_PATH) {
     }
 }
 
+// Helper: safely convert a Discord ID string to BigInt for SQLite INTEGER columns.
+// Discord IDs are 64-bit ints; better-sqlite3 must receive them as BigInt to match.
+function _discordBigInt(id) {
+    try { return BigInt(id); } catch { return id; }
+}
+
 function getBotLinkedGamertag(discordUserId) {
     if (!BotDB) return null;
+    const uid = _discordBigInt(discordUserId);
     try {
-        const row = BotDB.prepare("SELECT account_name FROM linked_accounts WHERE discord_user_id=?").get(String(discordUserId));
+        // linked_accounts table: written by deploy_link_panel / older system
+        const row = BotDB.prepare("SELECT account_name FROM linked_accounts WHERE discord_user_id=?").get(uid);
         if (row) return row.account_name;
-        // also try player_links table used by link.py
-        const row2 = BotDB.prepare("SELECT gamer_tag FROM player_links WHERE discord_id=? LIMIT 1").get(String(discordUserId));
+        // player_links table: written by /link command in link.py (correct table)
+        const row2 = BotDB.prepare("SELECT gamer_tag FROM player_links WHERE discord_id=? LIMIT 1").get(uid);
         return row2 ? row2.gamer_tag : null;
     } catch { return null; }
 }
 
 function getBotClanForUser(discordUserId) {
     if (!BotDB) return null;
+    const uid = _discordBigInt(discordUserId);
     try {
+        // clan_members columns: clan_id, user_id, clan_role, joined_at
         const member = BotDB.prepare(
-            "SELECT cm.clan_id, cm.role FROM clan_members cm WHERE cm.discord_id=? LIMIT 1"
-        ).get(String(discordUserId));
+            "SELECT cm.clan_id, cm.clan_role FROM clan_members cm WHERE cm.user_id=? LIMIT 1"
+        ).get(uid);
         if (!member) return null;
-        const clan = BotDB.prepare("SELECT * FROM clans WHERE clan_id=?").get(member.clan_id);
+        // clans PK is 'id', not 'clan_id'
+        const clan = BotDB.prepare("SELECT * FROM clans WHERE id=?").get(member.clan_id);
         if (!clan) return null;
         const count = BotDB.prepare("SELECT COUNT(*) as cnt FROM clan_members WHERE clan_id=?").get(member.clan_id);
-        return { ...clan, memberRole: member.role, memberCount: count?.cnt || 1 };
+        return { ...clan, memberRole: member.clan_role, memberCount: Number(count?.cnt || 1) };
     } catch { return null; }
 }
 
 function getBotAllClans(limit = 50) {
     if (!BotDB) return null;
     try {
-        const clans = BotDB.prepare("SELECT * FROM clans ORDER BY rowid LIMIT ?").all(limit);
+        const clans = BotDB.prepare("SELECT * FROM clans ORDER BY id LIMIT ?").all(limit);
         return clans.map(c => {
-            const count = BotDB.prepare("SELECT COUNT(*) as cnt FROM clan_members WHERE clan_id=?").get(c.clan_id);
-            const owner = BotDB.prepare("SELECT discord_id FROM clan_members WHERE clan_id=? AND role='owner' LIMIT 1").get(c.clan_id);
-            return { ...c, memberCount: count?.cnt || 1, ownerDiscordId: owner?.discord_id || c.owner_id };
+            // clan_members FK is clan_id referencing clans.id
+            const count = BotDB.prepare("SELECT COUNT(*) as cnt FROM clan_members WHERE clan_id=?").get(c.id);
+            // owner is stored with clan_role='owner' and column is user_id
+            const owner = BotDB.prepare("SELECT user_id FROM clan_members WHERE clan_id=? AND clan_role='owner' LIMIT 1").get(c.id);
+            return { ...c, memberCount: Number(count?.cnt || 1), ownerDiscordId: String(owner?.user_id || c.owner_id || "") };
         });
     } catch { return null; }
 }
@@ -74,7 +87,8 @@ function getBotClanByCode(code) {
             "SELECT * FROM clan_invite_codes WHERE code=? AND expires_at > ? LIMIT 1"
         ).get(code, Math.floor(Date.now() / 1000));
         if (!ic) return null;
-        const clan = BotDB.prepare("SELECT * FROM clans WHERE clan_id=?").get(ic.clan_id);
+        // clans PK is 'id'
+        const clan = BotDB.prepare("SELECT * FROM clans WHERE id=?").get(ic.clan_id);
         return clan ? { inviteCode: ic, clan } : null;
     } catch { return null; }
 }
@@ -1030,9 +1044,9 @@ app.get("/api/clans/mine", async (req, res) => {
                 loggedIn: true,
                 inClan: true,
                 clan: {
-                    id: botClan.clan_id,
+                    id: String(botClan.id),           // clans PK is 'id'
                     name: botClan.name,
-                    tag: botClan.tag || "",
+                    tag: botClan.clantag || "",        // column is 'clantag', not 'tag'
                     description: botClan.description || "",
                     iconUrl: botClan.icon_url || "",
                     color: botClan.color || "#a855f7",
