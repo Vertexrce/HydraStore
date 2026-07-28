@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vestige 6X | Rust Console Servers</title>
+<title>Solarix | Rust Console Servers</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -12,142 +12,252 @@
 <nav class="navbar">
 
 <div class="logo">
-<img src="vestige-logo.jpg" alt="Vestige 6X">
+  <span class="logo-text">SOLARIX</span>
 </div>
 
 <ul>
 <li><a href="#">Home</a></li>
-<li><a href="#servers">Servers</a></li>
+<li><a href="#" id="nav-servers-btn">Servers</a></li>
 <li><a href="#clans">Clans</a></li>
 <li><a href="#leaderboards">Leaderboards</a></li>
 <li><a href="/kits">Kits</a></li>
-<li><a href="store.html">Store</a></li>
+<li><a href="/store.html">Store</a></li>
 <li><a href="#rules">Rules</a></li>
 </ul>
 
-<a href="https://discord.gg/vertexrce" class="discord-btn">
+<a href="https://discord.gg/playsolarix" class="discord-btn" target="_blank">
 Discord
 </a>
 
 <a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
 
 <div id="account-area">
-    <a href="/auth/discord" class="discord-btn">
-        Login
-    </a>
+    <a href="/auth/discord" class="discord-btn">Login</a>
 </div>
 
 </nav>
 
+<!-- ── Servers Modal ── -->
+<div id="servers-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>🖥️ Servers</h2>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <p class="modal-sub">Click a server name to copy the connection info.</p>
+    <div id="servers-list" class="servers-list">
+      <div class="server-loading">Loading servers…</div>
+    </div>
+  </div>
+</div>
+
 <section class="hero">
-
 <div class="hero-overlay">
-
-<h2 class="hero-title">Vestige Rust Servers</h2>
-
-<h3>PREMIUM RUST CONSOLE</h3>
-
-<h1>6X WEEKLY CLAN SERVER</h1>
-
-<div class="hero-buttons">
-
-<a href="https://discord.gg/vertexrce" class="btn-primary">
-Join Discord
-</a>
-
-<a href="#" class="btn-secondary">
-View Server
-</a>
-
+  <h2 class="hero-title">Solarix</h2>
+  <h3>PREMIUM RUST CONSOLE</h3>
+  <h1>EU 5X CLAN SERVER</h1>
+  <div class="hero-buttons">
+    <a href="https://discord.gg/playsolarix" class="btn-primary" target="_blank">Join Discord</a>
+    <a href="#" class="btn-secondary" id="hero-servers-btn">View Servers</a>
+  </div>
 </div>
-
-</div>
-
 </section>
 
 <section class="stats">
-
 <div class="stat-card">
-<h2>🟢</h2>
-<h3>Status</h3>
-<p>Coming Soon</p>
+  <h2>🟢</h2>
+  <h3>Status</h3>
+  <p id="stat-status">Live</p>
 </div>
-
 <div class="stat-card">
-<h2>👥</h2>
-<h3>Players</h3>
-<p>Coming Soon</p>
+  <h2>👥</h2>
+  <h3>Players</h3>
+  <p>Growing Daily</p>
 </div>
-
 <div class="stat-card">
-<h2>📅</h2>
-<h3>Wipes</h3>
-<p>Weekly</p>
+  <h2>📅</h2>
+  <h3>Wipes</h3>
+  <p>Weekly</p>
 </div>
-
 <div class="stat-card">
-<h2>💬</h2>
-<h3>Discord</h3>
-<p>Growing Daily</p>
+  <h2>💬</h2>
+  <h3>Discord</h3>
+  <p>discord.gg/playsolarix</p>
 </div>
-
 </section>
 
 <section class="features">
-
-<h2>Why Vestige 6X?</h2>
-
+<h2>Why Solarix?</h2>
 <div class="feature-grid">
-
-<div class="feature-box">⚡ 6X Gather Rates</div>
-<div class="feature-box">🏆 Clan Focused</div>
-<div class="feature-box">🛡 Active Staff</div>
-<div class="feature-box">🎮 Console Optimized</div>
-<div class="feature-box">👥 100+ pop</div>
-
+  <div class="feature-box">⚡ 5X Gather Rates</div>
+  <div class="feature-box">🏆 Clan Focused</div>
+  <div class="feature-box">🛡 Active Staff</div>
+  <div class="feature-box">🎮 Console Optimized</div>
+  <div class="feature-box">👥 High Pop</div>
 </div>
-
 </section>
 
 <footer>
-<p>Vestige 6X © 2026</p>
+<p>Solarix © 2026 · <a href="https://discord.gg/playsolarix" style="color:#a855f7" target="_blank">discord.gg/playsolarix</a></p>
 </footer>
 
 <style>
+.logo-text {
+  font-size: 24px;
+  font-weight: 900;
+  color: #a855f7;
+  letter-spacing: 4px;
+  text-shadow: 0 0 18px rgba(168,85,247,0.5);
+}
 .admin-cog-btn {
-    font-size: 22px;
-    color: #6b21a8;
-    text-decoration: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: color 0.2s, background 0.2s;
-    line-height: 1;
-    order: 99;
+  font-size: 22px;
+  color: #6b21a8;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+  line-height: 1;
+  order: 99;
 }
-.admin-cog-btn:hover {
-    color: #a855f7;
-    background: rgba(124,58,237,0.12);
+.admin-cog-btn:hover { color: #a855f7; background: rgba(124,58,237,0.12); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.modal-box {
+  background: #130929;
+  border: 1px solid #7c3aed;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 520px;
+  margin: 20px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.modal-header h2 { font-size: 22px; color: #fff; font-weight: 800; }
+.modal-close {
+  background: none;
+  border: none;
+  color: #7c3aed;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.modal-close:hover { color: #fff; background: rgba(124,58,237,0.2); }
+.modal-sub { font-size: 13px; color: #7c3aed; margin-bottom: 20px; }
+.servers-list { display: flex; flex-direction: column; gap: 10px; }
+.server-loading { color: #7c3aed; font-size: 14px; text-align: center; padding: 20px; }
+.server-card {
+  background: #0c0520;
+  border: 1px solid #2d1060;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.server-card:hover { border-color: #7c3aed; background: #1a0840; }
+.server-card-name { font-size: 16px; font-weight: 700; color: #fff; }
+.server-card-hint { font-size: 12px; color: #5b21b6; margin-top: 3px; }
+.server-copy-btn {
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.server-copy-btn:hover { background: #5b21b6; }
+.server-copy-btn.copied { background: #059669; }
+.no-servers { color: #5b21b6; text-align: center; padding: 24px; font-size: 14px; }
 </style>
 
 <script>
+// Load user info
 fetch("/user")
-.then(res => res.json())
-.then(user => {
-
-    if(user.loggedIn){
-
-        document.getElementById("account-area").innerHTML = `
-            <div class="user-box">
-                <img src="${user.avatar}" class="avatar">
-                <span>${user.username}</span>
-                <a href="/logout" class="logout-btn">Logout</a>
-            </div>
-        `;
+  .then(r => r.json())
+  .then(user => {
+    if (user.loggedIn) {
+      document.getElementById("account-area").innerHTML = `
+        <div class="user-box">
+          <img src="${user.avatar}" class="avatar">
+          <span>${user.username}</span>
+          <a href="/logout" class="logout-btn">Logout</a>
+        </div>`;
     }
+  });
 
-});
+// Servers modal
+function openServersModal() {
+  document.getElementById("servers-modal").style.display = "flex";
+  loadServers();
+}
+function closeServersModal() {
+  document.getElementById("servers-modal").style.display = "none";
+}
+
+document.getElementById("nav-servers-btn").addEventListener("click", e => { e.preventDefault(); openServersModal(); });
+document.getElementById("hero-servers-btn").addEventListener("click", e => { e.preventDefault(); openServersModal(); });
+document.getElementById("modal-close-btn").addEventListener("click", closeServersModal);
+document.getElementById("servers-modal").addEventListener("click", e => { if (e.target === e.currentTarget) closeServersModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeServersModal(); });
+
+async function loadServers() {
+  const list = document.getElementById("servers-list");
+  list.innerHTML = '<div class="server-loading">Loading servers…</div>';
+  try {
+    const r = await fetch("/api/public/servers");
+    const servers = await r.json();
+    if (!servers.length) {
+      list.innerHTML = '<div class="no-servers">No servers configured yet. Check back soon!</div>';
+      return;
+    }
+    list.innerHTML = servers.map((s, i) => `
+      <div class="server-card" onclick="copyServer(${i}, '${encodeURIComponent(s.name)}')">
+        <div>
+          <div class="server-card-name">${s.name}</div>
+          <div class="server-card-hint">Click to copy server name</div>
+        </div>
+        <button class="server-copy-btn" id="copy-btn-${i}">Copy</button>
+      </div>`).join("");
+  } catch {
+    list.innerHTML = '<div class="no-servers">Could not load servers. Please try again.</div>';
+  }
+}
+
+function copyServer(i, nameEncoded) {
+  const name = decodeURIComponent(nameEncoded);
+  navigator.clipboard.writeText(name).catch(() => {});
+  const btn = document.getElementById(`copy-btn-${i}`);
+  if (btn) {
+    btn.textContent = "Copied!";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+  }
+}
 </script>
-  
+
 </body>
 </html>

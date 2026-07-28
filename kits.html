@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kits — Vestige 6X</title>
+<title>Kits — Solarix</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,8 +23,7 @@ nav {
     backdrop-filter: blur(10px);
 }
 .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.nav-logo img { height: 32px; width: auto; display: block; }
-.nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
+.nav-logo-text { font-size: 18px; font-weight: 900; color: #a855f7; letter-spacing: 3px; text-shadow: 0 0 12px rgba(168,85,247,0.4); }
 .nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
 .nav-links a { color: #9a71d4; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
 .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.05); }
@@ -32,9 +31,6 @@ nav {
 .nav-right { display: flex; align-items: center; gap: 6px; }
 .nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
 .nav-cog:hover { color: #a855f7; }
-.cart-icon-btn { position: relative; color: #9a71d4; text-decoration: none; font-size: 20px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s; line-height: 1; }
-.cart-icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-.cart-badge { position: absolute; top: 2px; right: 2px; background: #7c3aed; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
 
 .page { max-width: 900px; margin: 0 auto; padding: 48px 20px 80px; }
 
@@ -48,7 +44,6 @@ nav {
     color: #2a4070; margin-bottom: 16px; padding-bottom: 12px;
     border-bottom: 1px solid #1a0a40;
 }
-.section-title span { font-size: 16px; }
 
 .prompt-card {
     background: #130929; border: 1px solid #1e0840; border-radius: 14px;
@@ -78,289 +73,194 @@ nav {
 .kits-grid { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
 
 .kit-card {
-    background: #130929; border: 1px solid #1e0840; border-radius: 14px;
-    padding: 24px 28px; display: flex; align-items: center; gap: 24px;
-    transition: border-color 0.2s;
+    background: #130929; border: 1px solid #1e0840; border-radius: 12px;
+    padding: 20px 24px; display: flex; align-items: center; gap: 20px;
+    transition: border-color 0.15s;
 }
-.kit-card:hover { border-color: #1e3a7a; }
-
-.kit-icon {
-    width: 52px; height: 52px; border-radius: 10px;
-    background: rgba(77,141,255,0.08); border: 1px solid #2d1060;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px; flex-shrink: 0;
-}
+.kit-card:hover { border-color: #3d1a70; }
+.kit-card.unavailable { opacity: 0.6; }
 
 .kit-info { flex: 1; min-width: 0; }
-.kit-name { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-.kit-desc { font-size: 13px; color: #7c3aed; line-height: 1.5; }
-.kit-server { font-size: 11px; color: #1e3060; margin-top: 4px; }
-.kit-cd-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: rgba(77,141,255,0.08); border: 1px solid #2d1060;
-    border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700;
-    color: #7c3aed; margin-top: 6px;
-}
+.kit-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.kit-desc { font-size: 13px; color: #5b21b6; line-height: 1.5; }
+.kit-meta { font-size: 11px; color: #2d1060; margin-top: 6px; }
+.kit-server { font-size: 12px; color: #4c1d95; margin-top: 3px; }
 
-.kit-action { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-
-.ready-circle {
-    width: 80px; height: 80px; border-radius: 50%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    position: relative; cursor: pointer;
-}
-.ready-circle svg {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    transform: rotate(-90deg);
-}
-.ready-circle .circle-bg { fill: none; stroke: #1a0a40; stroke-width: 4; }
-.ready-circle .circle-progress { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
-.ready-circle .circle-progress.ready-color { stroke: #059669; }
-.ready-circle .circle-progress.cooldown-color { stroke: #5b21b6; }
-.ready-text { position: relative; text-align: center; pointer-events: none; }
-.ready-text .label { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
-.ready-text .sublabel { font-size: 9px; color: #7c3aed; margin-top: 1px; }
-.ready-text.is-ready .label { color: #34d399; }
-.ready-text.is-cooldown .label { color: #60a5fa; font-size: 10px; }
-
+.kit-action { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .claim-btn {
-    width: 120px; padding: 10px 0; border: none; border-radius: 8px;
+    padding: 10px 22px; border-radius: 8px; border: none;
     font-size: 13px; font-weight: 700; cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: opacity 0.15s, transform 0.1s; white-space: nowrap;
 }
-.claim-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
-.claim-btn:active:not(:disabled) { transform: translateY(0); }
-.claim-btn.ready { background: #059669; color: #fff; box-shadow: 0 4px 16px rgba(5,150,105,0.3); }
-.claim-btn.ready:hover { box-shadow: 0 6px 24px rgba(5,150,105,0.45); }
-.claim-btn.cooldown { background: #130929; color: #1e3060; border: 1px solid #2d1060; cursor: default; }
-.claim-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.claim-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+.claim-btn:disabled { cursor: not-allowed; opacity: 0.5; transform: none; }
+.claim-btn-ready { background: #7c3aed; color: #fff; }
+.claim-btn-cooldown { background: #1e0840; color: #5b21b6; }
+.claim-btn-norole { background: #1e0840; color: #5b21b6; }
 
-.claim-result { font-size: 12px; font-weight: 600; text-align: center; max-width: 120px; }
-.claim-result.success { color: #34d399; }
+.claim-result { font-size: 12px; font-weight: 600; }
+.claim-result.ok { color: #34d399; }
 .claim-result.error { color: #f87171; }
+.cooldown-timer { font-size: 11px; color: #4c1d95; }
 
-.empty-kits { text-align: center; padding: 60px 20px; color: #1e3060; font-size: 15px; }
-
-.gamertag-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(5,150,105,0.08); border: 1px solid rgba(5,150,105,0.2);
-    border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #34d399; font-weight: 600;
-    margin-bottom: 24px; cursor: pointer; transition: border-color 0.15s;
+.user-info-bar {
+    background: #0c0520; border: 1px solid #1e0840; border-radius: 10px;
+    padding: 14px 20px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
 }
-.gamertag-pill:hover { border-color: rgba(5,150,105,0.5); }
-
-.loading { text-align: center; color: #1e3060; padding: 80px 20px; font-size: 15px; }
-
-@media (max-width: 600px) {
-    nav { padding: 0 20px; }
-    .kit-card { flex-wrap: wrap; }
-    .kit-action { flex-direction: row; align-items: center; width: 100%; justify-content: flex-end; }
-    .ready-circle { width: 60px; height: 60px; }
-    .claim-btn { width: 100px; }
-}
+.user-info-bar .user-tag { font-size: 14px; color: #7c3aed; }
+.user-info-bar .user-tag strong { color: #fff; }
+.change-link { font-size: 12px; color: #4c1d95; cursor: pointer; text-decoration: underline; }
+.change-link:hover { color: #7c3aed; }
 </style>
 </head>
 <body>
 
 <nav>
-    <a href="/" class="nav-logo">
-        <img src="/vestige-logo.jpg" alt="Vestige 6X" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-        <span class="nav-logo-text" style="display:none">Vestige 6X</span>
-    </a>
-    <ul class="nav-links">
-        <li><a href="/index.html">Home</a></li>
-        <li><a href="/store.html">Store</a></li>
-        <li><a href="/kits" class="active">Kits</a></li>
-    </ul>
-    <div class="nav-right">
-        <a href="/cart.html" class="cart-icon-btn" title="Cart">
-            🛒<span class="cart-badge" id="nav-cart-count"></span>
-        </a>
-        <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
+  <a class="nav-logo" href="/">
+    <span class="nav-logo-text">SOLARIX</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/kits" class="active">Kits</a></li>
+    <li><a href="/store.html">Store</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
+    <div id="account-area">
+      <a href="/auth/discord" style="background:#7c3aed;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;">Login with Discord</a>
     </div>
+  </div>
 </nav>
 
 <div class="page">
-    <div class="page-header">
-        <h1>🎁 Kits</h1>
-        <p>Claim your available kits. Kits are delivered directly to your in-game inventory.</p>
+  <div class="page-header">
+    <h1>Kits</h1>
+    <p>Claim in-game kits directly from the website — link your gamertag first</p>
+  </div>
+
+  <div id="kits-container">
+    <div class="prompt-card">
+      <h2>Loading…</h2>
     </div>
-    <div id="kits-content"><div class="loading">Loading kits…</div></div>
+  </div>
 </div>
 
 <script>
-const CART_KEY = "vestige6x_cart";
-function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } }
-function updateNavBadge() {
-    const badge = document.getElementById("nav-cart-count");
-    if (badge) { const c = getCart().length; badge.textContent = c; badge.style.display = c ? "flex" : "none"; }
-}
-
-let state = { loggedIn: false, gamertag: null, kits: [] };
-let timers = {};
-
-function esc(str) { return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+const state = { loggedIn: false, gamertag: null, kits: [] };
 
 async function init() {
-    updateNavBadge();
-    const res = await fetch("/api/kits");
-    if (!res.ok) { document.getElementById("kits-content").innerHTML = '<div class="loading">Failed to load kits.</div>'; return; }
-    state = await res.json();
+    const [userRes, kitsRes] = await Promise.all([fetch("/user"), fetch("/api/kits")]);
+    const user = await userRes.json();
+    const data = await kitsRes.json();
+    state.loggedIn = user.loggedIn;
+    state.gamertag = data.gamertag;
+    state.kits = data.kits || [];
     render();
 }
 
 function render() {
-    const container = document.getElementById("kits-content");
+    const el = document.getElementById("kits-container");
+
+    // Update account area
+    fetch("/user").then(r => r.json()).then(user => {
+        if (user.loggedIn) {
+            document.getElementById("account-area").innerHTML = `
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <img src="${user.avatar}" style="width:32px;height:32px;border-radius:50%;border:2px solid #7c3aed;">
+                    <span style="color:#fff;font-size:14px;">${user.username}</span>
+                    <a href="/logout" style="color:#f87171;font-size:13px;text-decoration:none;font-weight:700;">Logout</a>
+                </div>`;
+        }
+    });
 
     if (!state.loggedIn) {
-        container.innerHTML = `
+        el.innerHTML = `
             <div class="prompt-card">
-                <h2>Login to access your kits</h2>
-                <p>Connect your Discord account to see and claim kits you're eligible for.</p>
-                <a href="/auth/discord" class="prompt-btn prompt-btn-discord">
-                    <svg width="20" height="20" viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" fill="currentColor"/></svg>
-                    Login with Discord
-                </a>
+                <h2>Login to Claim Kits</h2>
+                <p>Connect your Discord account to claim in-game kits on Solarix.</p>
+                <a href="/auth/discord" class="prompt-btn prompt-btn-discord">🔗 Login with Discord</a>
             </div>`;
         return;
     }
 
     if (!state.gamertag) {
-        container.innerHTML = `
+        el.innerHTML = `
             <div class="prompt-card">
-                <h2>🎮 Link your in-game name</h2>
-                <p>Enter your exact in-game Rust name so we can deliver kits to you.</p>
+                <h2>Link Your In-Game Name</h2>
+                <p>Enter your Rust Console gamertag so we can send kits to your character.<br>This only needs to be done once.</p>
                 <div class="gamertag-form">
-                    <input class="gamertag-input" id="gt-input" type="text" placeholder="Your in-game name" autocomplete="off" maxlength="64">
+                    <input id="gt-input" class="gamertag-input" type="text" placeholder="Your gamertag" maxlength="50">
                     <button class="prompt-btn prompt-btn-green" onclick="linkGamertag()">Link</button>
                 </div>
-                <div id="gt-status" style="margin-top:10px;font-size:13px;color:#f87171;min-height:20px;"></div>
+                <div id="gt-status" style="margin-top:10px;font-size:13px;"></div>
             </div>`;
-        document.getElementById("gt-input").addEventListener("keydown", e => { if (e.key === "Enter") linkGamertag(); });
         return;
     }
 
-    let html = `<div class="gamertag-pill" onclick="promptChangeGamertag()">🎮 ${esc(state.gamertag)} <span style="color:#1e4a3a;font-size:10px;">✎ change</span></div>`;
+    const userBar = `
+        <div class="user-info-bar">
+            <span class="user-tag">In-game name: <strong>${escHtml(state.gamertag)}</strong></span>
+            <span class="change-link" onclick="promptChangeGamertag()">Change</span>
+        </div>`;
 
     if (!state.kits.length) {
-        html += `<div class="empty-kits">🔒 No kits available for your roles.<br><span style="font-size:13px;color:#2d1060;margin-top:6px;display:block;">Purchase a rank to unlock kits.</span></div>`;
-    } else {
-        html += `<div class="section-title"><span>🎁</span> YOUR KITS</div><div class="kits-grid" id="kits-grid">`;
-        for (const kit of state.kits) {
-            html += renderKitCard(kit);
-        }
-        html += `</div>`;
-    }
-
-    container.innerHTML = html;
-    startTimers();
-}
-
-function renderKitCard(kit) {
-    const cdMin = kit.cooldownMinutes;
-    const cdLabel = cdMin >= 60 ? `${Math.floor(cdMin/60)}h${cdMin%60 ? ` ${cdMin%60}m` : ""}` : `${cdMin}m`;
-    const desc = kit.description ? kit.description.split("\n").filter(l=>l.trim()).slice(0,3).join(" · ") : "";
-
-    const onCooldown = kit.onCooldown && kit.expiresAt && new Date(kit.expiresAt) > new Date();
-    const readyClass = onCooldown ? "is-cooldown" : "is-ready";
-    const readyLabel = onCooldown ? fmtRemaining(new Date(kit.expiresAt) - Date.now()) : "Ready!";
-    const readySub = onCooldown ? "" : "Claim Now";
-
-    const circumference = 2 * Math.PI * 36;
-    const progress = onCooldown
-        ? ((cdMin * 60 * 1000 - (new Date(kit.expiresAt) - Date.now())) / (cdMin * 60 * 1000)) * circumference
-        : circumference;
-    const strokeColor = onCooldown ? "cooldown-color" : "ready-color";
-
-    return `<div class="kit-card" id="kit-${kit.id}">
-        <div class="kit-icon">🎁</div>
-        <div class="kit-info">
-            <div class="kit-name">${esc(kit.name)}</div>
-            ${desc ? `<div class="kit-desc">${esc(desc)}</div>` : ""}
-            <div class="kit-server">🖥️ ${esc(kit.serverName)}</div>
-            <div class="kit-cd-badge">🕐 ${cdLabel} cooldown</div>
-        </div>
-        <div class="kit-action">
-            <div class="ready-circle" id="circle-${kit.id}">
-                <svg viewBox="0 0 80 80">
-                    <circle class="circle-bg" cx="40" cy="40" r="36"/>
-                    <circle class="circle-progress ${strokeColor}" id="cp-${kit.id}"
-                        cx="40" cy="40" r="36"
-                        stroke-dasharray="${circumference}"
-                        stroke-dashoffset="${circumference - progress}"/>
-                </svg>
-                <div class="ready-text ${readyClass}" id="rt-${kit.id}">
-                    <div class="label" id="rl-${kit.id}">${onCooldown ? readyLabel : "Ready!"}</div>
-                    ${!onCooldown ? `<div class="sublabel">Claim Now</div>` : ""}
-                </div>
-            </div>
-            <button class="claim-btn ${onCooldown ? "cooldown" : "ready"}" id="btn-${kit.id}"
-                ${onCooldown ? "disabled" : `onclick="claimKit(${kit.id})"`}>
-                ${onCooldown ? "⏳ Cooldown" : "⬇ Claim Kit"}
-            </button>
-            <div class="claim-result" id="res-${kit.id}"></div>
-        </div>
-    </div>`;
-}
-
-function fmtRemaining(ms) {
-    if (ms <= 0) return "Ready!";
-    const s = Math.floor(ms / 1000);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    if (h > 0) return `${h}h ${m}m`;
-    if (m > 0) return `${m}m ${sec}s`;
-    return `${sec}s`;
-}
-
-function startTimers() {
-    Object.values(timers).forEach(clearInterval);
-    timers = {};
-    for (const kit of state.kits) {
-        if (!kit.onCooldown || !kit.expiresAt) continue;
-        timers[kit.id] = setInterval(() => tickKit(kit), 1000);
-    }
-}
-
-function tickKit(kit) {
-    const remaining = new Date(kit.expiresAt) - Date.now();
-    const circumference = 2 * Math.PI * 36;
-
-    if (remaining <= 0) {
-        clearInterval(timers[kit.id]);
-        delete timers[kit.id];
-        kit.onCooldown = false;
-
-        const btn = document.getElementById(`btn-${kit.id}`);
-        const rt = document.getElementById(`rt-${kit.id}`);
-        const rl = document.getElementById(`rl-${kit.id}`);
-        const cp = document.getElementById(`cp-${kit.id}`);
-
-        if (btn) { btn.className = "claim-btn ready"; btn.disabled = false; btn.onclick = () => claimKit(kit.id); btn.textContent = "⬇ Claim Kit"; }
-        if (rt) rt.className = "ready-text is-ready";
-        if (rl) rl.textContent = "Ready!";
-        if (cp) { cp.className = "circle-progress ready-color"; cp.style.strokeDashoffset = "0"; }
+        el.innerHTML = userBar + `<div class="prompt-card"><h2>No kits available yet.</h2><p>Check back soon!</p></div>`;
         return;
     }
 
-    const cdMin = kit.cooldownMinutes;
-    const elapsed = (cdMin * 60 * 1000) - remaining;
-    const progress = (elapsed / (cdMin * 60 * 1000)) * circumference;
+    const kitsHtml = state.kits.map(k => {
+        let btnClass = "claim-btn-ready";
+        let btnText = "⬇ Claim Kit";
+        let btnDisabled = "";
+        let extra = "";
 
-    const rl = document.getElementById(`rl-${kit.id}`);
-    const cp = document.getElementById(`cp-${kit.id}`);
-    if (rl) rl.textContent = fmtRemaining(remaining);
-    if (cp) { cp.style.transition = "none"; cp.style.strokeDashoffset = `${circumference - progress}`; }
+        if (!k.hasRole) {
+            btnClass = "claim-btn-norole";
+            btnText = "Role Required";
+            btnDisabled = "disabled";
+        } else if (k.onCooldown) {
+            btnClass = "claim-btn-cooldown";
+            btnText = "On Cooldown";
+            btnDisabled = "disabled";
+            if (k.expiresAt) {
+                const ms = new Date(k.expiresAt) - Date.now();
+                const mins = Math.ceil(ms / 60000);
+                extra = `<div class="cooldown-timer">Available in ~${mins} min</div>`;
+            }
+        }
+
+        const descHtml = k.description ? k.description.split("\n").map(l => `<div>${escHtml(l)}</div>`).join("") : "";
+
+        return `
+            <div class="kit-card ${(!k.hasRole || k.onCooldown) ? "unavailable" : ""}">
+                <div class="kit-info">
+                    <div class="kit-name">${escHtml(k.name)}</div>
+                    <div class="kit-desc">${descHtml}</div>
+                    <div class="kit-server">🖥️ ${escHtml(k.serverName || "Server")}</div>
+                    <div class="kit-meta">⏱ ${k.cooldownMinutes}min cooldown${k.requiredRoleId ? " · Role required" : ""}</div>
+                </div>
+                <div class="kit-action">
+                    <button id="btn-${k.id}" class="claim-btn ${btnClass}" ${btnDisabled} onclick="claimKit(${k.id})">
+                        ${btnText}
+                    </button>
+                    <div id="res-${k.id}" class="claim-result"></div>
+                    ${extra}
+                </div>
+            </div>`;
+    }).join("");
+
+    el.innerHTML = userBar + `<div class="kits-grid">${kitsHtml}</div>`;
+}
+
+function escHtml(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
 async function claimKit(kitId) {
     const btn = document.getElementById(`btn-${kitId}`);
     const res = document.getElementById(`res-${kitId}`);
-    if (btn) { btn.disabled = true; btn.textContent = "⏳ Claiming…"; }
-    if (res) { res.textContent = ""; res.className = "claim-result"; }
-
+    if (btn) { btn.disabled = true; btn.textContent = "Claiming…"; }
     try {
         const r = await fetch("/api/kits/claim", {
             method: "POST",
@@ -369,14 +269,11 @@ async function claimKit(kitId) {
         });
         const data = await r.json();
         if (r.ok) {
-            if (res) { res.textContent = "✓ Kit sent!"; res.className = "claim-result success"; }
+            if (res) { res.textContent = "✓ Kit sent!"; res.className = "claim-result ok"; }
+            // Update cooldown state
             const kit = state.kits.find(k => k.id === kitId);
-            if (kit) {
-                kit.onCooldown = true;
-                kit.expiresAt = data.expiresAt;
-                timers[kitId] = setInterval(() => tickKit(kit), 1000);
-                if (btn) { btn.className = "claim-btn cooldown"; btn.disabled = true; btn.onclick = null; btn.textContent = "⏳ Cooldown"; }
-            }
+            if (kit) { kit.onCooldown = true; kit.expiresAt = data.expiresAt; }
+            setTimeout(() => { render(); }, 1500);
         } else {
             if (res) { res.textContent = `✗ ${data.error}`; res.className = "claim-result error"; }
             if (btn) { btn.disabled = false; btn.textContent = "⬇ Claim Kit"; }
@@ -392,7 +289,7 @@ async function linkGamertag() {
     const input = document.getElementById("gt-input");
     const statusEl = document.getElementById("gt-status");
     const gamertag = input?.value?.trim();
-    if (!gamertag) { if (statusEl) { statusEl.textContent = "Enter your in-game name."; } return; }
+    if (!gamertag) { if (statusEl) statusEl.textContent = "Enter your in-game name."; return; }
     if (statusEl) { statusEl.style.color = "#7c3aed"; statusEl.textContent = "Linking…"; }
     try {
         const r = await fetch("/api/kits/gamertag", {
@@ -403,6 +300,9 @@ async function linkGamertag() {
         const data = await r.json();
         if (r.ok) {
             state.gamertag = gamertag;
+            const kitsRes = await fetch("/api/kits");
+            const kitsData = await kitsRes.json();
+            state.kits = kitsData.kits || [];
             render();
         } else {
             if (statusEl) { statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${data.error}`; }

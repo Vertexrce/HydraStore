@@ -3,371 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cart — Vestige 6X</title>
+<title>Cart — Solarix</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-    background: #0a0420;
-    color: #e0e6f0;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    min-height: 100vh;
-}
-
-nav {
-    background: rgba(8,12,20,0.95);
-    border-bottom: 1px solid #1e0a40;
-    padding: 0 40px;
-    height: 62px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
-}
-.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.nav-logo img { height: 32px; width: auto; }
-.nav-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
+body { background: #0a0420; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+nav { background: rgba(8,12,20,0.95); border-bottom: 1px solid #1e0a40; padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+.nav-logo-text { font-size: 18px; font-weight: 900; color: #a855f7; letter-spacing: 3px; text-shadow: 0 0 12px rgba(168,85,247,0.4); text-decoration: none; }
 .nav-links { display: flex; gap: 6px; align-items: center; list-style: none; }
 .nav-links a { color: #9a71d4; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
 .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .nav-right { display: flex; align-items: center; gap: 10px; }
-.nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
+.nav-cog { color: #334155; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; }
 .nav-cog:hover { color: #a855f7; }
-.cart-icon-btn { position: relative; color: #9a71d4; text-decoration: none; font-size: 20px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1; }
-.cart-icon-btn:hover { color: #fff; }
-.cart-badge { position: absolute; top: 2px; right: 2px; background: #7c3aed; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
-
-/* ── Page ── */
-.page {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 48px 24px 80px;
-}
-
-.page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 32px;
-}
-.page-header h1 { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
-.clear-btn {
-    background: transparent;
-    border: 1px solid #2d1060;
-    color: #3a4d6b;
-    font-size: 12px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s;
-}
+.page { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+.page-header h1 { font-size: 28px; font-weight: 800; color: #fff; }
+.clear-btn { background: transparent; border: 1px solid #2d1060; color: #3a4d6b; font-size: 12px; padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
 .clear-btn:hover { border-color: #7f1d1d; color: #f87171; }
-
-/* ── Cart items ── */
-.cart-item {
-    background: #130929;
-    border: 1px solid #1e0840;
-    border-radius: 14px;
-    display: flex;
-    align-items: stretch;
-    overflow: hidden;
-    margin-bottom: 14px;
-    transition: border-color 0.15s;
-}
+.cart-item { background: #130929; border: 1px solid #1e0840; border-radius: 14px; display: flex; align-items: stretch; overflow: hidden; margin-bottom: 14px; transition: border-color 0.15s; }
 .cart-item:hover { border-color: #3b1464; }
-
-.cart-item-img {
-    width: 110px;
-    min-height: 110px;
-    object-fit: cover;
-    flex-shrink: 0;
-    background: #0c0520;
-}
+.cart-item-img { width: 110px; min-height: 110px; object-fit: cover; flex-shrink: 0; background: #0c0520; }
 .cart-item-img.no-img { display: none; }
-
-.cart-item-body {
-    flex: 1;
-    padding: 20px 22px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-}
-.cart-item-cat {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: #5b21b6;
-}
+.cart-item-body { flex: 1; padding: 20px 22px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.cart-item-cat { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #5b21b6; }
 .cart-item-name { font-size: 18px; font-weight: 700; color: #fff; }
-.cart-item-price { font-size: 22px; font-weight: 800; color: #a855f7; letter-spacing: -0.3px; }
-
-.cart-item-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: space-between;
-    padding: 18px 20px;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.checkout-item-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 20px;
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-    box-shadow: 0 3px 14px rgba(124,58,237,0.3);
-    white-space: nowrap;
-}
-.checkout-item-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 5px 18px rgba(124,58,237,0.45); }
-.checkout-item-btn:active { transform: translateY(0); }
-
-.remove-btn {
-    background: transparent;
-    border: none;
-    color: #1e3050;
-    font-size: 18px;
-    cursor: pointer;
-    transition: color 0.15s;
-    padding: 4px;
-    line-height: 1;
-}
+.cart-item-price { font-size: 22px; font-weight: 800; color: #a855f7; }
+.cart-item-actions { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; padding: 18px 20px; flex-shrink: 0; }
+.checkout-item-btn { padding: 11px 20px; background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.15s; }
+.checkout-item-btn:hover { opacity: 0.87; }
+.remove-btn { background: transparent; border: none; color: #3a4d6b; font-size: 18px; cursor: pointer; padding: 4px; transition: color 0.15s; }
 .remove-btn:hover { color: #f87171; }
-
-/* ── Summary ── */
-.cart-summary {
-    background: #130929;
-    border: 1px solid #1e0840;
-    border-radius: 14px;
-    padding: 24px 28px;
-    margin-top: 8px;
-}
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    color: #8b5cf6;
-    margin-bottom: 10px;
-}
-.summary-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 14px;
-    border-top: 1px solid #1a0a40;
-    margin-top: 6px;
-}
-.summary-total-label { font-size: 16px; font-weight: 700; color: #fff; }
-.summary-total-price { font-size: 28px; font-weight: 800; color: #a855f7; letter-spacing: -0.5px; }
-
-.summary-note {
-    font-size: 12px;
-    color: #2a1060;
-    margin-top: 14px;
-    line-height: 1.6;
-}
-
-/* ── Empty cart ── */
-.empty-cart {
-    text-align: center;
-    padding: 80px 20px;
-}
-.empty-cart .icon { font-size: 56px; margin-bottom: 16px; opacity: 0.3; }
-.empty-cart h2 { font-size: 22px; font-weight: 700; color: #2a1060; margin-bottom: 10px; }
-.empty-cart p { font-size: 14px; color: #1a2a40; margin-bottom: 24px; }
-.empty-cart a {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 28px;
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: #fff;
-    border-radius: 9px;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 700;
-    box-shadow: 0 4px 18px rgba(124,58,237,0.3);
-    transition: opacity 0.15s;
-}
-.empty-cart a:hover { opacity: 0.9; }
-
-/* ── Toast ── */
-.toast {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: #120838;
-    border: 1px solid #3b1464;
-    color: #7aa0d4;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 12px 22px;
-    border-radius: 8px;
-    transition: transform 0.3s ease;
-    z-index: 999;
-    white-space: nowrap;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
-
-@media (max-width: 600px) {
-    nav { padding: 0 16px; }
-    .page { padding: 28px 16px 80px; }
-    .cart-item { flex-direction: column; }
-    .cart-item-img { width: 100%; height: 140px; }
-    .cart-item-actions { flex-direction: row; align-items: center; padding: 14px 16px; border-top: 1px solid #1a0a40; }
-}
+.empty-cart { text-align: center; padding: 80px 20px; color: #2a1060; }
+.empty-cart h2 { font-size: 24px; margin-bottom: 12px; color: #3d1a70; }
+.empty-cart p { font-size: 14px; margin-bottom: 24px; }
+.empty-cart a { background: #7c3aed; color: #fff; padding: 12px 28px; border-radius: 10px; text-decoration: none; font-weight: 700; }
 </style>
 </head>
 <body>
-
 <nav>
-    <a href="/" class="nav-logo">
-        <img src="/vestige-logo.jpg" alt="Vestige 6X" onerror="this.style.display='none'">
-        <span class="nav-logo-text">Vestige 6X</span>
-    </a>
-    <ul class="nav-links">
-        <li><a href="/index.html">Home</a></li>
-        <li><a href="/store.html">Store</a></li>
-        <li><a href="/kits">Kits</a></li>
-    </ul>
-    <div class="nav-right">
-        <a href="/cart.html" class="cart-icon-btn" title="Cart">
-            🛒
-            <span class="cart-badge" id="nav-cart-count" style="display:none"></span>
-        </a>
-        <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
+  <a class="nav-logo-text" href="/">SOLARIX</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/kits">Kits</a></li>
+    <li><a href="/store.html">Store</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/admin-login.html" class="nav-cog">⚙</a>
+    <div id="account-area">
+      <a href="/auth/discord" style="background:#7c3aed;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;">Login</a>
     </div>
+  </div>
 </nav>
 
 <div class="page">
-    <div id="cart-root"></div>
+  <div id="cart-content"></div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-const CART_KEY = "vestige6x_cart";
+const CART_KEY = "solarix_cart";
+function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)||"[]"); } catch { return []; } }
+function saveCart(c) { localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-function getCart() {
-    try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; }
-}
-function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    updateNavBadge();
-}
-function updateNavBadge() {
-    const cart = getCart();
-    const badge = document.getElementById("nav-cart-count");
-    if (cart.length > 0) {
-        badge.textContent = cart.length;
-        badge.style.display = "flex";
-    } else {
-        badge.style.display = "none";
-    }
-}
-
-function removeFromCart(itemId) {
-    const cart = getCart().filter(i => i.id !== itemId);
+function removeItem(id) {
+    const cart = getCart().filter(c => c.id !== id);
     saveCart(cart);
     render();
 }
 
-function clearCart() {
-    if (!confirm("Clear your entire cart?")) return;
-    saveCart([]);
-    render();
-}
-
-function esc(str) {
-    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
-function parsePrice(str) {
-    const n = parseFloat(String(str || "").replace(/[^0-9.]/g, ""));
-    return isNaN(n) ? 0 : n;
-}
-
-function formatPrice(n) {
-    return "£" + n.toFixed(2);
-}
-
 function render() {
     const cart = getCart();
-    const root = document.getElementById("cart-root");
-
+    const el = document.getElementById("cart-content");
     if (!cart.length) {
-        root.innerHTML = `
-            <div class="empty-cart">
-                <div class="icon">🛒</div>
-                <h2>Your cart is empty</h2>
-                <p>Add some items from the store to get started.</p>
-                <a href="/store.html">← Browse Store</a>
-            </div>`;
+        el.innerHTML = `<div class="empty-cart">
+            <h2>Your cart is empty</h2>
+            <p>Head to the store to find something to buy.</p>
+            <a href="/store.html">← Browse Store</a>
+        </div>`;
         return;
     }
-
-    const total = cart.reduce((sum, item) => sum + parsePrice(item.price), 0);
-
-    const itemsHtml = cart.map(item => {
-        const hasImg = !!item.imageUrl;
-        return `
-        <div class="cart-item">
-            ${hasImg ? `<img class="cart-item-img" src="${esc(item.imageUrl)}" alt="${esc(item.name)}" onerror="this.classList.add('no-img')">` : ""}
-            <div class="cart-item-body">
-                <div class="cart-item-cat">${esc(item.category || "")}</div>
-                <div class="cart-item-name">${esc(item.name)}</div>
-                <div class="cart-item-price">${esc(item.price)}</div>
-            </div>
-            <div class="cart-item-actions">
-                <a href="/checkout/${item.id}" class="checkout-item-btn">💳 Checkout</a>
-                <button class="remove-btn" onclick="removeFromCart(${item.id})" title="Remove">✕</button>
-            </div>
-        </div>`;
-    }).join("");
-
-    root.innerHTML = `
+    el.innerHTML = `
         <div class="page-header">
-            <h1>🛒 Your Cart (${cart.length})</h1>
-            <button class="clear-btn" onclick="clearCart()">Clear Cart</button>
+            <h1>🛒 Cart (${cart.length})</h1>
+            <button class="clear-btn" onclick="clearCart()">Clear All</button>
         </div>
-        ${itemsHtml}
-        <div class="cart-summary">
-            ${cart.map(item => `
-                <div class="summary-row">
-                    <span>${esc(item.name)}</span>
-                    <span>${esc(item.price)}</span>
+        ${cart.map(item => `
+            <div class="cart-item">
+                <img class="cart-item-img ${item.imageUrl?'':'no-img'}" src="${esc(item.imageUrl)}" onerror="this.classList.add('no-img')">
+                <div class="cart-item-body">
+                    <div class="cart-item-cat">${esc(item.category||"General")}</div>
+                    <div class="cart-item-name">${esc(item.name)}</div>
+                    <div class="cart-item-price">${esc(item.price)}</div>
                 </div>
-            `).join("")}
-            <div class="summary-total">
-                <span class="summary-total-label">Total</span>
-                <span class="summary-total-price">${formatPrice(total)}</span>
-            </div>
-            <p class="summary-note">
-                💡 Click <strong>Checkout</strong> on each item to pay. Each item has its own Stripe and PayPal payment buttons.
-            </p>
+                <div class="cart-item-actions">
+                    <a href="/checkout/${item.id}" class="checkout-item-btn">💳 Buy</a>
+                    <button class="remove-btn" onclick="removeItem(${item.id})" title="Remove">✕</button>
+                </div>
+            </div>`).join("")}
+        <div style="text-align:center;margin-top:24px;">
+            <a href="/store.html" style="color:#7c3aed;font-size:14px;text-decoration:none;">← Continue Shopping</a>
         </div>`;
 }
 
-updateNavBadge();
+function clearCart() {
+    if (confirm("Clear your cart?")) { saveCart([]); render(); }
+}
+
+// Load user
+fetch("/user").then(r=>r.json()).then(user => {
+    if (user.loggedIn) {
+        document.getElementById("account-area").innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;">
+                <img src="${user.avatar}" style="width:32px;height:32px;border-radius:50%;border:2px solid #7c3aed;">
+                <span style="color:#fff;font-size:14px;">${user.username}</span>
+                <a href="/logout" style="color:#f87171;font-size:13px;text-decoration:none;font-weight:700;">Logout</a>
+            </div>`;
+    }
+});
+
 render();
 </script>
-
 </body>
 </html>

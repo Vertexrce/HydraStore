@@ -3,259 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vestige 6X Store</title>
+<title>Solarix Store</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="style.css">
 <style>
-.admin-cog-btn {
-    font-size: 22px;
-    color: #6b21a8;
-    text-decoration: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: color 0.2s, background 0.2s;
-    line-height: 1;
-}
+.admin-cog-btn { font-size: 22px; color: #6b21a8; text-decoration: none; padding: 6px 10px; border-radius: 8px; transition: color 0.2s, background 0.2s; line-height: 1; }
 .admin-cog-btn:hover { color: #a855f7; background: rgba(124,58,237,0.12); }
-
 .nav-right { display: flex; align-items: center; gap: 6px; }
-.cart-icon-btn {
-    position: relative;
-    color: #9a71d4;
-    text-decoration: none;
-    font-size: 20px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: color 0.15s, background 0.15s;
-    line-height: 1;
-}
+.cart-icon-btn { position: relative; color: #9a71d4; text-decoration: none; font-size: 20px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s, background 0.15s; line-height: 1; }
 .cart-icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-.cart-badge {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    background: #7c3aed;
-    color: #fff;
-    font-size: 9px;
-    font-weight: 700;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ── Category tabs ── */
+.cart-badge { position: absolute; top: 2px; right: 2px; background: #7c3aed; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
 .category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
-.category-tab {
-    padding: 8px 20px;
-    border-radius: 20px;
-    border: 1px solid #2d1060;
-    background: transparent;
-    color: #8b5cf6;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-.category-tab:hover { border-color: #5b21b6; color: #7aa0d4; background: rgba(77,141,255,0.05); }
+.category-tab { padding: 8px 20px; border-radius: 20px; border: 1px solid #2d1060; background: transparent; color: #8b5cf6; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.category-tab:hover { border-color: #5b21b6; background: rgba(77,141,255,0.05); }
 .category-tab.active { background: #4c1d95; border-color: #7c3aed; color: #fff; }
-
-/* ── Category section ── */
 .category-section { margin-bottom: 48px; }
 .category-section.hidden { display: none; }
-.category-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #5b21b6;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #1a0a40;
-}
-
-/* ── Store grid ── */
+.category-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #5b21b6; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #1a0a40; }
 .store-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-
-.store-card-v2 {
-    background: #130929;
-    border: 1px solid #1e0840;
-    border-radius: 14px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: border-color 0.2s, transform 0.15s;
-}
+.store-card-v2 { background: #130929; border: 1px solid #1e0840; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.15s; }
 .store-card-v2:hover { border-color: #5b21b6; transform: translateY(-2px); }
-
 .store-card-img { width: 100%; height: 160px; object-fit: cover; display: block; background: #0c0520; }
 .store-card-img.hidden { display: none; }
 .store-card-body { padding: 22px 24px; display: flex; flex-direction: column; flex: 1; }
-.store-card-name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; letter-spacing: -0.3px; }
-.store-card-price { font-size: 26px; font-weight: 800; color: #a855f7; margin-bottom: 14px; letter-spacing: -0.5px; }
-.store-card-desc { font-size: 13px; color: #8b5cf6; line-height: 1.6; margin-bottom: 20px; flex: 1; }
-.store-card-desc img { max-width: 100%; border-radius: 6px; margin-top: 8px; }
-
-/* ── Buttons ── */
+.store-card-name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.store-card-price { font-size: 26px; font-weight: 800; color: #a855f7; margin-bottom: 14px; }
+.store-card-desc { font-size: 13px; color: #8b5cf6; line-height: 1.6; margin-bottom: 20px; flex: 1; white-space: pre-line; }
 .card-btns { display: flex; flex-direction: column; gap: 10px; }
+.store-buy-btn { display: block; width: 100%; padding: 15px 0; background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; border: none; border-radius: 9px; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: opacity 0.15s, transform 0.1s; box-shadow: 0 4px 18px rgba(124,58,237,0.3); }
+.store-buy-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.store-cart-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 0; background: transparent; border: 1px solid #2d1060; border-radius: 9px; color: #8b5cf6; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.store-cart-btn:hover:not(:disabled) { border-color: #7c3aed; color: #fff; background: rgba(124,58,237,0.1); }
+.store-cart-btn.added { border-color: #059669; color: #34d399; cursor: default; }
+.store-cart-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.store-buy-btn {
-    display: block;
-    width: 100%;
-    padding: 15px 0;
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: #fff;
-    border: none;
-    border-radius: 9px;
-    font-size: 16px;
-    font-weight: 700;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-    box-shadow: 0 4px 18px rgba(124,58,237,0.3);
-}
-.store-buy-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,0.45); }
-.store-buy-btn:active { transform: translateY(0); }
+/* Gems pill */
+.gems-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3); border-radius: 20px; padding: 6px 14px; font-size: 13px; color: #a855f7; font-weight: 600; }
 
-.store-cart-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    width: 100%;
-    padding: 11px 0;
-    background: transparent;
-    color: #a855f7;
-    border: 1px solid #4c1d95;
-    border-radius: 9px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-.store-cart-btn:hover { background: rgba(124,58,237,0.1); border-color: #7c3aed; color: #7aa0d4; }
-.store-cart-btn.added { color: #34d399; border-color: #4c1d95; background: rgba(5,150,105,0.08); }
+/* Link banner */
+.link-banner { background: #130929; border: 1px solid #7c3aed; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.link-banner p { font-size: 14px; color: #9a71d4; }
+.link-banner a { background: #7c3aed; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.link-banner a:hover { background: #5b21b6; }
 
-/* ── Admin banner ── */
-.admin-banner {
-    display: none;
-    background: #130929;
-    border: 1px solid #7c3aed;
-    border-radius: 10px;
-    padding: 12px 20px;
-    margin-bottom: 28px;
-    color: #a855f7;
-    font-size: 14px;
-}
+.page-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+.page-title-group h1 { font-size: 36px; font-weight: 900; color: #a855f7; }
+.page-title-group p { color: #9a71d4; font-size: 14px; margin-top: 4px; }
 
-.store-page-v2 { max-width: 1100px; margin: 0 auto; padding: 48px 32px 80px; }
-.store-page-v2 h1 { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 28px; letter-spacing: -0.5px; }
+.admin-bar { background: rgba(124,58,237,0.1); border: 1px solid #2d1060; border-radius: 8px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; color: #7c3aed; display: none; }
+.admin-bar a { color: #a855f7; font-weight: 700; text-decoration: none; }
 
-/* ── Toast ── */
-.toast {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: #120838;
-    border: 1px solid #3b1464;
-    color: #7aa0d4;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 12px 22px;
-    border-radius: 8px;
-    transition: transform 0.3s ease;
-    z-index: 999;
-    white-space: nowrap;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
+.store-page { padding: 100px 50px 80px; max-width: 1200px; margin: 0 auto; }
 
-@media (max-width: 700px) {
-    .store-page-v2 { padding: 28px 16px 60px; }
-}
+@media(max-width:768px){ .store-page { padding: 80px 16px 50px; } }
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-    <div class="logo">
-        <img src="vestige-logo.jpg" alt="Vestige 6X">
+  <div class="logo"><span style="font-size:20px;font-weight:900;color:#a855f7;letter-spacing:3px;text-shadow:0 0 14px rgba(168,85,247,0.4);">SOLARIX</span></div>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="/kits">Kits</a></li>
+    <li><a href="/store.html">Store</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/cart.html" class="cart-icon-btn" title="Cart">
+      🛒<span class="cart-badge" id="cart-badge"></span>
+    </a>
+    <a href="/admin-login.html" class="admin-cog-btn" title="Admin">⚙</a>
+    <div id="account-area">
+      <a href="/auth/discord" class="discord-btn">Login</a>
     </div>
-    <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="store.html">Store</a></li>
-        <li><a href="/kits">Kits</a></li>
-    </ul>
-    <div class="nav-right">
-        <a href="/cart.html" class="cart-icon-btn" title="View Cart">
-            🛒
-            <span class="cart-badge" id="nav-cart-count"></span>
-        </a>
-        <a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
-    </div>
+  </div>
 </nav>
 
-<div class="store-page-v2">
-    <h1>Vestige 6X Store</h1>
+<div class="store-page">
+  <div class="admin-bar" id="admin-banner">
+    ⚙️ Admin — <a href="/admin.html">Manage Store</a>
+  </div>
 
-    <div class="admin-banner" id="admin-banner">
-        ⚙️ <strong>Admin mode</strong> — Bypass Payment buttons appear on the checkout page for each item.
-        <a href="/admin" style="color:#a855f7;margin-left:12px;">Go to Admin Panel →</a>
-    </div>
+  <!-- Link gamertag banner (shown if logged in but not linked) -->
+  <div id="link-banner" class="link-banner" style="display:none;">
+    <p>🔗 Link your in-game name so kits and store items know who you are in-game.</p>
+    <a href="/kits">Link Gamertag →</a>
+  </div>
 
-    <div class="category-tabs" id="category-tabs">
-        <button class="category-tab active" data-cat="all" onclick="filterCat('all', this)">All Items</button>
+  <div class="page-header-row">
+    <div class="page-title-group">
+      <h1>Store</h1>
+      <p>Buy ranks, kits, and bundles for Solarix servers</p>
     </div>
+    <div id="gems-display" style="display:none;">
+      <span class="gems-pill">💎 <span id="gems-balance">0</span> gems</span>
+    </div>
+  </div>
 
-    <div id="store-sections">
-        <div style="color:#2a1060;padding:60px;text-align:center;">Loading…</div>
-    </div>
+  <div id="category-tabs" class="category-tabs"></div>
+  <div id="category-sections"></div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-const CART_KEY = "vestige6x_cart";
+const CART_KEY = "solarix_cart";
 
-function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } }
-function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateNavBadge(); }
-
+function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
+}
+function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    updateNavBadge();
+}
 function updateNavBadge() {
     const cart = getCart();
-    const badge = document.getElementById("nav-cart-count");
-    if (cart.length > 0) {
-        badge.textContent = cart.length;
-        badge.style.display = "flex";
-    } else {
-        badge.style.display = "none";
-    }
-}
-
-function addToCart(item) {
-    const cart = getCart();
-    if (cart.find(i => i.id === item.id)) {
-        showToast("Already in cart! → View Cart");
-        return;
-    }
-    cart.push(item);
-    saveCart(cart);
-    showToast(`✓ ${item.name} added to cart`);
-    // Update button
-    const btn = document.getElementById(`cart-btn-${item.id}`);
-    if (btn) { btn.textContent = "✓ Added to Cart"; btn.classList.add("added"); btn.disabled = true; }
-}
-
-let toastTimer;
-function showToast(msg) {
-    const t = document.getElementById("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+    const badge = document.getElementById("cart-badge");
+    if (!badge) return;
+    if (cart.length) { badge.style.display = "flex"; badge.textContent = cart.length; }
+    else { badge.style.display = "none"; }
 }
 
 function esc(str) {
@@ -264,43 +127,32 @@ function esc(str) {
 
 function renderDescription(desc) {
     if (!desc) return "";
-    return desc.split("\n").filter(l => l.trim()).map(line => {
-        if (line.trim().startsWith("[img:") && line.trim().endsWith("]")) {
-            const url = line.trim().slice(5, -1).trim();
-            return `<img src="${esc(url)}" alt="Item image" style="max-width:100%;border-radius:6px;margin-top:6px;display:block;" onerror="this.style.display='none'">`;
-        }
-        return `<span>${esc(line.trim())}</span>`;
-    }).join("<br>");
+    return desc.split("\n").map(l => {
+        const imgMatch = l.match(/^\[img:(https?:\/\/.+)\]$/i);
+        if (imgMatch) return `<img src="${esc(imgMatch[1])}" style="max-width:100%;border-radius:6px;margin-top:8px;" onerror="this.style.display='none'">`;
+        return `<span>${esc(l)}</span><br>`;
+    }).join("");
 }
 
-function filterCat(cat, btn) {
-    document.querySelectorAll(".category-tab").forEach(t => t.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".category-section").forEach(sec => {
-        sec.classList.toggle("hidden", cat !== "all" && sec.dataset.cat !== cat);
-    });
+function addToCart(item) {
+    const cart = getCart();
+    if (cart.find(c => c.id === item.id)) return;
+    cart.push(item);
+    saveCart(cart);
+    const btn = document.getElementById(`cart-btn-${item.id}`);
+    if (btn) { btn.textContent = "✓ Added to Cart"; btn.classList.add("added"); btn.disabled = true; }
 }
 
 function renderSections(items) {
-    const sectionsEl = document.getElementById("store-sections");
     const tabsEl = document.getElementById("category-tabs");
-    const cart = getCart();
-    const inCart = new Set(cart.map(i => i.id));
-
-    const seen = new Set(), cats = [];
-    for (const item of items) {
-        const c = item.category || "General";
-        if (!seen.has(c)) { seen.add(c); cats.push(c); }
-    }
-    const order = ["Ranks","Kits","Extras","General"];
-    cats.sort((a,b) => { const ai = order.indexOf(a); const bi = order.indexOf(b); return (ai===-1?99:ai)-(bi===-1?99:bi); });
-
-    tabsEl.innerHTML = `<button class="category-tab active" data-cat="all" onclick="filterCat('all', this)">All Items</button>`;
-    cats.forEach(cat => {
-        tabsEl.innerHTML += `<button class="category-tab" data-cat="${esc(cat)}" onclick="filterCat('${esc(cat)}', this)">${esc(cat)}</button>`;
-    });
+    const sectionsEl = document.getElementById("category-sections");
+    const inCart = new Set(getCart().map(c => c.id));
+    const cats = [...new Set(items.map(i => i.category || "General"))];
 
     if (!items.length) { sectionsEl.innerHTML = `<div style="color:#2a1060;text-align:center;padding:60px;">No items yet.</div>`; return; }
+
+    tabsEl.innerHTML = `<button class="category-tab active" onclick="filterCat('all', this)">All</button>` +
+        cats.map(c => `<button class="category-tab" onclick="filterCat('${esc(c)}', this)">${esc(c)}</button>`).join("");
 
     let html = "";
     for (const cat of cats) {
@@ -335,17 +187,53 @@ function renderSections(items) {
     sectionsEl.innerHTML = html;
 }
 
+function filterCat(cat, btn) {
+    document.querySelectorAll(".category-tab").forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".category-section").forEach(s => {
+        s.classList.toggle("hidden", cat !== "all" && s.dataset.cat !== cat);
+    });
+}
+
 async function init() {
     updateNavBadge();
-    const [statusRes, itemsRes] = await Promise.all([fetch("/api/admin-status"), fetch("/api/store-items")]);
+    const [statusRes, itemsRes, userRes] = await Promise.all([
+        fetch("/api/admin-status"),
+        fetch("/api/store-items"),
+        fetch("/user")
+    ]);
     const { isAdmin } = await statusRes.json();
     const items = await itemsRes.json();
+    const user = await userRes.json();
+
     if (isAdmin) document.getElementById("admin-banner").style.display = "block";
+
+    if (user.loggedIn) {
+        document.getElementById("account-area").innerHTML = `
+            <div class="user-box">
+                <img src="${user.avatar}" class="avatar">
+                <span>${user.username}</span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>`;
+        // Load gems balance
+        fetch("/api/credits/me").then(r => r.json()).then(data => {
+            if (data.loggedIn) {
+                document.getElementById("gems-display").style.display = "block";
+                document.getElementById("gems-balance").textContent = Math.floor(data.balance);
+            }
+        });
+        // Check if gamertag linked
+        fetch("/api/kits/gamertag").then(r => r.json()).then(data => {
+            if (!data.gamertag) {
+                document.getElementById("link-banner").style.display = "flex";
+            }
+        });
+    }
+
     renderSections(items);
 }
 
 init();
 </script>
-
 </body>
 </html>

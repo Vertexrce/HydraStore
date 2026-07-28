@@ -1,87 +1,26 @@
-// Vestige 6X Script
+// Solarix — shared script helpers (used by pages that include this file)
 
-console.log("Vestige 6X Loaded");
+const CART_KEY = "solarix_cart";
 
-// Smooth scrolling for navbar links
-
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-anchor.addEventListener('click', function(e) {
-e.preventDefault();
-
-```
-    const target = document.querySelector(
-        this.getAttribute('href')
-    );
-
-    if(target){
-        target.scrollIntoView({
-            behavior:'smooth'
-        });
-    }
-});
-```
-
-});
-
-// Fade in cards on load
-
-window.addEventListener('load', () => {
-
-```
-const cards = document.querySelectorAll(
-    '.stat-card, .news-card, .feature-box, .store-card'
-);
-
-cards.forEach((card, index) => {
-
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-
-    setTimeout(() => {
-
-        card.style.transition =
-        'all .6s ease';
-
-        card.style.opacity = '1';
-        card.style.transform =
-        'translateY(0)';
-
-    }, index * 100);
-
-});
-```
-
-});
-
-// Countdown placeholder
-
-const launchDate = new Date(
-"December 31, 2026 12:00:00"
-).getTime();
-
-setInterval(() => {
-
-```
-const now = new Date().getTime();
-
-const distance =
-launchDate - now;
-
-const days =
-Math.floor(
-    distance /
-    (1000 * 60 * 60 * 24)
-);
-
-const countdown =
-document.getElementById(
-    "countdown"
-);
-
-if(countdown){
-    countdown.innerHTML =
-    days + " Days";
+function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
 }
-```
 
-},1000);
+function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    updateCartBadge();
+}
+
+function updateCartBadge() {
+    const cart = getCart();
+    const badge = document.getElementById("cart-badge");
+    if (!badge) return;
+    if (cart.length) {
+        badge.style.display = "flex";
+        badge.textContent = cart.length;
+    } else {
+        badge.style.display = "none";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", updateCartBadge);

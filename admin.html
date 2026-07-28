@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Admin — Vestige 6X</title>
+    <title>Admin — Solarix</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -11,6 +11,7 @@
 
         .topbar { background: #0c0520; border-bottom: 1px solid #1e0a40; padding: 18px 48px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .topbar-left h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+        .topbar-left h1 span { color: #a855f7; }
         .topbar-left p { font-size: 13px; color: #7c3aed; margin-top: 3px; max-width: 480px; }
         .topbar-right { display: flex; gap: 10px; align-items: center; }
 
@@ -48,52 +49,64 @@
         .field label .badge-stripe { display: inline-block; background: #635bff22; color: #635bff; border: 1px solid #635bff44; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
         .field label .badge-paypal { display: inline-block; background: #ffc43922; color: #c98f00; border: 1px solid #ffc43944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
         .field label .badge-credit { display: inline-block; background: #05966922; color: #34d399; border: 1px solid #05966944; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
-        .field label .badge-auto { display: inline-block; background: #5b21b622; color: #60a5fa; border: 1px solid #5b21b644; border-radius: 3px; font-size: 9px; padding: 1px 5px; margin-left: 5px; letter-spacing: 0.5px; vertical-align: middle; }
-        .field input, .field textarea, .field select { background: #060d1a; border: 1px solid #1a2e4a; border-radius: 6px; color: #e0e6f0; padding: 10px 13px; font-size: 14px; outline: none; transition: border-color 0.15s; font-family: inherit; width: 100%; }
-        .field input:focus, .field textarea:focus, .field select:focus { border-color: #7c3aed; }
-        .field input::placeholder, .field textarea::placeholder { color: #1e3060; }
-        .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-        .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%233d5a8a'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-        .field .hint { font-size: 11px; color: #3b1464; margin-top: 2px; }
 
-        .item-card { background: #130929; border: 1px solid #1e0840; border-radius: 10px; padding: 24px; margin-bottom: 12px; transition: border-color 0.2s; }
-        .item-card:hover { border-color: #1e3a7a; }
-        .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .item-label { font-size: 12px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; }
+        input, select, textarea { background: #060d1a; border: 1px solid #1a2e4a; border-radius: 6px; color: #e0e6f0; padding: 10px 12px; font-size: 13px; outline: none; transition: border-color 0.15s; font-family: inherit; width: 100%; }
+        input:focus, select:focus, textarea:focus { border-color: #7c3aed; }
+        input::placeholder, textarea::placeholder { color: #1e3060; }
+        textarea { resize: vertical; min-height: 80px; }
+        select option { background: #130929; }
 
-        .add-panel { background: #060d1a; border: 1px dashed #1a2e4a; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
-        .add-panel h3 { font-size: 14px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; }
+        .hint { font-size: 11px; color: #2a4070; line-height: 1.4; }
 
-        .credit-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #130929; border: 1px solid #1e0840; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
-        .credit-row .cr-id { font-size: 13px; color: #7c5cbf; font-weight: 600; }
-        .credit-row .cr-balance { font-size: 20px; font-weight: 700; color: #34d399; }
-        .credit-row .cr-updated { font-size: 11px; color: #1e3060; margin-top: 2px; }
+        .add-panel { background: #100822; border: 1px dashed #2d1060; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+        .add-panel h3 { font-size: 14px; font-weight: 700; color: #7c3aed; margin-bottom: 18px; }
 
-        .purchase-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #130929; border: 1px solid #1e0840; border-radius: 8px; padding: 14px 20px; margin-bottom: 8px; }
-        .purchase-row .item-name { font-weight: 600; font-size: 15px; color: #fff; }
-        .purchase-row .item-date { font-size: 12px; color: #2a4070; margin-top: 3px; }
-        .purchase-row .item-discord { font-size: 12px; color: #7c5cbf; margin-top: 2px; }
-        .purchase-row .item-note { font-size: 12px; color: #1e3060; margin-top: 2px; }
-        .purchase-row .item-price { font-size: 20px; font-weight: 700; color: #a855f7; }
+        .item-card { background: #130929; border: 1px solid #1e0840; border-radius: 10px; padding: 20px 24px; margin-bottom: 12px; }
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+        .item-title { font-size: 15px; font-weight: 700; color: #fff; }
+        .item-price { font-size: 17px; font-weight: 800; color: #a855f7; }
+        .item-actions { display: flex; gap: 6px; }
 
-        .statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(6,12,20,0.97); border-top: 1px solid #1e0840; padding: 14px 48px; display: flex; justify-content: flex-end; align-items: center; gap: 14px; backdrop-filter: blur(8px); }
-        .status-msg { font-size: 13px; color: #5b21b6; }
+        .img-preview { max-width: 100%; max-height: 80px; border-radius: 6px; margin-top: 6px; display: none; }
+
+        .empty { color: #2a1060; font-size: 14px; text-align: center; padding: 30px; background: #100822; border: 1px dashed #1e0840; border-radius: 8px; }
+
+        .purchase-row { background: #130929; border: 1px solid #1e0840; border-radius: 8px; padding: 16px 20px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+        .item-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+        .item-date { font-size: 12px; color: #2a4070; }
+        .item-discord { font-size: 12px; color: #5b21b6; margin-top: 2px; }
+        .item-note { font-size: 12px; color: #2a4070; }
+        .item-price-tag { font-size: 15px; font-weight: 700; color: #a855f7; white-space: nowrap; }
+
+        .server-row { background: #100822; border: 1px solid #1e0840; border-radius: 8px; padding: 14px 18px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+        .server-info { flex: 1; min-width: 0; }
+        .server-name { font-size: 14px; font-weight: 700; color: #fff; }
+        .server-details { font-size: 12px; color: #5b21b6; margin-top: 3px; }
+
+        .credit-row { background: #100822; border: 1px solid #1e0840; border-radius: 8px; padding: 14px 18px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .cr-id { font-size: 13px; color: #7c3aed; }
+        .cr-updated { font-size: 11px; color: #2a4070; margin-top: 3px; }
+        .cr-balance { font-size: 18px; font-weight: 800; color: #34d399; }
+
+        .kit-admin-card { background: #100822; border: 1px solid #1e0840; border-radius: 8px; padding: 16px 20px; margin-bottom: 10px; }
+        .kit-admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .kit-admin-name { font-size: 14px; font-weight: 700; color: #fff; }
+
+        .statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: #0c0520; border-top: 1px solid #1e0840; padding: 12px 48px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .status-msg { font-size: 13px; font-weight: 600; }
         .status-msg.saved { color: #4ade80; }
         .status-msg.error { color: #f87171; }
 
-        .empty { text-align: center; color: #1e3060; padding: 40px; font-size: 14px; }
+        .link-card { background: #100822; border: 1px solid #1e0840; border-radius: 8px; padding: 14px 18px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+        .link-discord { font-size: 13px; color: #7c3aed; }
+        .link-gamertag { font-size: 14px; font-weight: 700; color: #fff; }
+        .link-date { font-size: 11px; color: #2a4070; }
 
-        .img-preview { margin-top: 8px; max-width: 100%; max-height: 120px; border-radius: 6px; display: none; border: 1px solid #1e0840; }
-
-        .info-note { background: rgba(29,78,216,0.08); border: 1px solid #4c1d95; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #8b5cf6; line-height: 1.6; margin-top: 8px; }
-        .info-note strong { color: #7aa0d4; }
-
-        @media (max-width: 700px) {
+        @media(max-width:768px) {
+            .topbar { padding: 16px 20px; flex-wrap: wrap; gap: 10px; }
             .content { padding: 24px 20px 100px; }
-            .topbar { padding: 14px 20px; }
-            .topbar-left p { display: none; }
-            .grid-3, .grid-2 { grid-template-columns: 1fr; }
-            .statusbar { padding: 14px 20px; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -101,139 +114,36 @@
 
 <div class="topbar">
     <div class="topbar-left">
-        <h1>Shop Admin</h1>
-        <p>Manage store items, payment settings, store credits, and purchase logs.</p>
+        <h1><span>SOLARIX</span> Admin</h1>
+        <p>Manage store, kits, game servers, and gems</p>
     </div>
     <div class="topbar-right">
-        <a href="/" class="btn btn-outline">← Back to Site</a>
-        <a href="/admin-logout" class="btn btn-danger">Logout</a>
+        <a href="/" class="btn btn-outline">← Site</a>
+        <a href="/admin-logout" class="btn btn-ghost">Logout</a>
     </div>
 </div>
 
 <div class="content">
 
-    <!-- ── Discord Settings ── -->
+    <!-- ── Store Items ── -->
     <div class="section">
         <div class="section-head">
             <div>
-                <h2>Discord Settings</h2>
-                <p>Required for purchase logs and automatic role assignment.</p>
+                <h2>🛒 Store Items</h2>
+                <p>Add, edit, and remove items from the Solarix store. Changes are saved when you click Save All.</p>
             </div>
             <div class="section-head-actions">
-                <button class="btn btn-ghost btn-sm" onclick="testDiscord()">🔔 Send Test</button>
-                <button class="btn btn-blue btn-sm" onclick="saveSettings()">Save Settings</button>
-            </div>
-        </div>
-        <div class="panel">
-            <div class="grid-3">
-                <div class="field">
-                    <label>Bot Token</label>
-                    <input type="password" id="setting-bot-token" placeholder="Paste bot token" autocomplete="off">
-                </div>
-                <div class="field">
-                    <label>Server (Guild) ID</label>
-                    <input type="text" id="setting-guild-id" placeholder="1234567890123456789" autocomplete="off">
-                    <span class="hint">Right-click server → Copy Server ID</span>
-                </div>
-                <div class="field">
-                    <label>Log Channel ID</label>
-                    <input type="text" id="setting-channel-id" placeholder="1234567890123456789" autocomplete="off">
-                    <span class="hint">Channel where purchase logs are sent</span>
-                </div>
-            </div>
-            <p style="font-size:12px;color:#3b1464;margin-top:4px;">Bot needs <strong style="color:#7c3aed">Send Messages</strong> + <strong style="color:#7c3aed">Manage Roles</strong> permissions.</p>
-            <div style="margin-top:12px;"><span id="settings-status" style="font-size:13px;color:#5b21b6;"></span></div>
-        </div>
-    </div>
-
-    <!-- ── Payment Settings ── -->
-    <div class="section">
-        <div class="section-head">
-            <div>
-                <h2>💳 Payment Settings</h2>
-                <p>Global payment defaults. Stripe charges automatically from each item's price — no setup per item needed.</p>
-            </div>
-            <div class="section-head-actions">
-                <button class="btn btn-blue btn-sm" onclick="saveSettings()">Save Settings</button>
-            </div>
-        </div>
-        <div class="panel">
-            <div class="grid-2">
-                <div class="field">
-                    <label>Stripe <span class="badge-auto">AUTO</span></label>
-                    <input type="text" id="setting-stripe-info" value="Configured via STRIPE_SECRET_KEY env variable" disabled style="color:#7c3aed;cursor:default;">
-                    <span class="hint">Stripe card button appears on every item automatically. No Price ID needed per item — it charges the item's price directly.</span>
-                </div>
-                <div class="field">
-                    <label>Global PayPal Link <span class="badge-paypal">PAYPAL</span></label>
-                    <input type="url" id="setting-paypal-link" placeholder="https://paypal.me/yourname" autocomplete="off">
-                    <span class="hint">Used for all items unless an item has its own PayPal link set below.</span>
-                </div>
-            </div>
-            <div class="info-note">
-                💡 <strong>How Stripe works:</strong> As long as <code>STRIPE_SECRET_KEY</code> is set in your Railway environment, the Stripe card button appears on every item and charges the correct price automatically — no configuration needed here.<br><br>
-                💡 <strong>Optional per-item Price ID:</strong> If you want to override and use a specific Stripe product, paste a <code>price_xxx</code> ID into the item's Stripe field below. Leave it blank to use auto-pricing.
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Store Credits ── -->
-    <div class="section">
-        <div class="section-head">
-            <div>
-                <h2>💰 Store Credits</h2>
-                <p>Give store credit to players by Discord User ID. They can use credits instead of paying at checkout.</p>
-            </div>
-            <div class="section-head-actions">
-                <button class="btn btn-ghost btn-sm" onclick="loadCredits()">↻ Refresh</button>
-            </div>
-        </div>
-
-        <div class="panel" style="margin-bottom:16px;">
-            <div class="grid-3">
-                <div class="field">
-                    <label>Discord User ID <span class="badge-credit">REQUIRED</span></label>
-                    <input type="text" id="credit-discord-id" placeholder="123456789012345678" autocomplete="off">
-                    <span class="hint">Right-click user in Discord → Copy User ID</span>
-                </div>
-                <div class="field">
-                    <label>Amount (£) <span class="badge-credit">use negative to deduct</span></label>
-                    <input type="number" id="credit-amount" placeholder="5.00" step="0.01" min="-999" max="999">
-                </div>
-                <div class="field">
-                    <label>Reason (optional)</label>
-                    <input type="text" id="credit-reason" placeholder="e.g. Competition prize">
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;">
-                <button class="btn btn-green" onclick="giveCredit()">💰 Give / Adjust Credits</button>
-                <span id="credit-status" style="font-size:13px;color:#5b21b6;"></span>
-            </div>
-        </div>
-
-        <div id="credits-list"><div class="empty">Loading credits…</div></div>
-    </div>
-
-    <!-- ── Product Editor ── -->
-    <div class="section">
-        <div class="section-head">
-            <div>
-                <h2>Product Editor</h2>
-                <p>Create or update store items. Stripe card payment works automatically on every item.</p>
-            </div>
-            <div class="section-head-actions">
-                <span style="font-size:12px;color:#2a4070;align-self:center;" id="item-count"></span>
-                <button class="btn btn-blue btn-sm" onclick="saveAll()">Save Products</button>
+                <button class="btn btn-blue btn-sm" onclick="saveAll()">💾 Save Items</button>
             </div>
         </div>
 
         <!-- Add new item -->
         <div class="add-panel">
-            <h3>+ New Product</h3>
+            <h3>+ Add Item</h3>
             <div class="grid-3">
                 <div class="field">
-                    <label>Product Name</label>
-                    <input type="text" id="new-name" placeholder="e.g. VIP Pack">
+                    <label>Item Name</label>
+                    <input type="text" id="new-name" placeholder="e.g. VIP">
                 </div>
                 <div class="field">
                     <label>Price</label>
@@ -241,12 +151,7 @@
                 </div>
                 <div class="field">
                     <label>Category</label>
-                    <select id="new-category">
-                        <option value="Ranks">Ranks</option>
-                        <option value="Kits">Kits</option>
-                        <option value="Extras">Extras</option>
-                        <option value="General">General</option>
-                    </select>
+                    <input type="text" id="new-category" placeholder="e.g. Ranks, Kits, Bundles" value="General">
                 </div>
             </div>
             <div class="grid-2">
@@ -265,25 +170,24 @@
                 <div class="field">
                     <label>Stripe Price ID <span class="badge-stripe">OPTIONAL</span></label>
                     <input type="text" id="new-stripe-link" placeholder="price_1abc... or leave blank">
-                    <span class="hint">Leave blank — Stripe charges automatically. Only fill in if you want a specific Stripe product.</span>
+                    <span class="hint">Stripe Price ID from your Stripe dashboard.</span>
                 </div>
                 <div class="field">
                     <label>PayPal Link <span class="badge-paypal">OPTIONAL</span></label>
                     <input type="url" id="new-paypal-link" placeholder="https://paypal.me/...">
-                    <span class="hint">Leave blank to use the global PayPal link set above.</span>
                 </div>
             </div>
             <div class="grid-1">
                 <div class="field">
-                    <label>Zip File URL (optional — for digital downloads)</label>
-                    <input type="url" id="new-zip-url" placeholder="https://drive.google.com/... or Dropbox link">
-                    <span class="hint">Customers get a download button after paying. Paste any direct download link.</span>
+                    <label>Zip File URL (optional — digital download)</label>
+                    <input type="url" id="new-zip-url" placeholder="https://drive.google.com/...">
+                    <span class="hint">Customers get a download button after paying.</span>
                 </div>
             </div>
             <div class="grid-1">
                 <div class="field">
-                    <label>Description (one feature per line · use [img:URL] to embed an image)</label>
-                    <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit&#10;[img:https://i.imgur.com/example.png]"></textarea>
+                    <label>Description (one feature per line)</label>
+                    <textarea id="new-desc" placeholder="Priority Queue&#10;VIP Tag&#10;Starter Kit"></textarea>
                 </div>
             </div>
             <button class="btn btn-blue" onclick="addItem()">+ Add Product</button>
@@ -292,12 +196,12 @@
         <div id="items-list"></div>
     </div>
 
-    <!-- ── Bypass Log ── -->
+    <!-- ── Purchase Log ── -->
     <div class="section">
         <div class="section-head">
             <div>
-                <h2>Purchase Log</h2>
-                <p>Every admin bypass, Stripe payment, credit purchase, and click is recorded here.</p>
+                <h2>📋 Purchase Log</h2>
+                <p>Every purchase, bypass, kit claim, and gem spend is recorded here.</p>
             </div>
             <div class="section-head-actions">
                 <span style="font-size:12px;color:#2a4070;align-self:center;" id="purchase-count"></span>
@@ -306,22 +210,146 @@
         <div id="purchases-list"></div>
     </div>
 
+    <!-- ── Admin Kit Give ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>🎒 Give Kit (Admin)</h2>
+                <p>Manually send a kit to a player by gamertag or Discord ID. The player must be linked and online on the server.</p>
+            </div>
+        </div>
+        <div class="add-panel">
+            <div class="grid-3">
+                <div class="field">
+                    <label>Player — Gamertag or Discord ID</label>
+                    <input type="text" id="give-player" placeholder="Gamertag or Discord ID">
+                    <span class="hint">If they're linked on the site, Discord ID will auto-resolve their gamertag.</span>
+                </div>
+                <div class="field">
+                    <label>Kit Name</label>
+                    <select id="give-kit-select"><option value="">— Select kit —</option></select>
+                </div>
+                <div class="field">
+                    <label>Game Server</label>
+                    <select id="give-server-select"><option value="">— Select server —</option></select>
+                </div>
+            </div>
+            <button class="btn btn-green" onclick="adminGiveKit()">⚡ Give Kit Now</button>
+            <span id="give-kit-status" style="font-size:13px;margin-left:12px;font-weight:600;"></span>
+        </div>
+        <div style="margin-top:12px;">
+            <div class="section-head" style="margin-bottom:12px;padding-bottom:8px;">
+                <div><h2 style="font-size:16px;">🔗 Linked Players</h2></div>
+                <div class="section-head-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="loadLinks()">🔄 Refresh</button>
+                </div>
+            </div>
+            <div id="links-list"></div>
+        </div>
+    </div>
+
+    <!-- ── Gems (Store Credits) ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>💎 Gems</h2>
+                <p>Give or deduct gems (in-game currency) from players. Players spend gems in the store.</p>
+            </div>
+        </div>
+        <div class="add-panel">
+            <h3>Give / Deduct Gems</h3>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Discord ID</label>
+                    <input type="text" id="credit-discord-id" placeholder="1234567890123456789">
+                    <span class="hint">The player's Discord User ID. Right-click username → Copy User ID.</span>
+                </div>
+                <div class="field">
+                    <label>Gems Amount</label>
+                    <input type="number" id="credit-amount" placeholder="e.g. 500 or -100">
+                    <span class="hint">Positive = add gems. Negative = deduct gems.</span>
+                </div>
+                <div class="field">
+                    <label>Reason (optional)</label>
+                    <input type="text" id="credit-reason" placeholder="e.g. Tournament win">
+                </div>
+            </div>
+            <button class="btn btn-green" onclick="giveCredit()">💎 Update Gems</button>
+            <span id="credit-status" style="font-size:13px;margin-left:12px;font-weight:600;"></span>
+        </div>
+        <div id="credits-list"></div>
+    </div>
+
+    <!-- ── Bypass / Manual Purchase ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>⚡ Bypass Payment</h2>
+                <p>Manually record a purchase and assign a Discord role — no payment taken.</p>
+            </div>
+        </div>
+        <div class="add-panel">
+            <div class="grid-3">
+                <div class="field">
+                    <label>Item</label>
+                    <select id="bypass-item-select" onchange="populateBypass(this.value)"><option value="">— Select item —</option></select>
+                </div>
+                <div class="field">
+                    <label>Discord User ID (for role)</label>
+                    <input type="text" id="bypass-discord-id" placeholder="1234567890123456789">
+                </div>
+                <div class="field">
+                    <label>Note (optional)</label>
+                    <input type="text" id="bypass-note" placeholder="e.g. comp for downtime">
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="bypassPayment()">⚡ Give Item</button>
+            <span id="bypass-status" style="font-size:13px;margin-left:12px;font-weight:600;"></span>
+        </div>
+    </div>
+
     <!-- ── Game Servers ── -->
     <div class="section">
         <div class="section-head">
             <div>
                 <h2>🖥️ Game Servers</h2>
-                <p>Servers are managed via <strong>/game-server add</strong> in your Discord bot. They appear here automatically once configured.</p>
+                <p>Add game servers here. Each server needs a name, RCON host, port, and password. Servers appear in the Servers popup on the homepage and in the Kits config.</p>
             </div>
             <div class="section-head-actions">
-                <button class="btn btn-blue btn-sm" onclick="loadServers()">🔄 Refresh</button>
+                <button class="btn btn-blue btn-sm" onclick="saveServers()">💾 Save Servers</button>
+                <button class="btn btn-ghost btn-sm" onclick="loadServers()">🔄 Refresh</button>
             </div>
         </div>
-        <div style="background:#060d1a;border:1px solid #2d1060;border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:#5b21b6;line-height:1.7;">
-            💡 To add a server: use <code style="color:#a855f7;background:#130929;padding:1px 6px;border-radius:4px;">/game-server add</code> in Discord, then click <strong>Refresh</strong> above.
-            The server will appear in the Kits Config dropdown automatically.
+        <div class="add-panel">
+            <h3>+ Add Server</h3>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Server Name</label>
+                    <input type="text" id="new-server-name" placeholder="e.g. Solarix EU 5X">
+                    <span class="hint">Displayed on the Servers popup and kit selector.</span>
+                </div>
+                <div class="field">
+                    <label>RCON Host (IP)</label>
+                    <input type="text" id="new-server-host" placeholder="123.456.789.0">
+                    <span class="hint">Your server's IP address.</span>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>RCON Port</label>
+                    <input type="number" id="new-server-port" placeholder="28016" value="28016">
+                    <span class="hint">Default Rust Console RCON port is 28016.</span>
+                </div>
+                <div class="field">
+                    <label>RCON Password</label>
+                    <input type="password" id="new-server-pass" placeholder="Your RCON password">
+                    <span class="hint">Found in your server host dashboard or server config.</span>
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="addServer()">+ Add Server</button>
         </div>
         <div id="servers-list"></div>
+        <span id="servers-status" style="font-size:13px;color:#5b21b6;display:block;margin-top:8px;"></span>
     </div>
 
     <!-- ── Kits Config ── -->
@@ -329,25 +357,24 @@
         <div class="section-head">
             <div>
                 <h2>🎁 Kits Config</h2>
-                <p>Configure kits for the Kits page. Players must have the required Discord role to see and claim each kit.</p>
+                <p>Configure kits shown on the Kits page. Kit name must match exactly the in-game kit name.</p>
             </div>
             <div class="section-head-actions">
                 <span style="font-size:12px;color:#2a4070;align-self:center;" id="kits-count"></span>
                 <button class="btn btn-blue btn-sm" onclick="saveKits()">💾 Save Kits</button>
             </div>
         </div>
-
         <div class="add-panel">
             <h3>+ Add Kit</h3>
             <div class="grid-3">
                 <div class="field">
                     <label>Kit Name</label>
-                    <input type="text" id="new-kit-name" placeholder="e.g. VIP Kit (must match in-game kit name exactly)">
+                    <input type="text" id="new-kit-name" placeholder="e.g. starter (must match in-game)">
                 </div>
                 <div class="field">
-                    <label>Required Role ID <span class="badge-credit">Role required to claim</span></label>
+                    <label>Required Role ID <span class="badge-credit">optional</span></label>
                     <input type="text" id="new-kit-role" placeholder="1234567890123456789">
-                    <span class="hint">Right-click the role in Discord → Copy Role ID. Leave blank for everyone.</span>
+                    <span class="hint">Leave blank for everyone to access.</span>
                 </div>
                 <div class="field">
                     <label>Cooldown (minutes)</label>
@@ -366,9 +393,48 @@
             </div>
             <button class="btn btn-blue" onclick="addKit()">+ Add Kit</button>
         </div>
-
         <div id="kits-admin-list"></div>
         <span id="kits-status" style="font-size:13px;color:#5b21b6;display:block;margin-top:8px;"></span>
+    </div>
+
+    <!-- ── Settings ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>⚙️ Settings</h2>
+                <p>Discord bot token, channel for logs, guild ID for role assignment.</p>
+            </div>
+            <div class="section-head-actions">
+                <button class="btn btn-blue btn-sm" onclick="saveSettings()">💾 Save Settings</button>
+                <button class="btn btn-ghost btn-sm" onclick="testDiscord()">🧪 Test Discord Log</button>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="grid-2">
+                <div class="field">
+                    <label>Discord Log Channel ID</label>
+                    <input type="text" id="setting-channel-id" placeholder="1234567890123456789">
+                    <span class="hint">Right-click channel → Copy Channel ID</span>
+                </div>
+                <div class="field">
+                    <label>Discord Bot Token</label>
+                    <input type="password" id="setting-bot-token" placeholder="Bot token (leave blank to keep current)">
+                    <span class="hint">From Discord Developer Portal → Bot tab</span>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Discord Guild (Server) ID</label>
+                    <input type="text" id="setting-guild-id" placeholder="1234567890123456789">
+                    <span class="hint">Right-click server name → Copy Server ID</span>
+                </div>
+                <div class="field">
+                    <label>Default PayPal Link</label>
+                    <input type="url" id="setting-paypal-link" placeholder="https://paypal.me/...">
+                </div>
+            </div>
+            <span id="settings-status" style="font-size:13px;font-weight:600;"></span>
+        </div>
     </div>
 
 </div>
@@ -380,130 +446,130 @@
 </div>
 
 <script>
-const CATEGORIES = ["Ranks", "Kits", "Extras", "General"];
-let items = [];
-
 function esc(str) {
     return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-function previewImg(previewId, url) {
-    const img = document.getElementById(previewId);
-    if (!img) return;
-    if (url && url.startsWith("http")) {
-        img.src = url;
-        img.style.display = "block";
-        img.onerror = () => img.style.display = "none";
-    } else {
-        img.style.display = "none";
-    }
+function previewImg(imgId, url) {
+    const el = document.getElementById(imgId);
+    if (!el) return;
+    el.style.display = url ? "block" : "none";
+    el.src = url || "";
 }
 
-function catOptions(selected) {
-    return CATEGORIES.map(c => `<option value="${c}" ${c === selected ? "selected" : ""}>${c}</option>`).join("");
-}
+/* ── Items ── */
+let items = [];
 
 async function loadItems() {
     const res = await fetch("/api/store-items");
+    if (!res.ok) return;
     items = await res.json();
     renderItems();
 }
 
 function renderItems() {
-    const list = document.getElementById("items-list");
-    document.getElementById("item-count").textContent = items.length + " product" + (items.length !== 1 ? "s" : "");
-    if (items.length === 0) { list.innerHTML = '<div class="empty">No products yet — add one above.</div>'; return; }
-    list.innerHTML = items.map((item, i) => `
-        <div class="item-card" id="card-${i}">
-            <div class="item-card-header">
-                <span class="item-label">Product ${i + 1} — ${esc(item.name || "Untitled")}</span>
-                <button class="btn btn-danger btn-sm" onclick="deleteItem(${i})">🗑 Delete</button>
+    const container = document.getElementById("items-list");
+    if (!items.length) { container.innerHTML = '<div class="empty">No store items yet. Add one above.</div>'; return; }
+    container.innerHTML = items.map((item, i) => `
+        <div class="item-card">
+            <div class="item-header">
+                <div>
+                    <div class="item-title">${esc(item.name)}</div>
+                    <div class="item-price">${esc(item.price)} · <span style="color:#5b21b6;font-size:13px;">${esc(item.category||"General")}</span></div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-danger btn-sm" onclick="removeItem(${i})">✕ Remove</button>
+                </div>
             </div>
             <div class="grid-3">
                 <div class="field">
-                    <label>Product Name</label>
-                    <input type="text" value="${esc(item.name)}" oninput="items[${i}].name = this.value" placeholder="Item name">
+                    <label>Name</label>
+                    <input type="text" value="${esc(item.name)}" oninput="items[${i}].name=this.value">
                 </div>
                 <div class="field">
                     <label>Price</label>
-                    <input type="text" value="${esc(item.price)}" oninput="items[${i}].price = this.value" placeholder="£0.00">
+                    <input type="text" value="${esc(item.price)}" oninput="items[${i}].price=this.value">
                 </div>
                 <div class="field">
                     <label>Category</label>
-                    <select onchange="items[${i}].category = this.value">${catOptions(item.category || "General")}</select>
+                    <input type="text" value="${esc(item.category||'General')}" oninput="items[${i}].category=this.value">
                 </div>
             </div>
             <div class="grid-2">
                 <div class="field">
                     <label>Discord Role ID</label>
-                    <input type="text" value="${esc(item.roleId || '')}" oninput="items[${i}].roleId = this.value" placeholder="1234567890123456789">
-                    <span class="hint">Right-click role → Copy Role ID</span>
+                    <input type="text" value="${esc(item.roleId||'')}" oninput="items[${i}].roleId=this.value" placeholder="Role assigned on purchase">
                 </div>
                 <div class="field">
-                    <label>Item Image URL (optional)</label>
-                    <input type="url" value="${esc(item.imageUrl || '')}" oninput="items[${i}].imageUrl = this.value; previewImg('img-prev-${i}', this.value)" placeholder="https://i.imgur.com/...">
-                    <img id="img-prev-${i}" class="img-preview" src="${esc(item.imageUrl || '')}" style="${item.imageUrl ? 'display:block' : 'display:none'}">
+                    <label>Image URL</label>
+                    <input type="url" value="${esc(item.imageUrl||'')}" oninput="items[${i}].imageUrl=this.value;previewImg('img-prev-${i}',this.value)" placeholder="https://...">
+                    <img id="img-prev-${i}" class="img-preview" src="${esc(item.imageUrl||'')}" style="display:${item.imageUrl?'block':'none'}">
                 </div>
             </div>
             <div class="grid-2">
                 <div class="field">
                     <label>Stripe Price ID <span class="badge-stripe">OPTIONAL</span></label>
-                    <input type="text" value="${esc(item.stripeLink || '')}" oninput="items[${i}].stripeLink = this.value" placeholder="price_1abc... or leave blank">
-                    <span class="hint">Leave blank — auto-charges this item's price. Only fill if using a specific Stripe product.</span>
+                    <input type="text" value="${esc(item.stripeLink||'')}" oninput="items[${i}].stripeLink=this.value" placeholder="price_1abc...">
                 </div>
                 <div class="field">
                     <label>PayPal Link <span class="badge-paypal">OPTIONAL</span></label>
-                    <input type="url" value="${esc(item.paypalLink || '')}" oninput="items[${i}].paypalLink = this.value" placeholder="Leave blank to use global PayPal link">
-                    <span class="hint">Overrides the global PayPal link for this item only.</span>
+                    <input type="url" value="${esc(item.paypalLink||'')}" oninput="items[${i}].paypalLink=this.value" placeholder="https://paypal.me/...">
                 </div>
             </div>
             <div class="grid-1">
                 <div class="field">
-                    <label>Zip File URL <span class="badge-auto">DOWNLOAD</span></label>
-                    <input type="url" value="${esc(item.zipUrl || '')}" oninput="items[${i}].zipUrl = this.value" placeholder="https://drive.google.com/... or Dropbox link">
-                    <span class="hint">Customers get a download button on the success page after paying.</span>
+                    <label>Zip URL (digital download)</label>
+                    <input type="url" value="${esc(item.zipUrl||'')}" oninput="items[${i}].zipUrl=this.value" placeholder="https://drive.google.com/...">
                 </div>
             </div>
             <div class="grid-1">
                 <div class="field">
-                    <label>Description (one feature per line · use [img:URL] to embed an image)</label>
-                    <textarea oninput="items[${i}].description = this.value" placeholder="Feature 1&#10;Feature 2&#10;[img:https://i.imgur.com/example.png]">${esc(item.description || '')}</textarea>
+                    <label>Description</label>
+                    <textarea oninput="items[${i}].description=this.value">${esc(item.description||'')}</textarea>
                 </div>
             </div>
-        </div>
-    `).join("");
+        </div>`).join("");
+    // Populate bypass item select
+    const sel = document.getElementById("bypass-item-select");
+    if (sel) {
+        sel.innerHTML = '<option value="">— Select item —</option>' + items.map(it => `<option value="${it.id}">${esc(it.name)} — ${esc(it.price)}</option>`).join("");
+    }
+}
+
+function removeItem(i) {
+    if (!confirm(`Remove "${items[i].name}" from the store?`)) return;
+    items.splice(i, 1);
+    renderItems();
 }
 
 function addItem() {
     const name = document.getElementById("new-name").value.trim();
     const price = document.getElementById("new-price").value.trim();
-    const description = document.getElementById("new-desc").value.trim();
-    const stripeLink = document.getElementById("new-stripe-link").value.trim();
-    const paypalLink = document.getElementById("new-paypal-link").value.trim();
-    const zipUrl = document.getElementById("new-zip-url").value.trim();
-    const roleId = document.getElementById("new-role-id").value.trim();
-    const category = document.getElementById("new-category").value;
-    const imageUrl = document.getElementById("new-image-url").value.trim();
-    if (!name || !price) { alert("Please enter a name and price."); return; }
-    items.push({ id: null, name, price, description, imageUrl, buyLink: "", stripeLink, paypalLink, zipUrl, roleId, category });
+    if (!name || !price) { alert("Name and price are required."); return; }
+    items.push({
+        name, price,
+        category: document.getElementById("new-category").value.trim() || "General",
+        roleId: document.getElementById("new-role-id").value.trim(),
+        imageUrl: document.getElementById("new-image-url").value.trim(),
+        stripeLink: document.getElementById("new-stripe-link").value.trim(),
+        paypalLink: document.getElementById("new-paypal-link").value.trim(),
+        zipUrl: document.getElementById("new-zip-url").value.trim(),
+        description: document.getElementById("new-desc").value.trim(),
+        buyLink: ""
+    });
     renderItems();
-    ["new-name","new-price","new-desc","new-stripe-link","new-paypal-link","new-zip-url","new-role-id","new-image-url"].forEach(id => document.getElementById(id).value = "");
+    ["new-name","new-price","new-category","new-role-id","new-image-url","new-stripe-link","new-paypal-link","new-zip-url","new-desc"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = id === "new-category" ? "General" : "";
+    });
     document.getElementById("new-img-preview").style.display = "none";
-    setStatus("", "");
-}
-
-function deleteItem(index) {
-    if (!confirm(`Delete "${items[index].name}"?`)) return;
-    items.splice(index, 1);
-    renderItems();
-    setStatus("", "");
 }
 
 async function saveAll() {
-    setStatus("Saving...", "");
+    setStatus("Saving…", "");
     try {
         const res = await fetch("/api/store-items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(items) });
-        setStatus(res.ok ? "✓ Saved successfully" : "✗ Save failed. Try again.", res.ok ? "saved" : "error");
+        setStatus(res.ok ? "✓ Saved!" : "✗ Save failed.", res.ok ? "saved" : "error");
     } catch { setStatus("✗ Network error.", "error"); }
     setTimeout(() => setStatus("", ""), 3000);
 }
@@ -514,7 +580,31 @@ function setStatus(msg, cls) {
     el.className = "status-msg " + cls;
 }
 
-/* ── Credits ── */
+/* ── Purchases ── */
+async function loadPurchases() {
+    const res = await fetch("/api/purchases");
+    if (!res.ok) return;
+    const purchases = await res.json();
+    const container = document.getElementById("purchases-list");
+    const count = document.getElementById("purchase-count");
+    count.textContent = purchases.length + " entr" + (purchases.length !== 1 ? "ies" : "y");
+    if (!purchases.length) { container.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
+    container.innerHTML = purchases.map(p => {
+        const date = new Date(p.timestamp).toLocaleString();
+        const typeLabel = p.type === "credit" ? "💎 Gems" : p.type === "bypass" ? "⚡ Bypass" : p.type === "stripe" ? "✅ Stripe" : "🛒 Other";
+        return `<div class="purchase-row">
+            <div>
+                <div class="item-name">${esc(p.itemName)} <span style="font-size:11px;color:#2a4070;font-weight:400;">${typeLabel}</span></div>
+                <div class="item-date">${date}</div>
+                ${p.discordUserId ? `<div class="item-discord">👤 ${esc(p.discordUserId)}</div>` : ""}
+                <div class="item-note">${esc(p.note || "")}</div>
+            </div>
+            <div class="item-price-tag">${esc(p.itemPrice || "")}</div>
+        </div>`;
+    }).join("");
+}
+
+/* ── Gems ── */
 async function giveCredit() {
     const discordId = document.getElementById("credit-discord-id").value.trim();
     const amount = document.getElementById("credit-amount").value.trim();
@@ -523,14 +613,13 @@ async function giveCredit() {
     if (!discordId || !amount) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter Discord ID and amount."; return; }
     statusEl.style.color = "#5b21b6"; statusEl.textContent = "Processing…";
     const res = await fetch("/api/admin/give-credit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ discordId, amount: parseFloat(amount), reason })
     });
     const data = await res.json();
     if (res.ok) {
         statusEl.style.color = "#4ade80";
-        statusEl.textContent = `✓ Done! New balance: £${data.newBalance.toFixed(2)}`;
+        statusEl.textContent = `✓ Done! New balance: ${data.newBalance.toFixed(0)} gems`;
         document.getElementById("credit-discord-id").value = "";
         document.getElementById("credit-amount").value = "";
         document.getElementById("credit-reason").value = "";
@@ -547,85 +636,45 @@ async function loadCredits() {
     if (!res.ok) return;
     const credits = await res.json();
     const container = document.getElementById("credits-list");
-    if (!credits.length) { container.innerHTML = '<div class="empty">No store credits issued yet.</div>'; return; }
+    if (!credits.length) { container.innerHTML = '<div class="empty">No gems issued yet.</div>'; return; }
     container.innerHTML = credits.map(c => {
         const updated = new Date(c.updated_at).toLocaleString();
         return `<div class="credit-row">
             <div>
-                <div class="cr-id">👤 Discord ID: ${esc(c.discord_id)}</div>
-                <div class="cr-updated">Last updated: ${updated}</div>
+                <div class="cr-id">👤 ${esc(c.discord_id)}</div>
+                <div class="cr-updated">Updated: ${updated}</div>
             </div>
-            <div class="cr-balance">£${parseFloat(c.balance).toFixed(2)}</div>
+            <div class="cr-balance">💎 ${parseFloat(c.balance).toFixed(0)}</div>
         </div>`;
     }).join("");
 }
 
-/* ── Settings ── */
-async function loadSettings() {
-    const res = await fetch("/api/settings");
-    if (!res.ok) return;
-    const s = await res.json();
-    document.getElementById("setting-channel-id").value = s.discordChannelId || "";
-    document.getElementById("setting-bot-token").value = s.discordBotToken || "";
-    document.getElementById("setting-guild-id").value = s.discordGuildId || "";
-    document.getElementById("setting-paypal-link").value = s.paypalDefaultLink || "";
+/* ── Bypass ── */
+function populateBypass(itemId) {
+    const item = items.find(i => String(i.id) === String(itemId));
+    if (!item) return;
 }
 
-async function saveSettings() {
-    const discordChannelId = document.getElementById("setting-channel-id").value.trim();
-    const discordBotToken = document.getElementById("setting-bot-token").value.trim();
-    const discordGuildId = document.getElementById("setting-guild-id").value.trim();
-    const paypalDefaultLink = document.getElementById("setting-paypal-link").value.trim();
-    const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Saving...";
-    const res = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ discordChannelId, discordBotToken, discordGuildId, paypalDefaultLink }) });
+async function bypassPayment() {
+    const itemId = document.getElementById("bypass-item-select").value;
+    const discordId = document.getElementById("bypass-discord-id").value.trim();
+    const note = document.getElementById("bypass-note").value.trim();
+    const statusEl = document.getElementById("bypass-status");
+    if (!itemId) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Select an item."; return; }
+    const item = items.find(i => String(i.id) === String(itemId));
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Processing…";
+    const res = await fetch("/api/bypass-payment", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: item?.id, itemName: item?.name, itemPrice: item?.price, roleId: item?.roleId, discordUserId: discordId, note })
+    });
+    const data = await res.json();
     statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
-    statusEl.textContent = res.ok ? "✓ Saved!" : "✗ Failed to save.";
-    setTimeout(() => statusEl.textContent = "", 3000);
-}
-
-async function testDiscord() {
-    const statusEl = document.getElementById("settings-status");
-    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Sending test...";
-    const res = await fetch("/api/bypass-payment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 }) });
-    statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
-    statusEl.textContent = res.ok ? "✓ Test sent! Check your Discord." : "✗ Failed — check bot token and channel ID.";
+    statusEl.textContent = res.ok ? `✓ Done! ${data.roleAssigned ? "Role assigned." : ""}` : `✗ ${data.error}`;
     if (res.ok) loadPurchases();
     setTimeout(() => statusEl.textContent = "", 4000);
 }
 
-/* ── Purchases ── */
-async function loadPurchases() {
-    const res = await fetch("/api/purchases");
-    if (!res.ok) return;
-    const purchases = await res.json();
-    const container = document.getElementById("purchases-list");
-    const count = document.getElementById("purchase-count");
-    count.textContent = purchases.length + " entr" + (purchases.length !== 1 ? "ies" : "y");
-    if (!purchases.length) { container.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
-    container.innerHTML = purchases.map(p => {
-        const date = new Date(p.timestamp).toLocaleString();
-        const typeLabel = p.type === "credit" ? "💰 Credit" : p.type === "bypass" ? "⚡ Bypass" : p.type === "stripe" ? "✅ Stripe Paid" : p.type === "click-stripe" ? "💳 Stripe Click" : p.type === "click-paypal" ? "🟡 PayPal" : "🛒 Click";
-        return `<div class="purchase-row">
-            <div>
-                <div class="item-name">${p.itemName} <span style="font-size:11px;color:#2a4070;font-weight:400;">${typeLabel}</span></div>
-                <div class="item-date">${date}</div>
-                ${p.discordUserId ? `<div class="item-discord">👤 Discord ID: ${p.discordUserId}</div>` : ""}
-                <div class="item-note">${p.note || ""}</div>
-            </div>
-            <div class="item-price">${p.itemPrice || ""}</div>
-        </div>`;
-    }).join("");
-}
-
-loadItems();
-loadPurchases();
-loadSettings();
-loadCredits();
-loadServers();
-loadKits();
-
-/* ── Game Servers (read-only from bot SQLite) ── */
+/* ── Game Servers ── */
 let servers = [];
 
 async function loadServers() {
@@ -633,84 +682,158 @@ async function loadServers() {
     if (!res.ok) return;
     servers = await res.json();
     renderServers();
-    refreshServerDropdown();
 }
 
 function renderServers() {
     const list = document.getElementById("servers-list");
     if (!servers.length) {
-        list.innerHTML = '<div class="empty">No servers found. Use <strong>/game-server add</strong> in Discord to add one, then click Refresh.</div>';
-        return;
+        list.innerHTML = '<div class="empty">No servers yet. Add one above.</div>';
+    } else {
+        list.innerHTML = servers.map((s, i) => `
+            <div class="server-row">
+                <div class="server-info">
+                    <div class="server-name">🖥️ ${esc(s.name)}</div>
+                    <div class="server-details">${esc(s.rcon_host)}:${s.rcon_port} · ID: ${s.id}</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" value="${esc(s.name)}" style="width:160px;" oninput="servers[${i}].name=this.value" placeholder="Server Name">
+                    <input type="text" value="${esc(s.rcon_host)}" style="width:140px;" oninput="servers[${i}].rcon_host=this.value" placeholder="RCON Host">
+                    <input type="number" value="${s.rcon_port}" style="width:80px;" oninput="servers[${i}].rcon_port=parseInt(this.value)||28016" placeholder="Port">
+                    <input type="password" value="${esc(s.rcon_password||'')}" style="width:120px;" oninput="servers[${i}].rcon_password=this.value" placeholder="Password">
+                    <button class="btn btn-danger btn-sm" onclick="removeServer(${i})">✕</button>
+                </div>
+            </div>`).join("");
     }
-    list.innerHTML = servers.map(s => `
-        <div class="item-card" style="opacity:1">
-            <div class="item-card-header">
-                <span class="item-label">🖥️ ${esc(s.name)}${s.region ? ` <span style="font-size:11px;color:#2a4070;font-weight:400;margin-left:4px;">${esc(s.region)}</span>` : ""}</span>
-                <span style="font-size:11px;color:#1e3060;font-family:monospace;">ID: ${esc(s.id)}</span>
+    // Update kit server dropdowns
+    const updateDropdown = (selEl) => {
+        if (!selEl) return;
+        const cur = selEl.value;
+        selEl.innerHTML = '<option value="">— Select server —</option>' + servers.map(s => `<option value="${s.id}" ${String(s.id) === cur ? "selected" : ""}>${esc(s.name)}</option>`).join("");
+    };
+    updateDropdown(document.getElementById("new-kit-server"));
+    updateDropdown(document.getElementById("give-server-select"));
+    document.querySelectorAll(".kit-server-select").forEach(updateDropdown);
+}
+
+function addServer() {
+    const name = document.getElementById("new-server-name").value.trim();
+    const host = document.getElementById("new-server-host").value.trim();
+    const port = parseInt(document.getElementById("new-server-port").value) || 28016;
+    const pass = document.getElementById("new-server-pass").value.trim();
+    if (!name) { alert("Server name is required."); return; }
+    if (!host) { alert("RCON host (IP) is required."); return; }
+    servers.push({ name, rcon_host: host, rcon_port: port, rcon_password: pass });
+    renderServers();
+    ["new-server-name","new-server-host","new-server-pass"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("new-server-port").value = "28016";
+}
+
+function removeServer(i) {
+    if (!confirm(`Remove server "${servers[i].name}"?`)) return;
+    servers.splice(i, 1);
+    renderServers();
+}
+
+async function saveServers() {
+    const statusEl = document.getElementById("servers-status");
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Saving…";
+    try {
+        const res = await fetch("/api/admin/game-servers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(servers) });
+        if (res.ok) {
+            statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Servers saved!";
+            await loadServers();
+        } else {
+            const d = await res.json();
+            statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${d.error}`;
+        }
+    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    setTimeout(() => statusEl.textContent = "", 3000);
+}
+
+/* ── Admin Kit Give ── */
+let kitsAdminForGive = [];
+
+async function loadLinks() {
+    const res = await fetch("/api/admin/player-links");
+    if (!res.ok) return;
+    const links = await res.json();
+    const container = document.getElementById("links-list");
+    if (!links.length) { container.innerHTML = '<div class="empty">No players linked yet.</div>'; return; }
+    container.innerHTML = links.map(l => `
+        <div class="link-card">
+            <div>
+                <div class="link-discord">👤 Discord: ${esc(l.discord_id)}</div>
+                <div class="link-gamertag">🎮 Gamertag: <strong>${esc(l.gamertag)}</strong></div>
             </div>
-            <div style="font-size:13px;color:#2a4070;margin-top:4px;">
-                🔌 ${esc(s.rconHost)}:${s.rconPort || 28016}
-            </div>
+            <div class="link-date">${new Date(l.updated_at).toLocaleString()}</div>
         </div>`).join("");
 }
 
-function refreshServerDropdown() {
-    document.querySelectorAll(".kit-server-select").forEach(sel => {
-        const current = sel.dataset.current;
-        sel.innerHTML = '<option value="">— Select server —</option>' +
-            servers.map(s => `<option value="${s.id}" ${s.id === current ? "selected" : ""}>${esc(s.name)}</option>`).join("");
-        if (current) sel.value = current;
+async function adminGiveKit() {
+    const player = document.getElementById("give-player").value.trim();
+    const kitVal = document.getElementById("give-kit-select").value;
+    const serverId = document.getElementById("give-server-select").value;
+    const statusEl = document.getElementById("give-kit-status");
+    if (!player) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter gamertag or Discord ID."; return; }
+    if (!kitVal) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Select a kit."; return; }
+    if (!serverId) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Select a server."; return; }
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Sending kit…";
+    const res = await fetch("/api/admin/give-kit", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player, kitName: kitVal, serverId })
     });
-    const addSel = document.getElementById("new-kit-server");
-    if (addSel) {
-        const cur = addSel.value;
-        addSel.innerHTML = '<option value="">— Select server —</option>' +
-            servers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
-        if (cur) addSel.value = cur;
-    }
+    const data = await res.json();
+    statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
+    statusEl.textContent = res.ok ? `✓ Kit "${kitVal}" sent to ${esc(data.gamertag || player)}!` : `✗ ${data.error}`;
+    setTimeout(() => statusEl.textContent = "", 5000);
 }
 
-/* ── Kits Config ── */
+/* ── Kits ── */
 let kits = [];
 
 async function loadKits() {
     const res = await fetch("/api/admin/web-kits");
     if (!res.ok) return;
     kits = await res.json();
+    document.getElementById("kits-count").textContent = kits.length + " kit" + (kits.length !== 1 ? "s" : "");
     renderKitsAdmin();
+    // Also populate give-kit select
+    const giveSel = document.getElementById("give-kit-select");
+    giveSel.innerHTML = '<option value="">— Select kit —</option>' + kits.map(k => `<option value="${esc(k.name)}">${esc(k.name)}</option>`).join("");
 }
 
 function renderKitsAdmin() {
-    const list = document.getElementById("kits-admin-list");
-    const countEl = document.getElementById("kits-count");
-    countEl.textContent = kits.length + " kit" + (kits.length !== 1 ? "s" : "");
-    if (!kits.length) { list.innerHTML = '<div class="empty">No kits configured yet — add one above.</div>'; return; }
-    list.innerHTML = kits.map((k, i) => `
-        <div class="item-card">
-            <div class="item-card-header">
-                <span class="item-label">🎁 ${esc(k.name)}</span>
-                <button class="btn btn-danger btn-sm" onclick="deleteKit(${i})">🗑 Delete</button>
+    const container = document.getElementById("kits-admin-list");
+    if (!kits.length) { container.innerHTML = '<div class="empty">No kits configured yet. Add one above.</div>'; return; }
+    container.innerHTML = kits.map((k, i) => `
+        <div class="kit-admin-card">
+            <div class="kit-admin-header">
+                <div class="kit-admin-name">${esc(k.name)} <span style="font-size:11px;color:#${k.enabled?'34d399':'f87171'};font-weight:600;">${k.enabled ? "● Enabled" : "○ Disabled"}</span></div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm ${k.enabled ? 'btn-ghost' : 'btn-green'}" onclick="kits[${i}].enabled=!kits[${i}].enabled;renderKitsAdmin()">${k.enabled ? "Disable" : "Enable"}</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteKit(${i})">✕</button>
+                </div>
             </div>
             <div class="grid-3">
                 <div class="field">
-                    <label>Kit Name <span class="badge-auto">must match in-game</span></label>
+                    <label>Kit Name</label>
                     <input type="text" value="${esc(k.name)}" oninput="kits[${i}].name=this.value">
                 </div>
                 <div class="field">
-                    <label>Required Role ID <span class="badge-credit">Role</span></label>
-                    <input type="text" value="${esc(k.requiredRoleId||'')}" oninput="kits[${i}].requiredRoleId=this.value" placeholder="Leave blank = everyone">
+                    <label>Required Role ID</label>
+                    <input type="text" value="${esc(k.requiredRoleId||'')}" oninput="kits[${i}].requiredRoleId=this.value" placeholder="Leave blank for everyone">
                 </div>
                 <div class="field">
-                    <label>Cooldown (minutes)</label>
-                    <input type="number" value="${k.cooldownMinutes||60}" oninput="kits[${i}].cooldownMinutes=this.value" min="1">
+                    <label>Cooldown (min)</label>
+                    <input type="number" value="${k.cooldownMinutes||60}" oninput="kits[${i}].cooldownMinutes=parseInt(this.value)||60">
                 </div>
             </div>
             <div class="grid-2">
                 <div class="field">
                     <label>Game Server</label>
-                    <select class="kit-server-select" data-current="${esc(k.botServerId||'')}" onchange="kits[${i}].botServerId=this.value||''">
+                    <select class="kit-server-select" onchange="kits[${i}].serverId=this.value||null">
                         <option value="">— Select server —</option>
-                        ${servers.map(s => `<option value="${s.id}" ${(k.botServerId||'')===String(s.id)?"selected":""}>${esc(s.name)}</option>`).join("")}
+                        ${servers.map(s => `<option value="${s.id}" ${String(k.serverId)===String(s.id)?"selected":""}>${esc(s.name)}</option>`).join("")}
                     </select>
                 </div>
                 <div class="field">
@@ -725,11 +848,10 @@ function addKit() {
     const name = document.getElementById("new-kit-name").value.trim();
     const requiredRoleId = document.getElementById("new-kit-role").value.trim();
     const cooldownMinutes = parseInt(document.getElementById("new-kit-cd").value) || 60;
-    const botServerId = document.getElementById("new-kit-server").value || "";
+    const serverId = document.getElementById("new-kit-server").value || null;
     const description = document.getElementById("new-kit-desc").value.trim();
-    if (!name) { alert("Kit name is required — it must match the exact in-game kit name."); return; }
-    if (!botServerId) { alert("Please select a game server for this kit."); return; }
-    kits.push({ name, requiredRoleId, cooldownMinutes, botServerId, description, enabled: true });
+    if (!name) { alert("Kit name is required — must match exact in-game kit name."); return; }
+    kits.push({ name, requiredRoleId, cooldownMinutes, serverId, description, enabled: true });
     renderKitsAdmin();
     ["new-kit-name","new-kit-role","new-kit-desc"].forEach(id => document.getElementById(id).value = "");
     document.getElementById("new-kit-cd").value = "60";
@@ -746,7 +868,7 @@ async function saveKits() {
     const statusEl = document.getElementById("kits-status");
     statusEl.style.color = "#5b21b6"; statusEl.textContent = "Saving…";
     try {
-        const res = await fetch("/api/admin/web-kits", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(kits) });
+        const res = await fetch("/api/admin/web-kits", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(kits) });
         if (res.ok) {
             statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Kits saved!";
             await loadKits();
@@ -757,7 +879,47 @@ async function saveKits() {
     } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
     setTimeout(() => statusEl.textContent = "", 3000);
 }
-</script>
 
+/* ── Settings ── */
+async function loadSettings() {
+    const res = await fetch("/api/settings");
+    if (!res.ok) return;
+    const s = await res.json();
+    document.getElementById("setting-channel-id").value = s.discordChannelId || "";
+    document.getElementById("setting-bot-token").value = s.discordBotToken || "";
+    document.getElementById("setting-guild-id").value = s.discordGuildId || "";
+    document.getElementById("setting-paypal-link").value = s.paypalDefaultLink || "";
+}
+
+async function saveSettings() {
+    const statusEl = document.getElementById("settings-status");
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Saving…";
+    const res = await fetch("/api/settings", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            discordChannelId: document.getElementById("setting-channel-id").value.trim(),
+            discordBotToken: document.getElementById("setting-bot-token").value.trim(),
+            discordGuildId: document.getElementById("setting-guild-id").value.trim(),
+            paypalDefaultLink: document.getElementById("setting-paypal-link").value.trim()
+        })
+    });
+    statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
+    statusEl.textContent = res.ok ? "✓ Saved!" : "✗ Failed.";
+    setTimeout(() => statusEl.textContent = "", 3000);
+}
+
+async function testDiscord() {
+    const statusEl = document.getElementById("settings-status");
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Sending test…";
+    const res = await fetch("/api/bypass-payment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemName: "Test Item", itemPrice: "£0.00", itemId: 0 }) });
+    statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
+    statusEl.textContent = res.ok ? "✓ Test sent! Check Discord." : "✗ Failed — check bot token/channel ID.";
+    if (res.ok) loadPurchases();
+    setTimeout(() => statusEl.textContent = "", 4000);
+}
+
+// Init
+Promise.all([loadItems(), loadPurchases(), loadServers(), loadKits(), loadCredits(), loadSettings(), loadLinks()]);
+</script>
 </body>
 </html>

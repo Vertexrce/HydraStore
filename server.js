@@ -16,6 +16,30 @@ function getStripe() {
 }
 const WebSocket = require("ws");
 
+// ── Optional Valora bot SQLite integration ───────────────────────────────────
+// If BOT_DB_PATH points to the Valora bot's SQLite file, the website will
+// look up linked accounts there so players don't need to re-link on the site.
+let BotDB = null;
+const BOT_DB_PATH = process.env.BOT_DB_PATH || "";
+if (BOT_DB_PATH) {
+    try {
+        const BetterSqlite = require("better-sqlite3");
+        BotDB = new BetterSqlite(BOT_DB_PATH, { readonly: true, fileMustExist: true });
+        console.log("✅ Valora bot SQLite connected:", BOT_DB_PATH);
+    } catch (e) {
+        console.warn("⚠️  Could not open bot SQLite DB:", e.message);
+        BotDB = null;
+    }
+}
+
+function getBotLinkedGamertag(discordUserId) {
+    if (!BotDB) return null;
+    try {
+        const row = BotDB.prepare("SELECT account_name FROM linked_accounts WHERE discord_user_id=?").get(String(discordUserId));
+        return row ? row.account_name : null;
+    } catch { return null; }
+}
+
 const app = express();
 app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3000;
@@ -210,7 +234,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
     session({
         store: new PgSession({ pool, tableName: "session" }),
-        secret: process.env.SESSION_SECRET,
+        secret: process.env.SESSION_SECRET || "solarix-change-me",
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -261,15 +285,20 @@ app.get("/user", (req, res) => {
         loggedIn: true,
         id: req.user.id,
         username: req.user.username,
-        avatar: `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
+        avatar: req.user.avatar
+            ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
+            : `https://cdn.discordapp.com/embed/avatars/0.png`
     });
 });
 
+// ── Admin login ───────────────────────────────────────────────────────────────
 app.post("/admin-login", (req, res) => {
     const { username, password } = req.body;
-    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    const adminUser = process.env.ADMIN_USERNAME || "admin";
+    const adminPass = process.env.ADMIN_PASSWORD || "solarix";
+    if (username === adminUser && password === adminPass) {
         req.session.adminLoggedIn = true;
-        res.redirect("/admin");
+        res.redirect("/admin.html");
     } else {
         res.redirect("/admin-login.html?error=1");
     }
@@ -277,184 +306,21 @@ app.post("/admin-login", (req, res) => {
 
 app.get("/admin-logout", (req, res) => {
     req.session.adminLoggedIn = false;
-    res.redirect("/admin-login.html");
+    res.redirect("/");
 });
-
-app.get("/admin", checkAdmin, (req, res) => {
-    res.sendFile(path.join(__dirname, "admin.html"));
-});
-
-app.get("/checkout/:itemId", async (req, res) => {
-    res.sendFile(path.join(__dirname, "checkout.html"));
-});
-
-app.get("/checkout-success", (req, res) => {
-    res.sendFile(path.join(__dirname, "checkout-success.html"));
-});
-
-app.get("/api/checkout/:itemId", async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
-        if (!rows[0]) return res.status(404).json({ error: "Item not found" });
-        const item = rows[0];
-
-        let creditBalance = 0;
-        if (req.user) {
-            const cr = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
-            creditBalance = parseFloat(cr.rows[0]?.balance || 0);
-        }
-
-        const globalPaypal = await getSetting("paypalDefaultLink");
-        res.json({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            description: item.description,
-            imageUrl: item.image_url || "",
-            buyLink: item.buy_link,
-            stripeLink: item.stripe_link,
-            stripeEnabled: !!process.env.STRIPE_SECRET_KEY,
-            paypalLink: item.paypal_link || globalPaypal,
-            roleId: item.role_id,
-            zipUrl: item.zip_url || "",
-            category: item.category || "General",
-            isAdmin: !!req.session.adminLoggedIn,
-            isLoggedIn: !!req.user,
-            discordId: req.user?.id || null,
-            creditBalance
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// ── Lookup Stripe session for success page ──
-app.get("/api/checkout-session/:sessionId", async (req, res) => {
-    try {
-        const session = await getStripe().checkout.sessions.retrieve(req.params.sessionId);
-        res.json({
-            itemName: session.metadata?.item_name || "",
-            itemPrice: session.metadata?.item_price || "",
-            zipUrl: session.metadata?.zip_url || "",
-            customerEmail: session.customer_details?.email || "",
-            roleAssigned: session.metadata?.discord_user_id ? true : false
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-app.get("/buy/:itemId", async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
-        if (!rows[0]) return res.redirect("/store.html");
-        const item = rows[0];
-        const link = item.stripe_link || item.paypal_link || item.buy_link;
-        if (!link) return res.redirect("/store.html");
-        await logPurchaseClick(item, "click", "Customer clicked Buy Now");
-        res.redirect(link);
-    } catch (e) {
-        res.redirect("/store.html");
-    }
-});
-
-// ── Stripe Checkout Session — uses per-item Price ID if set, else auto-prices from item.price ──
-app.get("/buy-stripe/:itemId", async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
-        if (!rows[0]) return res.redirect("/store.html");
-        const item = rows[0];
-
-        if (!process.env.STRIPE_SECRET_KEY) {
-            return res.redirect(`/checkout/${item.id}?err=no-stripe`);
-        }
-
-        const discordUserId = req.user?.id || "";
-
-        let lineItems;
-        const priceId = (item.stripe_link || "").trim();
-
-        if (priceId.startsWith("https://")) {
-            await logPurchaseClick(item, "click-stripe", "Customer redirected to Stripe payment link");
-            return res.redirect(priceId);
-        }
-
-        if (priceId.startsWith("price_")) {
-            lineItems = [{ price: priceId, quantity: 1 }];
-        } else {
-            const priceNum = parseFloat(item.price.replace(/[^0-9.]/g, ""));
-            if (isNaN(priceNum) || priceNum <= 0) {
-                return res.redirect(`/checkout/${item.id}?err=stripe-error`);
-            }
-            lineItems = [{
-                price_data: {
-                    currency: "gbp",
-                    unit_amount: Math.round(priceNum * 100),
-                    product_data: { name: item.name }
-                },
-                quantity: 1
-            }];
-        }
-
-        const checkoutSession = await getStripe().checkout.sessions.create({
-            payment_method_types: ["card"],
-            line_items: lineItems,
-            mode: "payment",
-            success_url: `${BASE_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${BASE_URL}/checkout/${item.id}`,
-            metadata: {
-                item_id: String(item.id),
-                item_name: item.name,
-                item_price: item.price,
-                role_id: item.role_id || "",
-                zip_url: item.zip_url || "",
-                discord_user_id: discordUserId
-            }
-        });
-
-        await logPurchaseClick(item, "click-stripe", "Customer clicked Pay with Card (Stripe)");
-        res.redirect(checkoutSession.url);
-    } catch (e) {
-        console.error("Stripe checkout error:", e.message);
-        res.redirect(`/checkout/${req.params.itemId}?err=stripe-error`);
-    }
-});
-
-app.get("/buy-paypal/:itemId", async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [req.params.itemId]);
-        if (!rows[0]) return res.redirect("/store.html");
-        const item = rows[0];
-        const paypalLink = item.paypal_link || await getSetting("paypalDefaultLink");
-        if (!paypalLink) {
-            return res.redirect(`/checkout/${item.id}?err=no-paypal`);
-        }
-        await logPurchaseClick(item, "click-paypal", "Customer clicked Pay with PayPal");
-        res.redirect(paypalLink);
-    } catch (e) {
-        res.redirect("/store.html");
-    }
-});
-
-async function logPurchaseClick(item, type, note) {
-    try {
-        await pool.query(
-            "INSERT INTO purchases (id, item_id, item_name, item_price, type, note) VALUES ($1, $2, $3, $4, $5, $6)",
-            [Date.now(), item.id, item.name, item.price, type, note]
-        );
-        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        await sendDiscordLog(
-            `🛒 **Purchase Initiated**\n` +
-            `📦 Item: **${item.name}**\n` +
-            `💷 Price: **${item.price}**\n` +
-            `🕐 Time: ${ts}\n` +
-            `📝 ${note}`
-        );
-    } catch (e) {}
-}
 
 app.get("/api/admin-status", (req, res) => {
     res.json({ isAdmin: !!req.session.adminLoggedIn });
+});
+
+// ── Public: game servers list (name only — no RCON details exposed) ───────────
+app.get("/api/public/servers", async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT name FROM web_game_servers ORDER BY sort_order, id");
+        res.json(rows.map(r => ({ name: r.name })));
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.get("/api/store-items", async (req, res) => {
@@ -505,7 +371,7 @@ app.post("/api/store-items", checkAdminJson, async (req, res) => {
     }
 });
 
-/* ── Store Credits ── */
+/* ── Gems (store credits) ── */
 
 app.get("/api/credits/me", async (req, res) => {
     if (!req.user) return res.json({ balance: 0, loggedIn: false });
@@ -546,10 +412,10 @@ app.post("/api/admin/give-credit", checkAdminJson, async (req, res) => {
         const newBalance = parseFloat(rows[0]?.balance || 0);
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `💰 **Store Credit ${amt >= 0 ? "Added" : "Deducted"}**\n` +
+            `💎 **Gems ${amt >= 0 ? "Added" : "Deducted"}** (Solarix)\n` +
             `👤 Discord: <@${discordId}>\n` +
-            `💷 Amount: **${amt >= 0 ? "+" : ""}£${amt.toFixed(2)}**\n` +
-            `💼 New Balance: **£${newBalance.toFixed(2)}**\n` +
+            `💎 Amount: **${amt >= 0 ? "+" : ""}${amt.toFixed(0)} gems**\n` +
+            `💼 New Balance: **${newBalance.toFixed(0)} gems**\n` +
             `📝 Reason: ${reason || "Admin grant"}\n` +
             `🕐 Time: ${ts}`
         );
@@ -575,7 +441,7 @@ app.post("/api/pay-with-credits", async (req, res) => {
         const { rows: creditRows } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
         const balance = parseFloat(creditRows[0]?.balance || 0);
 
-        if (balance < price) return res.status(400).json({ error: `Insufficient credits. You have £${balance.toFixed(2)}, need £${price.toFixed(2)}.` });
+        if (balance < price) return res.status(400).json({ error: `Not enough gems. You have ${balance.toFixed(0)} gems, need ${price.toFixed(0)}.` });
 
         await pool.query(
             "UPDATE store_credits SET balance = balance - $1, updated_at = NOW() WHERE discord_id = $2",
@@ -587,7 +453,7 @@ app.post("/api/pay-with-credits", async (req, res) => {
         );
         await pool.query(
             "INSERT INTO purchases (id, item_id, item_name, item_price, discord_user_id, type, note) VALUES ($1,$2,$3,$4,$5,$6,$7)",
-            [Date.now(), item.id, item.name, item.price, req.user.id, "credit", "Paid with store credits"]
+            [Date.now(), item.id, item.name, item.price, req.user.id, "credit", "Paid with gems"]
         );
 
         let roleResult = null;
@@ -601,11 +467,11 @@ app.post("/api/pay-with-credits", async (req, res) => {
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `✅ **Credit Purchase**\n` +
+            `✅ **Gem Purchase** (Solarix)\n` +
             `📦 Item: **${item.name}**\n` +
-            `💷 Price: **${item.price}**\n` +
+            `💎 Cost: **${price.toFixed(0)} gems**\n` +
             `👤 Discord: <@${req.user.id}>\n` +
-            `💼 Remaining Credits: **£${newBalance.toFixed(2)}**\n` +
+            `💼 Remaining Gems: **${newBalance.toFixed(0)}**\n` +
             `🎭 Role: ${roleResult?.ok ? `✅ Assigned` : roleResult ? `⚠️ ${roleResult.error}` : "ℹ️ No role set"}\n` +
             `🕐 Time: ${ts}`
         );
@@ -643,67 +509,28 @@ async function sendDiscordLog(message) {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bot ${token}`,
+                "User-Agent": "Solarix/1.0",
                 "Content-Length": Buffer.byteLength(body)
             }
         };
-        await new Promise((resolve, reject) => {
-            const req = https.request(options, r => { r.on("data", () => {}); r.on("end", resolve); });
-            req.on("error", reject);
-            req.write(body);
-            req.end();
-        });
-    } catch (e) {
-        console.error("Discord log failed:", e.message);
-    }
-}
-
-// ── WebSocket RCON (Rust) ──────────────────────────────────────────────────────
-async function sendRcon(host, port, password, command) {
-    return new Promise((resolve, reject) => {
-        const ws = new WebSocket(`ws://${host}:${port}/${password}`);
-        const timer = setTimeout(() => { ws.terminate(); reject(new Error("RCON timeout")); }, 8000);
-        ws.once("open", () => {
-            ws.send(JSON.stringify({ Identifier: 1, Message: command, Name: "WebRcon" }));
-        });
-        ws.once("message", (data) => {
-            clearTimeout(timer);
-            ws.close();
-            try { resolve(JSON.parse(data.toString()).Message || ""); } catch { resolve(data.toString()); }
-        });
-        ws.once("error", (err) => { clearTimeout(timer); ws.terminate(); reject(err); });
-    });
-}
-
-// ── Discord member roles ───────────────────────────────────────────────────────
-async function getDiscordMemberRoles(guildId, userId, botToken) {
-    return new Promise((resolve) => {
-        const opts = {
-            hostname: "discord.com",
-            path: `/api/v10/guilds/${guildId}/members/${userId}`,
-            headers: { "Authorization": `Bot ${botToken}`, "User-Agent": "Vestige6X/1.0" }
-        };
-        const req = https.get(opts, (r) => {
-            let data = "";
-            r.on("data", (c) => data += c);
-            r.on("end", () => {
-                try { resolve(JSON.parse(data).roles || []); } catch { resolve([]); }
-            });
-        });
-        req.on("error", () => resolve([]));
-    });
+        const req = https.request(options);
+        req.on("error", () => {});
+        req.write(body);
+        req.end();
+    } catch {}
 }
 
 async function assignDiscordRole(guildId, userId, roleId) {
+    if (!guildId || !userId || !roleId) return null;
     const token = await getSetting("discordBotToken");
-    if (!token || !guildId || !userId || !roleId) {
-        return { ok: false, error: "Missing token, guildId, userId, or roleId" };
-    }
+    if (!token) return { ok: false, error: "No bot token configured" };
+
     return new Promise((resolve) => {
         const options = {
             hostname: "discord.com",
             path: `/api/v10/guilds/${guildId}/members/${userId}/roles/${roleId}`,
             method: "PUT",
-            headers: { "Authorization": `Bot ${token}`, "Content-Length": 0 }
+            headers: { "Authorization": `Bot ${token}`, "Content-Length": 0, "User-Agent": "Solarix/1.0" }
         };
         const req = https.request(options, r => {
             let data = "";
@@ -736,10 +563,10 @@ app.post("/api/bypass-payment", checkAdminJson, async (req, res) => {
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         const roleNote = roleResult?.ok ? `✅ Role assigned to <@${discordUserId}>` : roleResult ? `⚠️ Role failed: ${roleResult.error}` : `ℹ️ No role/user provided`;
         await sendDiscordLog(
-            `⚡ **Bypass Payment Used**\n` +
+            `⚡ **Bypass Payment** (Solarix)\n` +
             `📦 Item: **${itemName}**\n` +
             `💷 Price: **${itemPrice || "N/A"}**\n` +
-            `👤 Discord User: ${discordUserId ? `<@${discordUserId}>` : "Not specified"}\n` +
+            `👤 Discord: ${discordUserId ? `<@${discordUserId}>` : "Not specified"}\n` +
             `🕐 Time: ${ts}\n` +
             `🎭 Role: ${roleNote}`
         );
@@ -786,6 +613,109 @@ app.post("/api/settings", checkAdminJson, async (req, res) => {
     }
 });
 
+// ── Stripe Checkout ───────────────────────────────────────────────────────────
+app.post("/api/create-checkout-session", async (req, res) => {
+    const { itemId } = req.body;
+    if (!itemId) return res.status(400).json({ error: "Missing itemId" });
+    try {
+        const stripe = getStripe();
+        const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [itemId]);
+        if (!rows[0]) return res.status(404).json({ error: "Item not found" });
+        const item = rows[0];
+        if (!item.stripe_link) return res.status(400).json({ error: "No Stripe price configured for this item" });
+
+        const priceStr = item.price.replace(/[^0-9.]/g, "");
+        const price = parseFloat(priceStr);
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            line_items: [{ price: item.stripe_link, quantity: 1 }],
+            mode: "payment",
+            success_url: `${BASE_URL}/checkout-success.html?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${BASE_URL}/store.html`,
+            metadata: {
+                item_id: String(item.id),
+                item_name: item.name,
+                item_price: item.price,
+                role_id: item.role_id || "",
+                zip_url: item.zip_url || "",
+                discord_user_id: req.user?.id || ""
+            }
+        });
+        res.json({ url: session.url });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ── Checkout route ────────────────────────────────────────────────────────────
+app.get("/checkout/:id", (req, res) => res.sendFile(path.join(__dirname, "checkout.html")));
+
+app.get("/api/checkout-info", async (req, res) => {
+    const sessionId = req.query.session_id;
+    if (!sessionId) return res.json({ zipUrl: "" });
+    try {
+        const stripe = getStripe();
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        const zipUrl = session.metadata?.zip_url || "";
+        res.json({ zipUrl });
+    } catch { res.json({ zipUrl: "" }); }
+});
+
+// ── Admin: player links ───────────────────────────────────────────────────────
+app.get("/api/admin/player-links", checkAdminJson, async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT discord_id, gamertag, updated_at FROM web_player_links ORDER BY updated_at DESC LIMIT 200");
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: give kit manually ──────────────────────────────────────────────────
+app.post("/api/admin/give-kit", checkAdminJson, async (req, res) => {
+    const { player, kitName, serverId } = req.body;
+    if (!player || !kitName || !serverId) return res.status(400).json({ error: "Missing player, kitName, or serverId" });
+
+    try {
+        // Resolve gamertag — player can be a gamertag or Discord ID
+        let gamertag = player.trim();
+
+        // If it looks like a Discord ID (all digits), try to find their linked gamertag
+        if (/^\d{15,20}$/.test(gamertag)) {
+            const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [gamertag]);
+            if (rows[0]) {
+                gamertag = rows[0].gamertag;
+            } else {
+                // Try Valora bot SQLite
+                const botGamertag = getBotLinkedGamertag(gamertag);
+                if (botGamertag) gamertag = botGamertag;
+                else return res.status(404).json({ error: `No linked gamertag found for Discord ID ${player}. Ask them to link on the Kits page first.` });
+            }
+        }
+
+        // Get server RCON details
+        const { rows: serverRows } = await pool.query("SELECT * FROM web_game_servers WHERE id = $1", [serverId]);
+        const server = serverRows[0];
+        if (!server) return res.status(404).json({ error: "Server not found" });
+        if (!server.rcon_host) return res.status(400).json({ error: "Server has no RCON host configured" });
+
+        // Send RCON command
+        await sendRconCommand(server.rcon_host, server.rcon_port, server.rcon_password, `kit ${kitName} ${gamertag}`);
+
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(
+            `⚡ **Admin Kit Give** (Solarix)\n` +
+            `📦 Kit: **${kitName}**\n` +
+            `🎮 Gamertag: **${gamertag}**\n` +
+            `🖥️ Server: ${server.name}\n` +
+            `🕐 Time: ${ts}`
+        );
+
+        res.json({ ok: true, gamertag });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ── Kits page ─────────────────────────────────────────────────────────────────
 app.get("/kits", (req, res) => res.sendFile(path.join(__dirname, "kits.html")));
 
@@ -793,8 +723,24 @@ app.get("/kits", (req, res) => res.sendFile(path.join(__dirname, "kits.html")));
 app.get("/api/kits/gamertag", async (req, res) => {
     if (!req.user) return res.json({ gamertag: null });
     try {
+        // Check website-side link first
         const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
-        res.json({ gamertag: rows[0]?.gamertag || null });
+        if (rows[0]) return res.json({ gamertag: rows[0].gamertag });
+
+        // Fall back to Valora bot SQLite if configured
+        const botGamertag = getBotLinkedGamertag(req.user.id);
+        if (botGamertag) {
+            // Auto-import into web DB
+            await pool.query(
+                `INSERT INTO web_player_links (discord_id, gamertag, updated_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (discord_id) DO UPDATE SET gamertag = $2, updated_at = NOW()`,
+                [req.user.id, botGamertag]
+            );
+            return res.json({ gamertag: botGamertag });
+        }
+
+        res.json({ gamertag: null });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -813,7 +759,7 @@ app.post("/api/kits/gamertag", async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Kits: list available kits for logged-in user ──────────────────────────────
+// ── Kits: list available kits ─────────────────────────────────────────────────
 app.get("/api/kits", async (req, res) => {
     try {
         const { rows: allKits } = await pool.query(
@@ -832,35 +778,55 @@ app.get("/api/kits", async (req, res) => {
             }))});
         }
 
-        const botToken = await getSetting("discordBotToken");
-        const guildId  = await getSetting("discordGuildId");
-        let memberRoles = [];
-        if (botToken && guildId) {
-            memberRoles = await getDiscordMemberRoles(guildId, req.user.id, botToken);
-        }
+        const { rows: linkRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
+        const gamertag = linkRows[0]?.gamertag || null;
 
-        const { rows: cooldowns } = await pool.query(
+        // Check cooldowns
+        const { rows: cooldownRows } = await pool.query(
             "SELECT kit_id, expires_at FROM web_kit_cooldowns WHERE discord_id = $1 AND expires_at > NOW()",
             [req.user.id]
         );
-        const cdMap = {};
-        for (const cd of cooldowns) cdMap[cd.kit_id] = cd.expires_at;
+        const cooldownMap = {};
+        cooldownRows.forEach(r => { cooldownMap[r.kit_id] = r.expires_at; });
 
-        const { rows: gtRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
-        const gamertag = gtRows[0]?.gamertag || null;
+        // Check user roles via Discord API (if bot token available)
+        let userRoles = [];
+        try {
+            const token = await getSetting("discordBotToken");
+            const guildId = await getSetting("discordGuildId");
+            if (token && guildId && req.user.id) {
+                const data = await new Promise((resolve) => {
+                    const opts = {
+                        hostname: "discord.com",
+                        path: `/api/v10/guilds/${guildId}/members/${req.user.id}`,
+                        method: "GET",
+                        headers: { "Authorization": `Bot ${token}`, "User-Agent": "Solarix/1.0" }
+                    };
+                    const r = https.request(opts, res => {
+                        let body = "";
+                        res.on("data", c => body += c);
+                        res.on("end", () => resolve(JSON.parse(body)));
+                    });
+                    r.on("error", () => resolve({}));
+                    r.end();
+                });
+                userRoles = data.roles || [];
+            }
+        } catch {}
 
-        const result = allKits
-            .map(k => ({
+        res.json({
+            loggedIn: true,
+            gamertag,
+            kits: allKits.map(k => ({
                 id: k.id, name: k.name, description: k.description,
-                cooldownMinutes: k.cooldown_minutes, requiredRoleId: k.required_role_id,
+                cooldownMinutes: k.cooldown_minutes,
+                requiredRoleId: k.required_role_id,
                 serverName: k.server_name || "Server",
-                hasRole: !k.required_role_id || memberRoles.includes(k.required_role_id),
-                onCooldown: !!cdMap[k.id],
-                expiresAt: cdMap[k.id] || null
+                hasRole: !k.required_role_id || userRoles.includes(k.required_role_id),
+                onCooldown: !!cooldownMap[k.id],
+                expiresAt: cooldownMap[k.id] || null
             }))
-            .filter(k => k.hasRole);
-
-        res.json({ loggedIn: true, gamertag, kits: result });
+        });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -869,50 +835,68 @@ app.post("/api/kits/claim", async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Not logged in" });
     const { kitId } = req.body;
     if (!kitId) return res.status(400).json({ error: "Missing kitId" });
+
     try {
         const { rows } = await pool.query(
             `SELECT k.*, s.name as server_name, s.rcon_host, s.rcon_port, s.rcon_password
              FROM web_kit_configs k
              LEFT JOIN web_game_servers s ON s.id = k.server_id
-             WHERE k.id = $1 AND k.enabled = 1 LIMIT 1`,
+             WHERE k.id = $1 AND k.enabled = 1`,
             [kitId]
         );
-        if (!rows[0]) return res.status(404).json({ error: "Kit not found" });
         const kit = rows[0];
+        if (!kit) return res.status(404).json({ error: "Kit not found or disabled." });
 
+        // Check cooldown
+        const { rows: cdRows } = await pool.query(
+            "SELECT expires_at FROM web_kit_cooldowns WHERE discord_id = $1 AND kit_id = $2 AND expires_at > NOW()",
+            [req.user.id, kitId]
+        );
+        if (cdRows.length > 0) {
+            return res.status(429).json({ error: "Kit on cooldown.", expiresAt: cdRows[0].expires_at });
+        }
+
+        // Check role
         if (kit.required_role_id) {
-            const botToken = await getSetting("discordBotToken");
-            const guildId  = await getSetting("discordGuildId");
-            if (botToken && guildId) {
-                const roles = await getDiscordMemberRoles(guildId, req.user.id, botToken);
-                if (!roles.includes(kit.required_role_id)) {
-                    return res.status(403).json({ error: "You do not have the required role for this kit." });
+            const token = await getSetting("discordBotToken");
+            const guildId = await getSetting("discordGuildId");
+            if (token && guildId) {
+                const data = await new Promise((resolve) => {
+                    const opts = {
+                        hostname: "discord.com",
+                        path: `/api/v10/guilds/${guildId}/members/${req.user.id}`,
+                        method: "GET",
+                        headers: { "Authorization": `Bot ${token}`, "User-Agent": "Solarix/1.0" }
+                    };
+                    const r = https.request(opts, response => {
+                        let body = "";
+                        response.on("data", c => body += c);
+                        response.on("end", () => resolve(JSON.parse(body)));
+                    });
+                    r.on("error", () => resolve({}));
+                    r.end();
+                });
+                if (!(data.roles || []).includes(kit.required_role_id)) {
+                    return res.status(403).json({ error: "You don't have the required role for this kit." });
                 }
             }
         }
 
-        const { rows: cdRows } = await pool.query(
-            "SELECT expires_at FROM web_kit_cooldowns WHERE discord_id = $1 AND kit_id = $2 AND expires_at > NOW() LIMIT 1",
-            [req.user.id, kitId]
-        );
-        if (cdRows[0]) {
-            return res.status(429).json({ error: "Kit is on cooldown.", expiresAt: cdRows[0].expires_at });
-        }
-
-        const { rows: gtRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
-        const gamertag = gtRows[0]?.gamertag;
+        // Get gamertag
+        const { rows: linkRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
+        const gamertag = linkRows[0]?.gamertag;
         if (!gamertag) return res.status(400).json({ error: "Link your in-game name first." });
 
         if (!kit.rcon_host) return res.status(500).json({ error: "No game server configured for this kit." });
 
-        const cmd = `kit givetoplayer "${kit.name}" "${gamertag}"`;
+        // Send RCON command
         try {
-            await sendRcon(kit.rcon_host, kit.rcon_port || 28016, kit.rcon_password || "", cmd);
-        } catch (rconErr) {
-            console.error("RCON error:", rconErr.message);
+            await sendRconCommand(kit.rcon_host, kit.rcon_port, kit.rcon_password, `kit ${kit.name} ${gamertag}`);
+        } catch (e) {
             return res.status(500).json({ error: "RCON connection failed — server may be offline." });
         }
 
+        // Set cooldown
         const expiresAt = new Date(Date.now() + kit.cooldown_minutes * 60 * 1000);
         await pool.query(
             `INSERT INTO web_kit_cooldowns (discord_id, kit_id, expires_at)
@@ -923,26 +907,43 @@ app.post("/api/kits/claim", async (req, res) => {
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `🎁 **Kit Claimed (Website)**\n` +
+            `🎒 **Kit Claimed** (Solarix)\n` +
             `📦 Kit: **${kit.name}**\n` +
-            `🎮 Gamertag: **${gamertag}**\n` +
             `👤 Discord: <@${req.user.id}>\n` +
+            `🎮 Gamertag: **${gamertag}**\n` +
             `🖥️ Server: ${kit.server_name || "N/A"}\n` +
             `🕐 Time: ${ts}`
         );
 
         res.json({ ok: true, expiresAt });
-    } catch (e) {
-        console.error("Kit claim error:", e.message);
-        res.status(500).json({ error: e.message });
-    }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
+// ── RCON helper ───────────────────────────────────────────────────────────────
+function sendRconCommand(host, port, password, command) {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(`ws://${host}:${port}/${password}`);
+        let done = false;
+        const timeout = setTimeout(() => {
+            if (!done) { done = true; ws.terminate(); reject(new Error("RCON timeout")); }
+        }, 8000);
+        ws.on("open", () => {
+            ws.send(JSON.stringify({ Identifier: 1, Message: command, Name: "Solarix" }));
+        });
+        ws.on("message", () => {
+            if (!done) { done = true; clearTimeout(timeout); ws.close(); resolve(); }
+        });
+        ws.on("error", e => {
+            if (!done) { done = true; clearTimeout(timeout); reject(e); }
+        });
+    });
+}
 
 // ── Admin: Game Servers ───────────────────────────────────────────────────────
 app.get("/api/admin/game-servers", checkAdminJson, async (req, res) => {
     try {
-        const { rows } = await pool.query("SELECT id, name, rcon_host, rcon_port, sort_order FROM web_game_servers ORDER BY sort_order, id");
-        res.json(rows.map(s => ({ id: s.id, name: s.name, rconHost: s.rcon_host, rconPort: s.rcon_port })));
+        const { rows } = await pool.query("SELECT id, name, rcon_host, rcon_port, rcon_password, sort_order FROM web_game_servers ORDER BY sort_order, id");
+        res.json(rows);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -953,16 +954,16 @@ app.post("/api/admin/game-servers", checkAdminJson, async (req, res) => {
         await pool.query("DELETE FROM web_game_servers");
         for (let i = 0; i < servers.length; i++) {
             const s = servers[i];
-            if (!s.name || !s.rconHost) continue;
+            if (!s.name || !s.rcon_host) continue;
             if (s.id) {
                 await pool.query(
                     "INSERT INTO web_game_servers (id, name, rcon_host, rcon_port, rcon_password, sort_order) VALUES ($1,$2,$3,$4,$5,$6)",
-                    [s.id, s.name, s.rconHost, parseInt(s.rconPort) || 28016, s.rconPassword || "", i]
+                    [s.id, s.name, s.rcon_host, parseInt(s.rcon_port) || 28016, s.rcon_password || "", i]
                 );
             } else {
                 await pool.query(
                     "INSERT INTO web_game_servers (name, rcon_host, rcon_port, rcon_password, sort_order) VALUES ($1,$2,$3,$4,$5)",
-                    [s.name, s.rconHost, parseInt(s.rconPort) || 28016, s.rconPassword || "", i]
+                    [s.name, s.rcon_host, parseInt(s.rcon_port) || 28016, s.rcon_password || "", i]
                 );
             }
         }
@@ -1010,7 +1011,7 @@ app.post("/api/admin/web-kits", checkAdminJson, async (req, res) => {
 
 setupDB()
     .then(() => {
-        app.listen(PORT, () => console.log("Server running on port " + PORT));
+        app.listen(PORT, () => console.log(`Solarix server running on port ${PORT}`));
     })
     .catch(err => {
         console.error("DB setup failed:", err.message);
