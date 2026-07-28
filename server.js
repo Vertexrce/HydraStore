@@ -1015,6 +1015,59 @@ app.post("/api/admin/web-kits", checkAdminJson, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── /link → redirect to kits (where gamertag linking lives) ──────────────────
+app.get("/link", (req, res) => res.redirect("/kits"));
+
+// ── Public: Clans (reads from bot SQLite) ────────────────────────────────────
+app.get("/api/public/clans", (req, res) => {
+    if (!_botDbPath) return res.json([]);
+    try {
+        const { DatabaseSync } = require("node:sqlite");
+        const db = new DatabaseSync(_botDbPath, { readOnly: true });
+        const clans = db.prepare(`
+            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.created_at,
+                   COUNT(DISTINCT cm.user_id) as member_count,
+                   COALESCE(SUM(cps.kills), 0) as total_kills,
+                   la.account_name as owner_gamertag
+            FROM clans c
+            LEFT JOIN clan_members cm ON cm.clan_id = c.id
+            LEFT JOIN clan_player_stats cps ON cps.user_id = cm.user_id
+                AND cps.guild_id = c.guild_id AND cps.server_id = c.server_id
+            LEFT JOIN linked_accounts la ON CAST(la.discord_user_id AS TEXT) = CAST(c.owner_id AS TEXT)
+            GROUP BY c.id
+            ORDER BY member_count DESC, c.created_at DESC
+            LIMIT 50
+        `).all();
+        db.close();
+        res.json(clans);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Public: Leaderboard (reads from bot SQLite) ───────────────────────────────
+app.get("/api/public/leaderboard", (req, res) => {
+    if (!_botDbPath) return res.json([]);
+    try {
+        const { DatabaseSync } = require("node:sqlite");
+        const db = new DatabaseSync(_botDbPath, { readOnly: true });
+        const rows = db.prepare(`
+            SELECT cps.user_id, cps.gamertag, cps.kills, cps.deaths,
+                   c.name as clan_name, c.clantag as clan_tag, c.color as clan_color,
+                   CASE WHEN cps.deaths = 0 THEN CAST(cps.kills AS FLOAT)
+                        ELSE ROUND(CAST(cps.kills AS FLOAT) / cps.deaths, 2) END as kd
+            FROM clan_player_stats cps
+            LEFT JOIN clan_members cm ON CAST(cm.user_id AS TEXT) = CAST(cps.user_id AS TEXT)
+            LEFT JOIN clans c ON c.id = cm.clan_id
+                AND c.guild_id = cps.guild_id AND c.server_id = cps.server_id
+            WHERE cps.kills > 0 OR cps.deaths > 0
+            GROUP BY cps.user_id, cps.guild_id, cps.server_id
+            ORDER BY cps.kills DESC
+            LIMIT 50
+        `).all();
+        db.close();
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 setupDB()
     .then(() => {
         app.listen(PORT, () => console.log(`Solarix server running on port ${PORT}`));
