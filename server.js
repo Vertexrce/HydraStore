@@ -217,7 +217,29 @@ async function setupDB() {
             kills INTEGER DEFAULT 0,
             deaths INTEGER DEFAULT 0
         );
+
+        CREATE TABLE IF NOT EXISTS clan_invite_codes_mirror (
+            code TEXT PRIMARY KEY,
+            clan_id INTEGER NOT NULL,
+            expires_at INTEGER,
+            max_uses INTEGER,
+            uses INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS web_join_requests (
+            discord_id TEXT PRIMARY KEY,
+            clan_id INTEGER NOT NULL,
+            code TEXT,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS linked_accounts_mirror (
+            discord_user_id TEXT PRIMARY KEY,
+            account_name TEXT NOT NULL
+        );
     `);
+
+    await pool.query(`ALTER TABLE clans_mirror ADD COLUMN IF NOT EXISTS owner_discord_name TEXT`);
 
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS role_id TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stripe_link TEXT DEFAULT ''`);
@@ -1054,30 +1076,30 @@ app.get("/api/debug/volume", checkAdminJson, (req, res) => {
 // ── /link → redirect to kits (where gamertag linking lives) ──────────────────
 app.get("/link", (req, res) => res.redirect("/kits"));
 
-// ── /clans → redirect to homepage clans section ───────────────────────────────
-app.get("/clans", (req, res) => res.redirect("/#clans"));
+// ── /clans → dedicated clans page ────────────────────────────────────────────
+app.get("/clans", (req, res) => res.sendFile(path.join(__dirname, "clans.html")));
 
-// ── Bot sync: receive clan data from the bot and store in Postgres ────────────
-// The bot POSTs here after every clan change. Protected by SYNC_TOKEN env var.
+// ── Bot sync: receive clan + linked account data ──────────────────────────────
 app.post("/api/sync/clans", express.json(), async (req, res) => {
     const token = process.env.SYNC_TOKEN || "";
     if (!token || req.headers["x-sync-token"] !== token) {
         return res.status(401).json({ error: "Unauthorized" });
     }
-    const { clans = [], members = [], stats = [] } = req.body;
+    const { clans = [], members = [], stats = [], invite_codes = [], linked_accounts = [] } = req.body;
     try {
-        // Full replace: delete then re-insert
         await pool.query("DELETE FROM clan_members_mirror");
         await pool.query("DELETE FROM clans_mirror");
         await pool.query("DELETE FROM clan_stats_mirror");
+        await pool.query("DELETE FROM clan_invite_codes_mirror");
 
         for (const c of clans) {
             await pool.query(
-                `INSERT INTO clans_mirror (id, name, clantag, color, description, owner_id, created_at, guild_id, server_id)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-                 ON CONFLICT (id) DO UPDATE SET name=$2, clantag=$3, color=$4, description=$5, owner_id=$6, created_at=$7, guild_id=$8, server_id=$9`,
+                `INSERT INTO clans_mirror (id, name, clantag, color, description, owner_id, created_at, guild_id, server_id, owner_discord_name)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                 ON CONFLICT (id) DO UPDATE SET name=$2, clantag=$3, color=$4, description=$5, owner_id=$6, created_at=$7, guild_id=$8, server_id=$9, owner_discord_name=$10`,
                 [c.id, c.name, c.clantag || null, c.color || null, c.description || null,
-                 String(c.owner_id || ""), c.created_at || null, String(c.guild_id || ""), String(c.server_id || "")]
+                 String(c.owner_id || ""), c.created_at || null, String(c.guild_id || ""),
+                 String(c.server_id || ""), c.owner_discord_name || null]
             );
         }
         for (const m of members) {
@@ -1094,10 +1116,104 @@ app.post("/api/sync/clans", express.json(), async (req, res) => {
                 [String(s.user_id), s.gamertag || null, s.kills || 0, s.deaths || 0]
             );
         }
-        res.json({ ok: true, clans: clans.length, members: members.length, stats: stats.length });
+        for (const ic of invite_codes) {
+            await pool.query(
+                `INSERT INTO clan_invite_codes_mirror (code, clan_id, expires_at, max_uses, uses)
+                 VALUES ($1,$2,$3,$4,$5)
+                 ON CONFLICT (code) DO UPDATE SET clan_id=$2, expires_at=$3, max_uses=$4`,
+                [ic.code, ic.clan_id, ic.expires_at || null, ic.max_uses || null, ic.uses || 0]
+            );
+        }
+        // Sync linked accounts (bot → Postgres mirror)
+        for (const la of linked_accounts) {
+            await pool.query(
+                `INSERT INTO linked_accounts_mirror (discord_user_id, account_name)
+                 VALUES ($1,$2)
+                 ON CONFLICT (discord_user_id) DO UPDATE SET account_name=$2`,
+                [String(la.discord_user_id), la.account_name]
+            );
+            // Also keep web_player_links up to date
+            await pool.query(
+                `INSERT INTO web_player_links (discord_id, gamertag, updated_at)
+                 VALUES ($1,$2,NOW())
+                 ON CONFLICT (discord_id) DO UPDATE SET gamertag=$2, updated_at=NOW()`,
+                [String(la.discord_user_id), la.account_name]
+            );
+        }
+        res.json({ ok: true, clans: clans.length, members: members.length, stats: stats.length, linked: linked_accounts.length });
     } catch (e) {
         console.error("sync/clans error:", e.message);
         res.status(500).json({ error: e.message });
+    }
+});
+
+// ── My clan (logged-in user) ──────────────────────────────────────────────────
+app.get("/api/public/clans/me", async (req, res) => {
+    if (!req.user) return res.json({ loggedIn: false, clan: null });
+    try {
+        const { rows } = await pool.query(`
+            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.owner_discord_name,
+                   COUNT(DISTINCT cm2.user_id)::int AS member_count
+            FROM clan_members_mirror cm
+            JOIN clans_mirror c ON c.id = cm.clan_id
+            LEFT JOIN clan_members_mirror cm2 ON cm2.clan_id = c.id
+            WHERE cm.user_id = $1
+            GROUP BY c.id
+            LIMIT 1
+        `, [String(req.user.id)]);
+        if (!rows[0]) return res.json({ loggedIn: true, clan: null });
+        const clan = rows[0];
+        const isOwner = String(clan.owner_id) === String(req.user.id);
+        return res.json({ loggedIn: true, clan: { ...clan, is_owner: isOwner } });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// ── Join clan with invite code ────────────────────────────────────────────────
+app.post("/api/clans/join", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const { code } = req.body;
+    if (!code?.trim()) return res.status(400).json({ error: "Invite code required" });
+    try {
+        // Already in a clan?
+        const { rows: existing } = await pool.query(
+            "SELECT clan_id FROM clan_members_mirror WHERE user_id=$1 LIMIT 1",
+            [String(req.user.id)]
+        );
+        if (existing[0]) return res.status(400).json({ error: "You are already in a clan. Leave your current clan first via Discord." });
+
+        // Validate code
+        const now = Math.floor(Date.now() / 1000);
+        const { rows: codes } = await pool.query(
+            `SELECT * FROM clan_invite_codes_mirror WHERE code=$1
+             AND (expires_at IS NULL OR expires_at > $2)
+             AND (max_uses IS NULL OR uses < max_uses)`,
+            [code.trim().toUpperCase(), now]
+        );
+        if (!codes[0]) return res.status(404).json({ error: "Invalid or expired invite code. Ask the clan owner for a new one." });
+
+        const invite = codes[0];
+
+        // Add to clan_members_mirror
+        await pool.query(
+            "INSERT INTO clan_members_mirror (clan_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+            [invite.clan_id, String(req.user.id)]
+        );
+        // Increment uses
+        await pool.query("UPDATE clan_invite_codes_mirror SET uses=uses+1 WHERE code=$1", [code.trim().toUpperCase()]);
+        // Store web join request for bot to assign Discord role
+        await pool.query(
+            `INSERT INTO web_join_requests (discord_id, clan_id, code, created_at)
+             VALUES ($1,$2,$3,NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET clan_id=$2, code=$3, created_at=NOW()`,
+            [String(req.user.id), invite.clan_id, code.trim().toUpperCase()]
+        );
+
+        const { rows: clanRows } = await pool.query("SELECT name FROM clans_mirror WHERE id=$1", [invite.clan_id]);
+        return res.json({ ok: true, clanName: clanRows[0]?.name || "Unknown" });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
     }
 });
 
