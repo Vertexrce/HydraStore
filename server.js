@@ -1018,6 +1018,9 @@ app.post("/api/admin/web-kits", checkAdminJson, async (req, res) => {
 // ── /link → redirect to kits (where gamertag linking lives) ──────────────────
 app.get("/link", (req, res) => res.redirect("/kits"));
 
+// ── /clans → redirect to homepage clans section ───────────────────────────────
+app.get("/clans", (req, res) => res.redirect("/#clans"));
+
 // ── Public: Clans (reads from bot SQLite) ────────────────────────────────────
 app.get("/api/public/clans", (req, res) => {
     if (!_botDbPath) return res.json([]);
