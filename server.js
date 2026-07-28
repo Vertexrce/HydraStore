@@ -192,6 +192,31 @@ async function setupDB() {
             gamertag TEXT NOT NULL,
             updated_at TIMESTAMPTZ DEFAULT NOW()
         );
+
+        CREATE TABLE IF NOT EXISTS clans_mirror (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            clantag TEXT,
+            color TEXT,
+            description TEXT,
+            owner_id TEXT,
+            created_at INTEGER,
+            guild_id TEXT,
+            server_id TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS clan_members_mirror (
+            clan_id INTEGER NOT NULL,
+            user_id TEXT NOT NULL,
+            PRIMARY KEY (clan_id, user_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS clan_stats_mirror (
+            user_id TEXT PRIMARY KEY,
+            gamertag TEXT,
+            kills INTEGER DEFAULT 0,
+            deaths INTEGER DEFAULT 0
+        );
     `);
 
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS role_id TEXT DEFAULT ''`);
@@ -1032,6 +1057,50 @@ app.get("/link", (req, res) => res.redirect("/kits"));
 // ── /clans → redirect to homepage clans section ───────────────────────────────
 app.get("/clans", (req, res) => res.redirect("/#clans"));
 
+// ── Bot sync: receive clan data from the bot and store in Postgres ────────────
+// The bot POSTs here after every clan change. Protected by SYNC_TOKEN env var.
+app.post("/api/sync/clans", express.json(), async (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    const { clans = [], members = [], stats = [] } = req.body;
+    try {
+        // Full replace: delete then re-insert
+        await pool.query("DELETE FROM clan_members_mirror");
+        await pool.query("DELETE FROM clans_mirror");
+        await pool.query("DELETE FROM clan_stats_mirror");
+
+        for (const c of clans) {
+            await pool.query(
+                `INSERT INTO clans_mirror (id, name, clantag, color, description, owner_id, created_at, guild_id, server_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+                 ON CONFLICT (id) DO UPDATE SET name=$2, clantag=$3, color=$4, description=$5, owner_id=$6, created_at=$7, guild_id=$8, server_id=$9`,
+                [c.id, c.name, c.clantag || null, c.color || null, c.description || null,
+                 String(c.owner_id || ""), c.created_at || null, String(c.guild_id || ""), String(c.server_id || "")]
+            );
+        }
+        for (const m of members) {
+            await pool.query(
+                "INSERT INTO clan_members_mirror (clan_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+                [m.clan_id, String(m.user_id)]
+            );
+        }
+        for (const s of stats) {
+            await pool.query(
+                `INSERT INTO clan_stats_mirror (user_id, gamertag, kills, deaths)
+                 VALUES ($1,$2,$3,$4)
+                 ON CONFLICT (user_id) DO UPDATE SET gamertag=$2, kills=$3, deaths=$4`,
+                [String(s.user_id), s.gamertag || null, s.kills || 0, s.deaths || 0]
+            );
+        }
+        res.json({ ok: true, clans: clans.length, members: members.length, stats: stats.length });
+    } catch (e) {
+        console.error("sync/clans error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ── Bot SQLite helper — opens fresh each request so startup-time file absence is fine ──
 function openBotDb() {
     const p = process.env.BOT_DB_PATH || "";
@@ -1045,12 +1114,57 @@ function openBotDb() {
     }
 }
 
-// ── Public: Clans (reads from bot SQLite) ────────────────────────────────────
-app.get("/api/public/clans", (req, res) => {
+// ── Public: Clans ─────────────────────────────────────────────────────────────
+// Reads from Postgres mirror (populated by bot via /api/sync/clans).
+// Falls back to bot SQLite if mirror is empty and BOT_DB_PATH is set.
+app.get("/api/public/clans", async (req, res) => {
+    try {
+        const { rows: clans } = await pool.query(`
+            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.created_at,
+                   COUNT(DISTINCT cm.user_id)::int AS member_count
+            FROM clans_mirror c
+            LEFT JOIN clan_members_mirror cm ON cm.clan_id = c.id
+            GROUP BY c.id
+            ORDER BY member_count DESC, c.created_at DESC NULLS LAST
+            LIMIT 50
+        `);
+
+        if (clans.length > 0) {
+            const enriched = await Promise.all(clans.map(async c => {
+                // Owner gamertag from web_player_links
+                let owner_gamertag = null;
+                try {
+                    const { rows } = await pool.query(
+                        "SELECT gamertag FROM web_player_links WHERE discord_id=$1 LIMIT 1",
+                        [String(c.owner_id)]
+                    );
+                    owner_gamertag = rows[0]?.gamertag || null;
+                } catch {}
+
+                // Total kills for clan
+                let total_kills = 0;
+                try {
+                    const { rows } = await pool.query(`
+                        SELECT COALESCE(SUM(s.kills),0)::int AS k
+                        FROM clan_stats_mirror s
+                        JOIN clan_members_mirror cm ON cm.user_id=s.user_id
+                        WHERE cm.clan_id=$1
+                    `, [c.id]);
+                    total_kills = rows[0]?.k || 0;
+                } catch {}
+
+                return { ...c, owner_gamertag, total_kills };
+            }));
+            return res.json(enriched);
+        }
+    } catch (e) {
+        console.warn("clans Postgres query failed:", e.message);
+    }
+
+    // Fallback: bot SQLite (local dev / same-machine setups)
     const db = openBotDb();
     if (!db) return res.json([]);
     try {
-        // Simple query first — get clans + member count without complex joins
         const clans = db.prepare(`
             SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.created_at,
                    COUNT(DISTINCT cm.user_id) as member_count
@@ -1060,8 +1174,6 @@ app.get("/api/public/clans", (req, res) => {
             ORDER BY member_count DESC, c.created_at DESC
             LIMIT 50
         `).all();
-
-        // Enrich with owner gamertag from linked_accounts
         const enriched = clans.map(c => {
             let owner_gamertag = null;
             try {
@@ -1070,8 +1182,6 @@ app.get("/api/public/clans", (req, res) => {
                 ).get(String(c.owner_id));
                 owner_gamertag = row ? row.account_name : null;
             } catch {}
-
-            // Total kills for this clan
             let total_kills = 0;
             try {
                 const ks = db.prepare(
@@ -1079,21 +1189,39 @@ app.get("/api/public/clans", (req, res) => {
                 ).get(c.id);
                 total_kills = ks ? ks.k : 0;
             } catch {}
-
             return { ...c, owner_gamertag, total_kills };
         });
-
         db.close();
         res.json(enriched);
     } catch (e) {
         try { db.close(); } catch {}
-        console.error("clans endpoint error:", e.message);
+        console.error("clans SQLite fallback error:", e.message);
         res.status(500).json({ error: e.message });
     }
 });
 
-// ── Public: Leaderboard (reads from bot SQLite) ───────────────────────────────
-app.get("/api/public/leaderboard", (req, res) => {
+// ── Public: Leaderboard ───────────────────────────────────────────────────────
+// Reads from Postgres mirror first, falls back to bot SQLite.
+app.get("/api/public/leaderboard", async (req, res) => {
+    try {
+        const { rows } = await pool.query(`
+            SELECT s.user_id, s.gamertag, s.kills, s.deaths,
+                   CASE WHEN s.deaths = 0 THEN s.kills::float
+                        ELSE ROUND(s.kills::numeric / s.deaths, 2) END AS kd,
+                   c.name AS clan_name, c.clantag AS clan_tag, c.color AS clan_color
+            FROM clan_stats_mirror s
+            LEFT JOIN clan_members_mirror cm ON cm.user_id = s.user_id
+            LEFT JOIN clans_mirror c ON c.id = cm.clan_id
+            WHERE s.kills > 0 OR s.deaths > 0
+            ORDER BY s.kills DESC
+            LIMIT 50
+        `);
+        if (rows.length > 0) return res.json(rows);
+    } catch (e) {
+        console.warn("leaderboard Postgres query failed:", e.message);
+    }
+
+    // Fallback: bot SQLite
     const db = openBotDb();
     if (!db) return res.json([]);
     try {
@@ -1107,8 +1235,6 @@ app.get("/api/public/leaderboard", (req, res) => {
             ORDER BY cps.kills DESC
             LIMIT 50
         `).all();
-
-        // Enrich with clan info per player
         const enriched = rows.map(p => {
             let clan_name = null, clan_tag = null, clan_color = null;
             try {
@@ -1119,12 +1245,11 @@ app.get("/api/public/leaderboard", (req, res) => {
             } catch {}
             return { ...p, clan_name, clan_tag, clan_color };
         });
-
         db.close();
         res.json(enriched);
     } catch (e) {
         try { db.close(); } catch {}
-        console.error("leaderboard endpoint error:", e.message);
+        console.error("leaderboard SQLite fallback error:", e.message);
         res.status(500).json({ error: e.message });
     }
 });
