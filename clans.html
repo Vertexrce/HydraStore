@@ -32,8 +32,6 @@ nav {
 .nav-right { display: flex; align-items: center; gap: 8px; }
 .nav-discord-btn { background: #5865f2; color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 8px; transition: opacity 0.15s; }
 .nav-discord-btn:hover { opacity: 0.85; }
-.nav-link-btn { background: rgba(168,85,247,0.15); border: 1px solid #7c3aed; color: #a855f7; text-decoration: none; font-size: 13px; font-weight: 700; padding: 7px 14px; border-radius: 8px; transition: background 0.15s; cursor: pointer; }
-.nav-link-btn:hover { background: rgba(168,85,247,0.25); }
 .nav-login-btn { background: #7c3aed; color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 8px; transition: opacity 0.15s; }
 .nav-login-btn:hover { opacity: 0.85; }
 .nav-user { display: flex; align-items: center; gap: 8px; }
@@ -46,9 +44,8 @@ nav {
 
 /* ── PAGE ── */
 .clans-page { max-width: 1200px; margin: 0 auto; padding: 48px 24px 100px; }
-
 .page-header { margin-bottom: 40px; }
-.page-header h1 { font-size: 36px; font-weight: 900; color: #fff; letter-spacing: 1px; text-transform: uppercase; }
+.page-header h1 { font-size: 36px; font-weight: 900; color: #fff; letter-spacing: 2px; text-transform: uppercase; }
 .page-header p { color: #7c3aed; font-size: 14px; margin-top: 8px; }
 
 /* ── SECTION LABELS ── */
@@ -65,7 +62,6 @@ nav {
 
 /* ── MY CLAN ── */
 #my-clan-section { margin-bottom: 48px; }
-
 .my-clan-card {
     background: #100826;
     border: 1px solid #2d1060;
@@ -76,7 +72,6 @@ nav {
     gap: 24px;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.2s;
 }
 .my-clan-card::before {
     content: '';
@@ -86,12 +81,13 @@ nav {
     background: var(--clan-color, #a855f7);
     border-radius: 4px 0 0 4px;
 }
-.my-clan-icon {
-    width: 72px; height: 72px; border-radius: 12px;
+.my-clan-img {
+    width: 80px; height: 80px; border-radius: 12px;
     background: rgba(168,85,247,0.1); border: 2px solid rgba(168,85,247,0.3);
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 32px;
+    flex-shrink: 0; font-size: 32px; overflow: hidden;
 }
+.my-clan-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
 .my-clan-body { flex: 1; min-width: 0; }
 .my-clan-name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
 .my-clan-name { font-size: 22px; font-weight: 800; color: #fff; }
@@ -101,8 +97,9 @@ nav {
     border-color: var(--clan-color, #a855f7);
     background: rgba(168,85,247,0.08);
 }
-.my-clan-desc { font-size: 13px; color: #6b21a8; margin-bottom: 16px; font-style: italic; }
-.my-clan-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; }
+.my-clan-desc { font-size: 13px; color: #6b21a8; margin-bottom: 14px; font-style: italic; }
+.my-clan-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
 .meta-badge {
     display: flex; align-items: center; gap: 6px;
     background: rgba(168,85,247,0.1); border: 1px solid #2d1060;
@@ -111,6 +108,37 @@ nav {
 .meta-badge strong { color: #e0e6f0; }
 .badge-owner { background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.3); color: #fbbf24; }
 .badge-member { background: rgba(168,85,247,0.1); border-color: #4c1d95; color: #c084fc; }
+.view-details-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 20px; border-radius: 8px; border: 1px solid #3d1a70;
+    background: rgba(124,58,237,0.12); color: #c084fc;
+    font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+}
+.view-details-btn:hover { background: rgba(124,58,237,0.22); border-color: #7c3aed; }
+
+/* ── CLAN KITS ── */
+.clan-kits-section { margin-top: 24px; border-top: 1px solid #1e0840; padding-top: 20px; }
+.clan-kits-label { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #6b21a8; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.clan-kits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.clan-kit-item {
+    background: #0d0620; border: 1px solid #1e0840; border-radius: 10px;
+    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.clan-kit-item.ready { border-color: rgba(34,197,94,0.25); }
+.clan-kit-item.on-cd { border-color: rgba(234,179,8,0.2); }
+.clan-kit-name { font-size: 13px; font-weight: 700; color: #e0e6f0; }
+.clan-kit-status { font-size: 11px; font-weight: 600; white-space: nowrap; }
+.clan-kit-status.ready { color: #22c55e; }
+.clan-kit-status.on-cd { color: #fbbf24; }
+.clan-kit-status.no-link { color: #6b21a8; }
+.claim-kit-btn {
+    font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; border: none;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff;
+    cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
+}
+.claim-kit-btn:hover:not(:disabled) { opacity: 0.85; }
+.claim-kit-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #2d1060; }
 
 /* ── ALL CLANS HEADER ── */
 .all-clans-header {
@@ -138,7 +166,7 @@ nav {
     background: #0e0622;
     border: 1px solid #1e0840;
     border-radius: 14px;
-    padding: 20px;
+    padding: 16px;
     display: flex;
     align-items: flex-start;
     gap: 14px;
@@ -159,10 +187,12 @@ nav {
 .clan-card.is-mine { border-color: var(--clan-color, #7c3aed); }
 
 .clan-icon {
-    width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0;
+    width: 56px; height: 56px; border-radius: 10px; flex-shrink: 0;
     background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.15);
     display: flex; align-items: center; justify-content: center; font-size: 22px;
+    overflow: hidden;
 }
+.clan-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
 .clan-body { flex: 1; min-width: 0; }
 .clan-name-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; flex-wrap: wrap; }
 .clan-card-name { font-size: 15px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -172,17 +202,11 @@ nav {
     border-color: var(--clan-color, #a855f7);
     white-space: nowrap; flex-shrink: 0;
 }
-.clan-card-desc { font-size: 12px; color: #4c1d95; margin-bottom: 12px; line-height: 1.5; min-height: 18px; }
+.clan-card-desc { font-size: 12px; color: #4c1d95; margin-bottom: 10px; line-height: 1.5; min-height: 18px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .clan-card-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-.clan-card-meta { display: flex; gap: 10px; font-size: 11px; color: #6b21a8; }
+.clan-card-meta { display: flex; gap: 10px; font-size: 11px; color: #6b21a8; flex-wrap: wrap; }
 .clan-card-meta span { display: flex; align-items: center; gap: 4px; }
 .clan-card-meta strong { color: #9a71d4; }
-.clan-join-btn {
-    background: rgba(5,150,105,0.15); border: 1px solid rgba(5,150,105,0.4);
-    color: #34d399; font-size: 11px; font-weight: 700; padding: 4px 10px;
-    border-radius: 6px; cursor: pointer; transition: background 0.15s; white-space: nowrap;
-}
-.clan-join-btn:hover { background: rgba(5,150,105,0.3); }
 .clan-mine-badge {
     background: rgba(168,85,247,0.15); border: 1px solid #4c1d95;
     color: #c084fc; font-size: 10px; font-weight: 700; padding: 3px 8px;
@@ -210,8 +234,7 @@ nav {
 .modal-close-btn {
     position: absolute; top: 16px; right: 16px;
     background: none; border: none; color: #4c1d95; font-size: 20px; cursor: pointer;
-    padding: 4px 8px; border-radius: 6px; transition: color 0.15s;
-    line-height: 1;
+    padding: 4px 8px; border-radius: 6px; transition: color 0.15s; line-height: 1;
 }
 .modal-close-btn:hover { color: #a855f7; }
 .modal-input {
@@ -252,6 +275,7 @@ nav {
     .nav-links { display: none; }
     .clans-page { padding: 32px 16px 80px; }
     .my-clan-card { flex-direction: column; gap: 16px; }
+    .clan-kits-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -264,7 +288,6 @@ nav {
   <ul class="nav-links">
     <li><a href="/">Home</a></li>
     <li><a href="/clans" class="active">Clans</a></li>
-    <li><a href="/#leaderboards">Leaderboards</a></li>
     <li><a href="/kits">Kits</a></li>
     <li><a href="/store.html">Store</a></li>
   </ul>
@@ -291,6 +314,13 @@ nav {
   <section id="my-clan-section" style="display:none">
     <div class="section-label">🛡️ MY CLAN</div>
     <div id="my-clan-card"></div>
+    <!-- CLAN KITS -->
+    <div id="clan-kits-section" class="clan-kits-section" style="display:none">
+      <div class="clan-kits-label">🎒 CLAN KITS</div>
+      <div class="clan-kits-grid" id="clan-kits-grid">
+        <div style="color:#3b1a6e;font-size:13px;">Loading kits…</div>
+      </div>
+    </div>
   </section>
 
   <!-- ALL CLANS -->
@@ -313,7 +343,7 @@ nav {
   <div class="modal-box">
     <button class="modal-close-btn" onclick="closeJoinModal()">✕</button>
     <h2>🔗 Join a Clan</h2>
-    <p>Enter the invite code shared by the clan owner. Codes can be created via the Discord bot.</p>
+    <p>Enter the invite code from the clan owner. Top right to paste your code.</p>
     <div id="join-error" class="modal-error"></div>
     <div id="join-success" class="modal-success"></div>
     <input id="join-code-input" class="modal-input" placeholder="Enter invite code..." maxlength="20" oninput="this.value=this.value.toUpperCase()">
@@ -329,6 +359,9 @@ nav {
 let currentUser = null;
 let myDiscordId = null;
 let inClan = false;
+let myClanId = null;
+let kitsData = [];
+let kitTimers = {};
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 (async function init() {
@@ -347,6 +380,11 @@ let inClan = false;
 
   renderMyClan(myRes);
   renderAllClans(clansRes, myRes.clan?.id);
+
+  // Load kits if in a clan and logged in
+  if (userRes.loggedIn && myRes.clan) {
+    loadClanKits();
+  }
 })();
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
@@ -358,10 +396,9 @@ function renderNav(user) {
   }
   myDiscordId = user.id;
   area.innerHTML = `
-    <a href="/kits" class="nav-link-btn" title="Link your in-game account">🔗 Link Account</a>
     <div class="nav-user">
-      <img src="${user.avatar}" class="nav-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-      <span class="nav-username">${escHtml(user.username)}</span>
+      <img src="${esc(user.avatar)}" class="nav-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+      <span class="nav-username">${esc(user.username)}</span>
       <a href="/logout" class="nav-logout">Logout</a>
     </div>`;
 }
@@ -371,30 +408,146 @@ function renderMyClan(data) {
   const section = document.getElementById("my-clan-section");
   if (!data.loggedIn || !data.clan) { section.style.display = "none"; return; }
   inClan = true;
+  myClanId = data.clan.id;
   const c = data.clan;
   const color = c.color || "#a855f7";
   const tag = c.clantag ? `[${c.clantag}]` : "";
   section.style.display = "block";
+
+  const imgHtml = c.image_url
+    ? `<img src="${esc(c.image_url)}" alt="${esc(c.name)}" onerror="this.parentElement.innerHTML='🛡️'">`
+    : clanSvg(color, 40);
+
   document.getElementById("my-clan-card").innerHTML = `
     <div class="my-clan-card" style="--clan-color:${color}">
-      <div class="my-clan-icon" style="border-color:${color}40;background:${color}15">
-        ${clanSvg(color, 36)}
-      </div>
+      <div class="my-clan-img">${imgHtml}</div>
       <div class="my-clan-body">
         <div class="my-clan-name-row">
-          <span class="my-clan-name">${escHtml(c.name)}</span>
-          ${tag ? `<span class="my-clan-tag" style="color:${color};border-color:${color}">${escHtml(tag)}</span>` : ""}
+          <span class="my-clan-name">${esc(c.name)}</span>
+          ${tag ? `<span class="my-clan-tag" style="color:${color};border-color:${color}">${esc(tag)}</span>` : ""}
+          <span class="online-dot" title="Active"></span>
         </div>
-        <div class="my-clan-desc">${escHtml(c.description || "No description provided.")}</div>
+        <div class="my-clan-desc">${esc(c.description || "No description provided.")}</div>
         <div class="my-clan-meta">
           <span class="meta-badge">👥 <strong>${c.member_count || 0}</strong> members</span>
-          <span class="meta-badge ${data.clan.is_owner ? 'badge-owner' : 'badge-member'}">
-            ${data.clan.is_owner ? "👑 Owner" : "🏷️ Member"}
+          <span class="meta-badge ${c.is_owner ? 'badge-owner' : 'badge-member'}">
+            ${c.is_owner ? "👑 Owner" : "🏷️ Member"}
           </span>
-          ${c.owner_discord_name ? `<span class="meta-badge">👤 <strong>${escHtml(c.owner_discord_name)}</strong></span>` : ""}
         </div>
+        <a href="https://discord.gg/playsolarix" target="_blank" class="view-details-btn">👁 View Details</a>
       </div>
     </div>`;
+}
+
+// ── Clan Kits ─────────────────────────────────────────────────────────────────
+async function loadClanKits() {
+  try {
+    const res = await fetch("/api/kits");
+    const data = await res.json();
+    kitsData = data.kits || [];
+
+    const section = document.getElementById("clan-kits-section");
+    const grid = document.getElementById("clan-kits-grid");
+
+    if (!kitsData.length) {
+      grid.innerHTML = `<div style="color:#3b1a6e;font-size:13px;">No kits configured.</div>`;
+      section.style.display = "block";
+      return;
+    }
+
+    section.style.display = "block";
+    renderClanKits(data);
+  } catch (e) {
+    console.error("Failed to load kits:", e);
+  }
+}
+
+function renderClanKits(data) {
+  const grid = document.getElementById("clan-kits-grid");
+  const hasGamertag = !!data.gamertag;
+
+  grid.innerHTML = kitsData.map(kit => {
+    let statusHtml = "";
+    let btnHtml = "";
+
+    if (!hasGamertag) {
+      statusHtml = `<span class="clan-kit-status no-link">Link account first</span>`;
+      btnHtml = `<button class="claim-kit-btn" disabled>Claim</button>`;
+    } else if (kit.onCooldown && kit.expiresAt) {
+      const ms = Math.max(0, new Date(kit.expiresAt) - Date.now());
+      statusHtml = `<span class="clan-kit-status on-cd" id="ck-status-${kit.id}">⏳ ${formatMs(ms)}</span>`;
+      btnHtml = `<button class="claim-kit-btn" disabled id="ck-btn-${kit.id}">On cooldown</button>`;
+      startKitTimer(kit.id, kit.expiresAt);
+    } else {
+      statusHtml = `<span class="clan-kit-status ready">✅ Ready to claim</span>`;
+      btnHtml = `<button class="claim-kit-btn" id="ck-btn-${kit.id}" onclick="claimClanKit(${kit.id})">Claim</button>`;
+    }
+
+    return `
+      <div class="clan-kit-item ${kit.onCooldown ? 'on-cd' : 'ready'}" id="ck-item-${kit.id}">
+        <div>
+          <div class="clan-kit-name">${esc(kit.name)}</div>
+          ${statusHtml}
+        </div>
+        ${btnHtml}
+      </div>`;
+  }).join("");
+}
+
+async function claimClanKit(kitId) {
+  const btn = document.getElementById(`ck-btn-${kitId}`);
+  if (btn) { btn.disabled = true; btn.textContent = "Claiming…"; }
+  try {
+    const r = await fetch("/api/kits/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kitId })
+    });
+    const data = await r.json();
+    if (r.ok && data.ok) {
+      const status = document.getElementById(`ck-status-${kitId}`);
+      if (status) { status.className = "clan-kit-status on-cd"; status.textContent = "⏳ Starting…"; }
+      if (btn) { btn.disabled = true; btn.textContent = "On cooldown"; }
+      if (data.expiresAt) startKitTimer(kitId, data.expiresAt);
+      const item = document.getElementById(`ck-item-${kitId}`);
+      if (item) { item.classList.remove("ready"); item.classList.add("on-cd"); }
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = "Claim"; }
+      alert(data.error || "Failed to claim kit.");
+    }
+  } catch {
+    if (btn) { btn.disabled = false; btn.textContent = "Claim"; }
+    alert("Network error.");
+  }
+}
+
+function startKitTimer(kitId, expiresAt) {
+  if (kitTimers[kitId]) clearInterval(kitTimers[kitId]);
+  const expTime = new Date(expiresAt).getTime();
+  kitTimers[kitId] = setInterval(() => {
+    const left = expTime - Date.now();
+    const status = document.getElementById(`ck-status-${kitId}`);
+    const btn = document.getElementById(`ck-btn-${kitId}`);
+    if (left <= 0) {
+      clearInterval(kitTimers[kitId]);
+      if (status) { status.className = "clan-kit-status ready"; status.textContent = "✅ Ready to claim"; }
+      if (btn) { btn.disabled = false; btn.textContent = "Claim"; btn.onclick = () => claimClanKit(kitId); }
+      const item = document.getElementById(`ck-item-${kitId}`);
+      if (item) { item.classList.remove("on-cd"); item.classList.add("ready"); }
+    } else {
+      if (status) status.textContent = `⏳ ${formatMs(left)}`;
+    }
+  }, 1000);
+}
+
+function formatMs(ms) {
+  const totalS = Math.ceil(ms / 1000);
+  const h = Math.floor(totalS / 3600);
+  const m = Math.floor((totalS % 3600) / 60);
+  const s = totalS % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 // ── All Clans ─────────────────────────────────────────────────────────────────
@@ -421,26 +574,29 @@ function renderAllClans(clans, myClanId) {
     const color = c.color || "#7c3aed";
     const tag = c.clantag ? `[${c.clantag}]` : "";
     const isMine = c.id === myClanId;
-    const owner = c.owner_discord_name || c.owner_gamertag || null;
+    const leader = c.owner_discord_name || c.owner_gamertag || null;
+
+    const imgHtml = c.image_url
+      ? `<img src="${esc(c.image_url)}" alt="${esc(c.name)}" onerror="this.parentElement.innerHTML='${clanSvg(color, 24).replace(/"/g, "&quot;")}'>">`
+      : clanSvg(color, 24);
+
     return `
       <div class="clan-card ${isMine ? 'is-mine' : ''}" style="--clan-color:${color}">
         <div class="clan-icon" style="border-color:${color}30;background:${color}10">
-          ${clanSvg(color, 24)}
+          ${imgHtml}
         </div>
         <div class="clan-body">
           <div class="clan-name-row">
-            <span class="clan-card-name">${escHtml(c.name)}</span>
-            ${tag ? `<span class="clan-card-tag" style="color:${color};border-color:${color}">${escHtml(tag)}</span>` : ""}
+            <span class="clan-card-name">${esc(c.name)}</span>
+            ${tag ? `<span class="clan-card-tag" style="color:${color};border-color:${color}">${esc(tag)}</span>` : ""}
           </div>
-          <div class="clan-card-desc">${escHtml(c.description || "No description provided.")}</div>
+          <div class="clan-card-desc">${esc(c.description || "No description provided.")}</div>
           <div class="clan-card-footer">
             <div class="clan-card-meta">
-              <span>👥 <strong>${c.member_count || 0}</strong></span>
-              ${owner ? `<span>👑 <strong>${escHtml(owner)}</strong></span>` : ""}
+              <span>👥 <strong>${c.member_count || 0}</strong> members</span>
+              ${leader ? `<span>👑 <strong>${esc(leader)}</strong></span>` : ""}
             </div>
-            ${isMine
-              ? `<span class="clan-mine-badge">✓ Your Clan</span>`
-              : (!inClan ? `<button class="clan-join-btn" onclick="openJoinModal()">Join</button>` : "")}
+            ${isMine ? `<span class="clan-mine-badge">✓ Your Clan</span>` : ""}
           </div>
         </div>
       </div>`;
@@ -483,10 +639,10 @@ async function submitJoin() {
     const data = await r.json();
     if (data.ok) {
       const s = document.getElementById("join-success");
-      s.textContent = `✅ You joined ${data.clanName}! Reload the page to see your clan.`;
+      s.textContent = `✅ You joined ${data.clanName}! The Discord bot will assign your clan role shortly.`;
       s.style.display = "block";
       btn.textContent = "Joined!";
-      setTimeout(() => window.location.reload(), 2000);
+      setTimeout(() => window.location.reload(), 2500);
     } else {
       const err = document.getElementById("join-error");
       err.textContent = data.error || "Something went wrong.";
@@ -502,7 +658,7 @@ async function submitJoin() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function escHtml(s) {
+function esc(s) {
   return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 function clanSvg(color, size) {

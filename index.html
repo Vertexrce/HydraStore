@@ -39,12 +39,12 @@ Discord
 
 <!-- ── Servers Modal ── -->
 <div id="servers-modal" class="modal-overlay" style="display:none;">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:640px;">
     <div class="modal-header">
       <h2>🖥️ Servers</h2>
       <button class="modal-close" id="modal-close-btn">✕</button>
     </div>
-    <p class="modal-sub">Click a server name to copy the connection info.</p>
+    <p class="modal-sub">Search for <strong style="color:#c4b5fd">Solarix</strong> in the Rust console server browser to connect.</p>
     <div id="servers-list" class="servers-list">
       <div class="server-loading">Loading servers…</div>
     </div>
@@ -370,35 +370,50 @@ Discord
 .modal-sub { font-size: 13px; color: #7c3aed; margin-bottom: 20px; }
 .servers-list { display: flex; flex-direction: column; gap: 10px; }
 .server-loading { color: #7c3aed; font-size: 14px; text-align: center; padding: 20px; }
+.servers-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 520px) { .servers-list { grid-template-columns: 1fr; } }
 .server-card {
   background: #0c0520;
   border: 1px solid #2d1060;
-  border-radius: 10px;
-  padding: 16px 20px;
+  border-radius: 12px;
+  padding: 18px 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s;
 }
-.server-card:hover { border-color: #7c3aed; background: #1a0840; }
-.server-card-name { font-size: 16px; font-weight: 700; color: #fff; }
-.server-card-hint { font-size: 12px; color: #5b21b6; margin-top: 3px; }
-.server-copy-btn {
-  background: #7c3aed;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
+.server-card:hover { border-color: #5b21b6; }
+.server-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.server-region-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; color: #7c3aed;
+  background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25);
+  border-radius: 6px; padding: 3px 9px;
 }
-.server-copy-btn:hover { background: #5b21b6; }
-.server-copy-btn.copied { background: #059669; }
-.no-servers { color: #5b21b6; text-align: center; padding: 24px; font-size: 14px; }
+.server-region-dot { width: 6px; height: 6px; border-radius: 50%; background: #7c3aed; }
+.server-status-badge {
+  font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 5px;
+}
+.server-status-badge.online { color: #22c55e; }
+.server-status-badge.offline { color: #6b7280; }
+.server-status-badge.soon { color: #9ca3af; }
+.server-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.server-card-name { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: 0.5px; }
+.server-card-location { font-size: 12px; color: #5b21b6; }
+.server-player-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px; border-top: 1px solid #1a0840; margin-top: 4px;
+}
+.server-player-count { font-size: 13px; color: #9a71d4; }
+.server-player-count strong { color: #c084fc; font-weight: 700; }
+.server-player-count .loading-dots { color: #5b21b6; }
+.server-coming-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; color: #6b7280;
+  background: rgba(107,114,128,0.1); border: 1px solid rgba(107,114,128,0.2);
+  border-radius: 6px; padding: 5px 12px;
+}
+.no-servers { color: #5b21b6; text-align: center; padding: 24px; font-size: 14px; grid-column: 1/-1; }
 </style>
 
 <script>
@@ -505,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => { loadClans(); loadLeaderboa
 
 async function loadServers() {
   const list = document.getElementById("servers-list");
-  list.innerHTML = '<div class="server-loading">Loading servers…</div>';
+  list.innerHTML = '<div class="server-loading" style="grid-column:1/-1">Loading servers…</div>';
   try {
     const r = await fetch("/api/public/servers");
     const servers = await r.json();
@@ -513,28 +528,62 @@ async function loadServers() {
       list.innerHTML = '<div class="no-servers">No servers configured yet. Check back soon!</div>';
       return;
     }
-    list.innerHTML = servers.map((s, i) => `
-      <div class="server-card" onclick="copyServer(${i}, '${encodeURIComponent(s.name)}')">
-        <div>
-          <div class="server-card-name">${s.name}</div>
-          <div class="server-card-hint">Click to copy server name</div>
-        </div>
-        <button class="server-copy-btn" id="copy-btn-${i}">Copy</button>
-      </div>`).join("");
+    list.innerHTML = servers.map(s => buildServerCard(s, null)).join("");
+    // Fetch live player counts in background
+    fetch("/api/public/server-status")
+      .then(r => r.json())
+      .then(statuses => {
+        statuses.forEach(st => {
+          const countEl = document.getElementById(`pc-${st.id}`);
+          const statusEl = document.getElementById(`ss-${st.id}`);
+          if (!countEl) return;
+          if (!st.online) {
+            countEl.innerHTML = `Players <span class="loading-dots">—</span> / ${st.maxPlayers}`;
+            if (statusEl) { statusEl.className = "server-status-badge offline"; statusEl.innerHTML = `<span class="server-status-dot"></span> Offline`; }
+          } else {
+            countEl.innerHTML = `Players <strong>${st.players}</strong> / ${st.maxPlayers}`;
+            if (statusEl) { statusEl.className = "server-status-badge online"; statusEl.innerHTML = `<span class="server-status-dot"></span> Online`; }
+          }
+        });
+      })
+      .catch(() => {});
   } catch {
     list.innerHTML = '<div class="no-servers">Could not load servers. Please try again.</div>';
   }
 }
 
-function copyServer(i, nameEncoded) {
-  const name = decodeURIComponent(nameEncoded);
-  navigator.clipboard.writeText(name).catch(() => {});
-  const btn = document.getElementById(`copy-btn-${i}`);
-  if (btn) {
-    btn.textContent = "Copied!";
-    btn.classList.add("copied");
-    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
-  }
+function buildServerCard(s, status) {
+  const isSoon = (s.statusLabel || "online") !== "online";
+  // Derive region from name (look for EU/US/AU etc.)
+  const regionMatch = s.name.match(/\b(EU|US|AU|NA|SA|ASIA|UK)\b/i);
+  const region = regionMatch ? regionMatch[1].toUpperCase() : "EU";
+  const location = s.location || "Rust Console";
+
+  const statusBadge = isSoon
+    ? `<span class="server-status-badge soon" id="ss-${s.id}"><span class="server-status-dot"></span> Coming Soon</span>`
+    : `<span class="server-status-badge online" id="ss-${s.id}"><span class="server-status-dot"></span> Online</span>`;
+
+  const playerRow = isSoon
+    ? `<div class="server-player-row">
+         <span class="server-player-count">Players <span class="loading-dots">—</span> / ${s.maxPlayers}</span>
+         <span class="server-coming-badge">🔒 Coming Soon</span>
+       </div>`
+    : `<div class="server-player-row">
+         <span class="server-player-count" id="pc-${s.id}">Players <span class="loading-dots">…</span> / ${s.maxPlayers}</span>
+       </div>`;
+
+  return `
+    <div class="server-card">
+      <div class="server-card-top">
+        <span class="server-region-badge"><span class="server-region-dot"></span>${region}</span>
+        ${statusBadge}
+      </div>
+      <div>
+        <div class="server-card-name">${escHtml(s.name)}</div>
+        <div class="server-card-location">${escHtml(location)}</div>
+      </div>
+      ${playerRow}
+    </div>`;
 }
 </script>
 

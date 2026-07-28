@@ -21,13 +21,11 @@ nav {
 .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .nav-links a.active { color: #a855f7; }
 .nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
-@media (max-width: 768px) { .nav-right .nav-discord-server { display: none; } }
 .nav-btn { background: #7c3aed; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; transition: opacity 0.15s; }
 .nav-btn:hover { opacity: 0.85; }
 .nav-cog { color: #4a2080; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; }
 .nav-cog:hover { color: #a855f7; }
 
-/* ── Hamburger ── */
 .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
 .hamburger span { display: block; width: 24px; height: 2px; background: #a855f7; border-radius: 2px; transition: all 0.25s; }
 .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
@@ -48,7 +46,6 @@ nav {
 .page-header h1 { font-size: 30px; font-weight: 800; color: #fff; }
 .page-header p { color: #7c3aed; font-size: 14px; margin-top: 5px; }
 
-/* ── Alert cards ── */
 .alert-card {
   border-radius: 12px; padding: 18px 22px;
   margin-bottom: 24px; display: flex; align-items: flex-start; gap: 14px;
@@ -56,11 +53,8 @@ nav {
 }
 .alert-card.info { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.25); color: #c4b5fd; }
 .alert-card.warn { background: rgba(234,179,8,0.06); border: 1px solid rgba(234,179,8,0.2); color: #fcd34d; }
-.alert-card.error { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
 .alert-icon { font-size: 20px; flex-shrink: 0; }
-.alert-title { font-weight: 700; margin-bottom: 2px; }
 
-/* ── Link req ── */
 .link-req-card {
   background: #130929; border: 1px solid #1e0840; border-radius: 14px;
   padding: 28px 24px; margin-bottom: 28px;
@@ -71,8 +65,7 @@ nav {
 .link-status-pill {
   display: flex; align-items: center; gap: 7px;
   padding: 8px 16px; border-radius: 20px;
-  font-size: 12px; font-weight: 700;
-  border: 1px solid;
+  font-size: 12px; font-weight: 700; border: 1px solid;
 }
 .link-status-pill.ok { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: #22c55e; }
 .link-status-pill.no { background: rgba(239,68,68,0.07); border-color: rgba(239,68,68,0.25); color: #f87171; }
@@ -97,7 +90,6 @@ nav {
 .gt-status-msg.ok { color: #34d399; }
 .gt-status-msg.err { color: #f87171; }
 
-/* ── Kits ── */
 .section-hd {
   display: flex; align-items: center; gap: 10px;
   font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
@@ -154,7 +146,6 @@ nav {
   background: #5865f2; color: #fff;
 }
 .prompt-btn:hover { opacity: 0.88; }
-.prompt-btn.green { background: #059669; }
 
 @media (max-width: 680px) {
   nav { padding: 0 16px; }
@@ -191,7 +182,6 @@ nav {
 <div class="mobile-menu" id="mobile-menu">
   <a href="/">Home</a><a href="/clans">Clans</a>
   <a href="/kits">Kits</a><a href="/store.html">Store</a>
-  <a href="/link">🔗 Link Account</a>
   <div id="mob-account"></div>
 </div>
 
@@ -206,7 +196,7 @@ nav {
 </div>
 
 <script>
-const state = { loggedIn: false, gamertag: null, botLinked: false, kits: [], timers: {} };
+const state = { loggedIn: false, gamertag: null, kits: [], timers: {} };
 
 function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
@@ -220,16 +210,14 @@ async function init() {
       <div style="display:flex;align-items:center;gap:8px;">
         <img src="${esc(user.avatar)}" style="width:30px;height:30px;border-radius:50%;border:2px solid #7c3aed;" alt="">
         <span style="font-size:13px;color:#e0e6f0;font-weight:600;">${esc(user.username)}</span>
-        <a href="/link" style="color:#a855f7;font-size:14px;text-decoration:none;" title="Link Account">🔗</a>
         <a href="/logout" style="color:#f87171;font-size:13px;font-weight:600;text-decoration:none;">Logout</a>
       </div>`;
     document.getElementById("mob-account").innerHTML =
-      `<a href="/link">🔗 Link Account</a><a href="/logout" style="color:#f87171">Logout</a>`;
+      `<a href="/logout" style="color:#f87171">Logout</a>`;
   }
 
   state.loggedIn = data.loggedIn;
   state.gamertag = data.gamertag || null;
-  state.botLinked = data.botLinked || false;
   state.kits = data.kits || [];
   render();
 }
@@ -247,29 +235,23 @@ function render() {
     return;
   }
 
-  const webOk = !!state.gamertag;
-  const botOk = state.botLinked;
-  const fullyLinked = webOk && botOk;
+  const linked = !!state.gamertag;
 
   let linkSection = `
     <div class="link-req-card">
       <div class="link-req-title">🔗 Account Link Status</div>
-      <div class="link-req-sub">Both links are required to claim kits. Link your in-game name here, then use <code style="color:#a855f7">/link</code> in Discord too.</div>
+      <div class="link-req-sub">Link your in-game name to claim kits. You can also use <code style="color:#a855f7">/link</code> in Discord.</div>
       <div class="link-status-row">
-        <div class="link-status-pill ${webOk ? "ok" : "no"}">
+        <div class="link-status-pill ${linked ? "ok" : "no"}">
           <span class="link-dot"></span>
-          Web Link: ${webOk ? esc(state.gamertag) : "Not linked"}
-        </div>
-        <div class="link-status-pill ${botOk ? "ok" : "no"}">
-          <span class="link-dot"></span>
-          Discord Bot: ${botOk ? "Linked" : "Not linked — use /link"}
+          In-game Name: ${linked ? esc(state.gamertag) : "Not linked"}
         </div>
       </div>`;
 
-  if (!webOk) {
+  if (!linked) {
     linkSection += `
       <div class="gamertag-row">
-        <input type="text" class="gt-input" id="gt-input" placeholder="Your exact in-game gamertag…">
+        <input type="text" class="gt-input" id="gt-input" placeholder="Your exact in-game name…">
         <button class="gt-btn" id="gt-btn" onclick="saveGamertag()">Link</button>
       </div>
       <div class="gt-status-msg" id="gt-status"></div>`;
@@ -277,7 +259,7 @@ function render() {
     linkSection += `
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <div class="gamertag-row" style="max-width:320px;margin:0;">
-          <input type="text" class="gt-input" id="gt-input" value="${esc(state.gamertag)}" placeholder="Update gamertag…">
+          <input type="text" class="gt-input" id="gt-input" value="${esc(state.gamertag)}" placeholder="Update in-game name…">
           <button class="gt-btn" id="gt-btn" onclick="saveGamertag()">Update</button>
         </div>
       </div>
@@ -286,15 +268,15 @@ function render() {
 
   linkSection += `</div>`;
 
-  if (!fullyLinked) {
+  if (!linked) {
     linkSection += `
       <div class="alert-card warn">
         <span class="alert-icon">⚠️</span>
         <div>
-          <div class="alert-title">Link required to claim kits</div>
-          ${!webOk ? "Set your in-game name above. " : ""}
-          ${!botOk ? `Also run <code style="color:#fcd34d">/link</code> in our <a href="https://discord.gg/playsolarix" target="_blank" style="color:#fcd34d">Discord</a> to complete the link. ` : ""}
-          <a href="/link" style="color:#fcd34d;font-weight:700;">View full instructions →</a>
+          <strong>Link required to claim kits.</strong>
+          Enter your exact in-game name above to get started.
+          You can also run <code style="color:#fcd34d">/link</code> in our
+          <a href="https://discord.gg/playsolarix" target="_blank" style="color:#fcd34d">Discord</a> and it will sync automatically.
         </div>
       </div>`;
   }
@@ -310,7 +292,6 @@ function render() {
     <div class="section-hd">🎒 Available Kits</div>
     ${kitsHtml}`;
 
-  // Start cooldown timers
   state.kits.forEach(kit => {
     if (kit.onCooldown && kit.expiresAt) startCooldownTimer(kit.id, kit.expiresAt);
   });
@@ -327,11 +308,9 @@ function buildKitCard(kit) {
   if (kit.onCooldown) {
     cardClass += " on-cooldown";
     const timeLeft = kit.expiresAt ? Math.max(0, new Date(kit.expiresAt) - Date.now()) : 0;
-    btnHtml = `<button class="claim-btn cooldown" disabled id="claim-btn-${kit.id}">
-      ⏳ ${formatMs(timeLeft)}
-    </button>`;
+    btnHtml = `<button class="claim-btn cooldown" disabled id="claim-btn-${kit.id}">⏳ ${formatMs(timeLeft)}</button>`;
   } else {
-    btnHtml = `<button class="claim-btn" id="claim-btn-${kit.id}" onclick="claimKit(${kit.id})" ${!state.gamertag ? "disabled" : ""}>
+    btnHtml = `<button class="claim-btn" id="claim-btn-${kit.id}" onclick="claimKit(${kit.id})" ${!state.gamertag ? "disabled title='Link your in-game name first'" : ""}>
       ⬇ Claim Kit
     </button>`;
   }
@@ -372,7 +351,7 @@ function startCooldownTimer(kitId, expiresAt) {
     const btn = document.getElementById(`claim-btn-${kitId}`);
     if (left <= 0) {
       clearInterval(state.timers[kitId]);
-      if (btn) { btn.className = "claim-btn"; btn.disabled = false; btn.textContent = "⬇ Claim Kit"; btn.onclick = () => claimKit(kitId); }
+      if (btn) { btn.className = "claim-btn"; btn.disabled = !state.gamertag; btn.textContent = "⬇ Claim Kit"; btn.onclick = () => claimKit(kitId); }
       const card = document.getElementById(`kit-card-${kitId}`);
       if (card) card.classList.remove("on-cooldown");
     } else {
@@ -415,7 +394,7 @@ async function saveGamertag() {
   const statusEl = document.getElementById("gt-status");
   const btn = document.getElementById("gt-btn");
   const gt = input?.value?.trim();
-  if (!gt) { if (statusEl) { statusEl.textContent = "Enter your gamertag."; statusEl.className = "gt-status-msg err"; } return; }
+  if (!gt) { if (statusEl) { statusEl.textContent = "Enter your in-game name."; statusEl.className = "gt-status-msg err"; } return; }
   if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
   try {
     const r = await fetch("/api/kits/gamertag", {
@@ -425,7 +404,7 @@ async function saveGamertag() {
     const data = await r.json();
     if (r.ok) {
       state.gamertag = gt;
-      if (statusEl) { statusEl.textContent = "✅ Gamertag saved!"; statusEl.className = "gt-status-msg ok"; }
+      if (statusEl) { statusEl.textContent = "✅ In-game name saved!"; statusEl.className = "gt-status-msg ok"; }
       setTimeout(() => { render(); init(); }, 1000);
     } else {
       if (statusEl) { statusEl.textContent = `✗ ${data.error}`; statusEl.className = "gt-status-msg err"; }

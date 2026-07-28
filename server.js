@@ -176,7 +176,10 @@ async function setupDB() {
             rcon_host TEXT NOT NULL,
             rcon_port INTEGER DEFAULT 28016,
             rcon_password TEXT DEFAULT '',
-            sort_order INTEGER DEFAULT 0
+            sort_order INTEGER DEFAULT 0,
+            max_players INTEGER DEFAULT 100,
+            location TEXT DEFAULT '',
+            status_label TEXT DEFAULT 'online'
         );
 
         CREATE TABLE IF NOT EXISTS web_kit_configs (
@@ -212,7 +215,8 @@ async function setupDB() {
             owner_id TEXT,
             created_at INTEGER,
             guild_id TEXT,
-            server_id TEXT
+            server_id TEXT,
+            image_url TEXT DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS clan_members_mirror (
@@ -250,6 +254,10 @@ async function setupDB() {
     `);
 
     await pool.query(`ALTER TABLE clans_mirror ADD COLUMN IF NOT EXISTS owner_discord_name TEXT`);
+    await pool.query(`ALTER TABLE clans_mirror ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE web_game_servers ADD COLUMN IF NOT EXISTS max_players INTEGER DEFAULT 100`);
+    await pool.query(`ALTER TABLE web_game_servers ADD COLUMN IF NOT EXISTS location TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE web_game_servers ADD COLUMN IF NOT EXISTS status_label TEXT DEFAULT 'online'`);
 
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS role_id TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS stripe_link TEXT DEFAULT ''`);
@@ -376,11 +384,54 @@ app.get("/api/admin-status", (req, res) => {
     res.json({ isAdmin: !!req.session.adminLoggedIn });
 });
 
-// ── Public: game servers list (name only — no RCON details exposed) ───────────
+// ── Public: game servers list (name, location, status — no RCON details) ─────
 app.get("/api/public/servers", async (req, res) => {
     try {
-        const { rows } = await pool.query("SELECT name FROM web_game_servers ORDER BY sort_order, id");
-        res.json(rows.map(r => ({ name: r.name })));
+        const { rows } = await pool.query(
+            "SELECT id, name, location, status_label, max_players FROM web_game_servers ORDER BY sort_order, id"
+        );
+        res.json(rows.map(r => ({
+            id: r.id,
+            name: r.name,
+            location: r.location || "",
+            statusLabel: r.status_label || "online",
+            maxPlayers: r.max_players || 100
+        })));
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ── Public: live player counts (queries RCON, cached 60s) ────────────────────
+const _playerCountCache = new Map(); // id → { count, ts }
+app.get("/api/public/server-status", async (req, res) => {
+    try {
+        const { rows } = await pool.query(
+            "SELECT id, name, rcon_host, rcon_port, rcon_password, max_players, status_label FROM web_game_servers ORDER BY sort_order, id"
+        );
+        const now = Date.now();
+        const results = await Promise.all(rows.map(async s => {
+            // Only query RCON for servers that are "online"
+            if ((s.status_label || "online") !== "online") {
+                return { id: s.id, online: false, players: null, maxPlayers: s.max_players || 100 };
+            }
+            const cached = _playerCountCache.get(s.id);
+            if (cached && now - cached.ts < 60000) {
+                return { id: s.id, online: true, players: cached.count, maxPlayers: s.max_players || 100 };
+            }
+            try {
+                const response = await sendRconCommand(s.rcon_host, s.rcon_port, s.rcon_password, "status");
+                // Parse "players: X (Y max)" from Rust RCON status output
+                const match = (response || "").match(/players\s*:\s*(\d+)/i);
+                const count = match ? parseInt(match[1], 10) : 0;
+                _playerCountCache.set(s.id, { count, ts: now });
+                return { id: s.id, online: true, players: count, maxPlayers: s.max_players || 100 };
+            } catch {
+                // RCON unreachable — treat as offline
+                return { id: s.id, online: false, players: null, maxPlayers: s.max_players || 100 };
+            }
+        }));
+        res.json(results);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -762,7 +813,7 @@ app.post("/api/admin/give-kit", checkAdminJson, async (req, res) => {
         if (!server.rcon_host) return res.status(400).json({ error: "Server has no RCON host configured" });
 
         // Send RCON command
-        await sendRconCommand(server.rcon_host, server.rcon_port, server.rcon_password, `kit ${kitName} ${gamertag}`);
+        await sendRconCommand(server.rcon_host, server.rcon_port, server.rcon_password, `kit givetoplayer "${kitName}" "${gamertag}"`);
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
@@ -954,7 +1005,7 @@ app.post("/api/kits/claim", async (req, res) => {
 
         // Send RCON command
         try {
-            await sendRconCommand(kit.rcon_host, kit.rcon_port, kit.rcon_password, `kit ${kit.name} ${gamertag}`);
+            await sendRconCommand(kit.rcon_host, kit.rcon_port, kit.rcon_password, `kit givetoplayer "${kit.name}" "${gamertag}"`);
         } catch (e) {
             return res.status(500).json({ error: "RCON connection failed — server may be offline." });
         }
@@ -1104,12 +1155,12 @@ app.post("/api/sync/clans", express.json(), async (req, res) => {
 
         for (const c of clans) {
             await pool.query(
-                `INSERT INTO clans_mirror (id, name, clantag, color, description, owner_id, created_at, guild_id, server_id, owner_discord_name)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-                 ON CONFLICT (id) DO UPDATE SET name=$2, clantag=$3, color=$4, description=$5, owner_id=$6, created_at=$7, guild_id=$8, server_id=$9, owner_discord_name=$10`,
+                `INSERT INTO clans_mirror (id, name, clantag, color, description, owner_id, created_at, guild_id, server_id, owner_discord_name, image_url)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+                 ON CONFLICT (id) DO UPDATE SET name=$2, clantag=$3, color=$4, description=$5, owner_id=$6, created_at=$7, guild_id=$8, server_id=$9, owner_discord_name=$10, image_url=$11`,
                 [c.id, c.name, c.clantag || null, c.color || null, c.description || null,
                  String(c.owner_id || ""), c.created_at || null, String(c.guild_id || ""),
-                 String(c.server_id || ""), c.owner_discord_name || null]
+                 String(c.server_id || ""), c.owner_discord_name || null, c.image_url || null]
             );
         }
         for (const m of members) {
@@ -1247,12 +1298,13 @@ app.get("/api/public/clans", async (req, res) => {
     try {
         const { rows: clans } = await pool.query(`
             SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.created_at,
+                   c.owner_discord_name, c.image_url,
                    COUNT(DISTINCT cm.user_id)::int AS member_count
             FROM clans_mirror c
             LEFT JOIN clan_members_mirror cm ON cm.clan_id = c.id
             GROUP BY c.id
             ORDER BY member_count DESC, c.created_at DESC NULLS LAST
-            LIMIT 50
+            LIMIT 100
         `);
 
         if (clans.length > 0) {

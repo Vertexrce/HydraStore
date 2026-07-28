@@ -1,19 +1,21 @@
 {
-  "name": "solarix",
-  "version": "1.0.0",
-  "main": "server.js",
+  "name": "@workspace/api-server",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "start": "node server.js"
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'No build step needed'"
   },
   "dependencies": {
     "connect-pg-simple": "^10.0.0",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.0",
-    "express-session": "^1.18.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
-    "pg": "^8.13.0",
-    "stripe": "^17.0.0",
-    "ws": "^8.18.0"
+    "pg": "^8.14.1",
+    "stripe": "^17.7.0",
+    "ws": "^8.18.2"
   }
 }
