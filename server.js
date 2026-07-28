@@ -1021,54 +1021,101 @@ app.get("/link", (req, res) => res.redirect("/kits"));
 // ── /clans → redirect to homepage clans section ───────────────────────────────
 app.get("/clans", (req, res) => res.redirect("/#clans"));
 
-// ── Public: Clans (reads from bot SQLite) ────────────────────────────────────
-app.get("/api/public/clans", (req, res) => {
-    if (!_botDbPath) return res.json([]);
+// ── Bot SQLite helper — opens fresh each request so startup-time file absence is fine ──
+function openBotDb() {
+    const p = process.env.BOT_DB_PATH || "";
+    if (!p) return null;
     try {
         const { DatabaseSync } = require("node:sqlite");
-        const db = new DatabaseSync(_botDbPath, { readOnly: true });
+        return new DatabaseSync(p, { readOnly: true });
+    } catch (e) {
+        console.warn("⚠️  openBotDb failed:", e.message);
+        return null;
+    }
+}
+
+// ── Public: Clans (reads from bot SQLite) ────────────────────────────────────
+app.get("/api/public/clans", (req, res) => {
+    const db = openBotDb();
+    if (!db) return res.json([]);
+    try {
+        // Simple query first — get clans + member count without complex joins
         const clans = db.prepare(`
             SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.created_at,
-                   COUNT(DISTINCT cm.user_id) as member_count,
-                   COALESCE(SUM(cps.kills), 0) as total_kills,
-                   la.account_name as owner_gamertag
+                   COUNT(DISTINCT cm.user_id) as member_count
             FROM clans c
             LEFT JOIN clan_members cm ON cm.clan_id = c.id
-            LEFT JOIN clan_player_stats cps ON cps.user_id = cm.user_id
-                AND cps.guild_id = c.guild_id AND cps.server_id = c.server_id
-            LEFT JOIN linked_accounts la ON CAST(la.discord_user_id AS TEXT) = CAST(c.owner_id AS TEXT)
             GROUP BY c.id
             ORDER BY member_count DESC, c.created_at DESC
             LIMIT 50
         `).all();
+
+        // Enrich with owner gamertag from linked_accounts
+        const enriched = clans.map(c => {
+            let owner_gamertag = null;
+            try {
+                const row = db.prepare(
+                    "SELECT account_name FROM linked_accounts WHERE CAST(discord_user_id AS TEXT)=? LIMIT 1"
+                ).get(String(c.owner_id));
+                owner_gamertag = row ? row.account_name : null;
+            } catch {}
+
+            // Total kills for this clan
+            let total_kills = 0;
+            try {
+                const ks = db.prepare(
+                    "SELECT COALESCE(SUM(cps.kills),0) as k FROM clan_player_stats cps JOIN clan_members cm ON CAST(cm.user_id AS TEXT)=CAST(cps.user_id AS TEXT) WHERE cm.clan_id=?"
+                ).get(c.id);
+                total_kills = ks ? ks.k : 0;
+            } catch {}
+
+            return { ...c, owner_gamertag, total_kills };
+        });
+
         db.close();
-        res.json(clans);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+        res.json(enriched);
+    } catch (e) {
+        try { db.close(); } catch {}
+        console.error("clans endpoint error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ── Public: Leaderboard (reads from bot SQLite) ───────────────────────────────
 app.get("/api/public/leaderboard", (req, res) => {
-    if (!_botDbPath) return res.json([]);
+    const db = openBotDb();
+    if (!db) return res.json([]);
     try {
-        const { DatabaseSync } = require("node:sqlite");
-        const db = new DatabaseSync(_botDbPath, { readOnly: true });
         const rows = db.prepare(`
             SELECT cps.user_id, cps.gamertag, cps.kills, cps.deaths,
-                   c.name as clan_name, c.clantag as clan_tag, c.color as clan_color,
                    CASE WHEN cps.deaths = 0 THEN CAST(cps.kills AS FLOAT)
                         ELSE ROUND(CAST(cps.kills AS FLOAT) / cps.deaths, 2) END as kd
             FROM clan_player_stats cps
-            LEFT JOIN clan_members cm ON CAST(cm.user_id AS TEXT) = CAST(cps.user_id AS TEXT)
-            LEFT JOIN clans c ON c.id = cm.clan_id
-                AND c.guild_id = cps.guild_id AND c.server_id = cps.server_id
             WHERE cps.kills > 0 OR cps.deaths > 0
-            GROUP BY cps.user_id, cps.guild_id, cps.server_id
+            GROUP BY cps.user_id
             ORDER BY cps.kills DESC
             LIMIT 50
         `).all();
+
+        // Enrich with clan info per player
+        const enriched = rows.map(p => {
+            let clan_name = null, clan_tag = null, clan_color = null;
+            try {
+                const cm = db.prepare(
+                    "SELECT c.name, c.clantag, c.color FROM clan_members cm JOIN clans c ON c.id=cm.clan_id WHERE CAST(cm.user_id AS TEXT)=? LIMIT 1"
+                ).get(String(p.user_id));
+                if (cm) { clan_name = cm.name; clan_tag = cm.clantag; clan_color = cm.color; }
+            } catch {}
+            return { ...p, clan_name, clan_tag, clan_color };
+        });
+
         db.close();
-        res.json(rows);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+        res.json(enriched);
+    } catch (e) {
+        try { db.close(); } catch {}
+        console.error("leaderboard endpoint error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 setupDB()
