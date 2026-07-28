@@ -1015,6 +1015,17 @@ app.post("/api/admin/web-kits", checkAdminJson, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Debug: show what's on the volume (admin only) ────────────────────────────
+app.get("/api/debug/volume", checkAdminJson, (req, res) => {
+    const fs = require("fs");
+    const botPath = process.env.BOT_DB_PATH || "(not set)";
+    const dir = require("path").dirname(botPath);
+    let files = [];
+    try { files = fs.readdirSync(dir); } catch (e) { files = [`ERROR reading ${dir}: ${e.message}`]; }
+    const exists = botPath !== "(not set)" && fs.existsSync(botPath);
+    res.json({ BOT_DB_PATH: botPath, dir, dir_contents: files, file_exists: exists });
+});
+
 // ── /link → redirect to kits (where gamertag linking lives) ──────────────────
 app.get("/link", (req, res) => res.redirect("/kits"));
 
