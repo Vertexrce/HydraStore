@@ -303,6 +303,20 @@ async function setupDB() {
         );
     `);
     await pool.query(`ALTER TABLE web_kit_configs ADD COLUMN IF NOT EXISTS is_public INTEGER DEFAULT 0`);
+    await pool.query(`ALTER TABLE gem_shop_items ADD COLUMN IF NOT EXISTS quantity_per_purchase INTEGER DEFAULT 1`);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS casino_log (
+            id BIGSERIAL PRIMARY KEY,
+            discord_id TEXT NOT NULL,
+            game TEXT NOT NULL,
+            wager INTEGER NOT NULL,
+            outcome TEXT NOT NULL,
+            payout INTEGER NOT NULL,
+            net INTEGER NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
 
     const { rows } = await pool.query("SELECT COUNT(*) FROM store_items");
     if (parseInt(rows[0].count) === 0) {
@@ -819,6 +833,15 @@ app.get("/api/admin/player-links", checkAdminJson, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+app.delete("/api/admin/player-links/:discordId", checkAdminJson, async (req, res) => {
+    const { discordId } = req.params;
+    if (!discordId) return res.status(400).json({ error: "Missing discordId" });
+    try {
+        await pool.query("DELETE FROM web_player_links WHERE discord_id = $1", [discordId]);
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Admin: give kit to user's kits tab (not directly in-game) ────────────────
 app.post("/api/admin/give-kit", checkAdminJson, async (req, res) => {
     const { player, kitId, kitName } = req.body;
@@ -920,6 +943,14 @@ app.post("/api/kits/gamertag", async (req, res) => {
     const { gamertag } = req.body;
     if (!gamertag?.trim()) return res.status(400).json({ error: "Gamertag required" });
     try {
+        // Check if this gamertag is already linked to a DIFFERENT discord account
+        const { rows: existing } = await pool.query(
+            "SELECT discord_id FROM web_player_links WHERE LOWER(gamertag) = LOWER($1) AND discord_id != $2",
+            [gamertag.trim(), req.user.id]
+        );
+        if (existing[0]) {
+            return res.status(409).json({ error: "This username is already being used — try another one." });
+        }
         await pool.query(
             `INSERT INTO web_player_links (discord_id, gamertag, updated_at)
              VALUES ($1, $2, NOW())
@@ -1184,13 +1215,18 @@ app.get("/api/gems/me", async (req, res) => {
         await accrueGems(req.user.id);
         const { rows: cr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
         const balance = parseFloat(cr[0]?.balance || 0);
-        const { rows: kitRows } = await pool.query("SELECT COUNT(*) as cnt FROM user_kits WHERE discord_id = $1", [req.user.id]);
-        const kitCount = parseInt(kitRows[0]?.cnt || 0);
+        const { rows: kitRows } = await pool.query(
+            `SELECT k.id, k.name FROM user_kits uk
+             JOIN web_kit_configs k ON k.id = uk.kit_id
+             WHERE uk.discord_id = $1 ORDER BY k.sort_order, k.id`,
+            [req.user.id]
+        );
+        const kitCount = kitRows.length;
         const { rows: mxRows } = await pool.query("SELECT multiplier FROM gem_multipliers WHERE discord_id = $1", [req.user.id]);
         const multiplier = parseFloat(mxRows[0]?.multiplier || 1);
         const baseRate = 10 + kitCount * 10;
         const gemsPerHour = Math.round(baseRate * multiplier);
-        res.json({ loggedIn: true, balance, gemsPerHour, multiplier, kitCount, baseRate });
+        res.json({ loggedIn: true, balance, gemsPerHour, multiplier, kitCount, baseRate, kits: kitRows.map(k => ({ id: k.id, name: k.name })) });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -1198,7 +1234,7 @@ app.get("/api/gems/me", async (req, res) => {
 app.get("/api/gem-shop", async (req, res) => {
     try {
         const { rows } = await pool.query(
-            "SELECT id, name, shortname, category, gem_cost, sort_order FROM gem_shop_items WHERE enabled = 1 ORDER BY sort_order, id"
+            "SELECT id, name, shortname, category, gem_cost, quantity_per_purchase, sort_order FROM gem_shop_items WHERE enabled = 1 ORDER BY sort_order, id"
         );
         res.json(rows);
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -1240,8 +1276,9 @@ app.post("/api/gem-shop/buy", async (req, res) => {
             rconHost = srv[0].rcon_host; rconPort = srv[0].rcon_port; rconPassword = srv[0].rcon_password;
         }
 
-        // Send RCON — give item
-        await sendRconCommand(rconHost, rconPort, rconPassword, `inventory.giveto "${gamertag}" "${item.shortname}" ${quantity}`);
+        // Send RCON — give item (quantity_per_purchase sets how many per unit)
+        const qtyPerPurchase = item.quantity_per_purchase || 1;
+        await sendRconCommand(rconHost, rconPort, rconPassword, `inventory.giveto "${gamertag}" "${item.shortname}" ${qtyPerPurchase * quantity}`);
 
         // Deduct gems
         await pool.query("UPDATE store_credits SET balance = balance - $1, updated_at = NOW() WHERE discord_id = $2", [totalCost, req.user.id]);
@@ -1260,7 +1297,7 @@ app.post("/api/gem-shop/buy", async (req, res) => {
 // ── Admin: Gem Shop management ────────────────────────────────────────────────
 app.get("/api/admin/gem-shop", checkAdminJson, async (req, res) => {
     try {
-        const { rows } = await pool.query("SELECT gs.*, s.name as server_name FROM gem_shop_items gs LEFT JOIN web_game_servers s ON s.id = gs.server_id ORDER BY gs.sort_order, gs.id");
+        const { rows } = await pool.query("SELECT gs.id, gs.name, gs.shortname, gs.category, gs.gem_cost, gs.quantity_per_purchase, gs.server_id, gs.sort_order, gs.enabled, s.name as server_name FROM gem_shop_items gs LEFT JOIN web_game_servers s ON s.id = gs.server_id ORDER BY gs.sort_order, gs.id");
         res.json(rows);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -1273,12 +1310,13 @@ app.post("/api/admin/gem-shop", checkAdminJson, async (req, res) => {
         for (let i = 0; i < items.length; i++) {
             const it = items[i];
             if (!it.name || !it.shortname) continue;
+            const qpp = parseInt(it.quantity_per_purchase) || 1;
             if (it.id) {
-                await pool.query("INSERT INTO gem_shop_items (id, name, shortname, category, gem_cost, server_id, sort_order, enabled) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-                    [it.id, it.name, it.shortname, it.category||"Weapons", parseInt(it.gem_cost)||10, it.server_id||null, i, it.enabled===false?0:1]);
+                await pool.query("INSERT INTO gem_shop_items (id, name, shortname, category, gem_cost, quantity_per_purchase, server_id, sort_order, enabled) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+                    [it.id, it.name, it.shortname, it.category||"Weapons", parseInt(it.gem_cost)||10, qpp, it.server_id||null, i, it.enabled===false?0:1]);
             } else {
-                await pool.query("INSERT INTO gem_shop_items (name, shortname, category, gem_cost, server_id, sort_order, enabled) VALUES ($1,$2,$3,$4,$5,$6,$7)",
-                    [it.name, it.shortname, it.category||"Weapons", parseInt(it.gem_cost)||10, it.server_id||null, i, it.enabled===false?0:1]);
+                await pool.query("INSERT INTO gem_shop_items (name, shortname, category, gem_cost, quantity_per_purchase, server_id, sort_order, enabled) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+                    [it.name, it.shortname, it.category||"Weapons", parseInt(it.gem_cost)||10, qpp, it.server_id||null, i, it.enabled===false?0:1]);
             }
         }
         try { await pool.query("SELECT setval('gem_shop_items_id_seq', COALESCE((SELECT MAX(id) FROM gem_shop_items), 1))"); } catch {}
@@ -1683,6 +1721,78 @@ app.get("/api/public/leaderboard", async (req, res) => {
         console.error("leaderboard SQLite fallback error:", e.message);
         res.status(500).json({ error: e.message });
     }
+});
+
+// ── Casino ────────────────────────────────────────────────────────────────────
+app.post("/api/casino/play", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const { game, wager } = req.body;
+    const amt = parseInt(wager);
+    if (!game || !amt || amt < 1 || amt > 50000) return res.status(400).json({ error: "Invalid game or wager (1–50000 gems)" });
+
+    try {
+        const { rows: cr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        const balance = parseFloat(cr[0]?.balance || 0);
+        if (balance < amt) return res.status(400).json({ error: `Not enough gems. You have ${Math.floor(balance)}.` });
+
+        let outcome, payout, multiplier;
+        const rand = Math.random();
+
+        if (game === "coinflip") {
+            // 50/50 — win 2x or lose
+            if (rand < 0.5) { outcome = "win"; payout = amt * 2; multiplier = 2; }
+            else { outcome = "lose"; payout = 0; multiplier = 0; }
+        } else if (game === "dice") {
+            // Roll 1-6: 6 = 4x, 5 = 2x, 4 = 1.5x, 1-3 = lose
+            const roll = Math.ceil(rand * 6);
+            if (roll === 6) { outcome = `dice:${roll}`; payout = amt * 4; multiplier = 4; }
+            else if (roll === 5) { outcome = `dice:${roll}`; payout = amt * 2; multiplier = 2; }
+            else if (roll === 4) { outcome = `dice:${roll}`; payout = Math.floor(amt * 1.5); multiplier = 1.5; }
+            else { outcome = `dice:${roll}`; payout = 0; multiplier = 0; }
+        } else if (game === "slots") {
+            // 3 symbols from pool; matching pays out
+            const symbols = ["💎","⚡","🎯","🔥","⭐","🎰"];
+            const r1 = symbols[Math.floor(Math.random()*symbols.length)];
+            const r2 = symbols[Math.floor(Math.random()*symbols.length)];
+            const r3 = symbols[Math.floor(Math.random()*symbols.length)];
+            outcome = `slots:${r1}${r2}${r3}`;
+            if (r1 === r2 && r2 === r3) {
+                if (r1 === "💎") { payout = amt * 10; multiplier = 10; }
+                else { payout = amt * 5; multiplier = 5; }
+            } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+                payout = Math.floor(amt * 1.5); multiplier = 1.5;
+            } else { payout = 0; multiplier = 0; }
+        } else {
+            return res.status(400).json({ error: "Unknown game" });
+        }
+
+        const net = payout - amt;
+        // Update balance
+        await pool.query(
+            `INSERT INTO store_credits (discord_id, balance, updated_at) VALUES ($1, GREATEST(0, $2::numeric + $3), NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET balance = GREATEST(0, store_credits.balance - $2 + $3), updated_at = NOW()`,
+            [req.user.id, amt, payout]
+        );
+        await pool.query("INSERT INTO credit_transactions (discord_id, amount, reason, type) VALUES ($1,$2,$3,'casino')",
+            [req.user.id, net, `Casino ${game}: ${outcome}`]);
+        await pool.query("INSERT INTO casino_log (discord_id, game, wager, outcome, payout, net) VALUES ($1,$2,$3,$4,$5,$6)",
+            [req.user.id, game, amt, outcome, payout, net]);
+
+        const { rows: nr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        const newBalance = parseFloat(nr[0]?.balance || 0);
+        res.json({ ok: true, outcome, payout, net, multiplier, newBalance });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/casino/history", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    try {
+        const { rows } = await pool.query(
+            "SELECT game, wager, outcome, payout, net, created_at FROM casino_log WHERE discord_id=$1 ORDER BY created_at DESC LIMIT 20",
+            [req.user.id]
+        );
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── Gem accrual helper ────────────────────────────────────────────────────────

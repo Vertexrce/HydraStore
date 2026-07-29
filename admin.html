@@ -443,7 +443,7 @@
                     <input type="number" id="new-gs-cost" value="20" min="1">
                 </div>
             </div>
-            <div class="grid-2">
+            <div class="grid-3">
                 <div class="field">
                     <label>Game Server</label>
                     <select id="new-gs-server"><option value="">— Default (first server) —</option></select>
@@ -451,6 +451,11 @@
                 <div class="field">
                     <label>Shortname (auto-filled)</label>
                     <input type="text" id="new-gs-shortname" readonly placeholder="Auto-filled when item selected">
+                </div>
+                <div class="field">
+                    <label>Qty Per Purchase <span class="badge-credit">BUNDLE</span></label>
+                    <input type="number" id="new-gs-qty" value="1" min="1" max="1000">
+                    <span class="hint">How many items the player receives per unit bought. e.g. set to 2 so buying 1 unit gives 2 AKs.</span>
                 </div>
             </div>
             <button class="btn btn-blue" onclick="addGemShopItem()">+ Add Item</button>
@@ -857,13 +862,30 @@ async function loadLinks() {
     const container = document.getElementById("links-list");
     if (!links.length) { container.innerHTML = '<div class="empty">No players linked yet.</div>'; return; }
     container.innerHTML = links.map(l => `
-        <div class="link-card">
+        <div class="link-card" id="link-card-${esc(l.discord_id)}">
             <div>
                 <div class="link-discord">👤 Discord: ${esc(l.discord_id)}</div>
                 <div class="link-gamertag">🎮 Gamertag: <strong>${esc(l.gamertag)}</strong></div>
             </div>
-            <div class="link-date">${new Date(l.updated_at).toLocaleString()}</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div class="link-date">${new Date(l.updated_at).toLocaleString()}</div>
+                <button class="btn btn-danger btn-sm" onclick="adminUnlink('${esc(l.discord_id)}', '${esc(l.gamertag)}')">Unlink</button>
+            </div>
         </div>`).join("");
+}
+
+async function adminUnlink(discordId, gamertag) {
+    if (!confirm(`Unlink ${gamertag} (Discord: ${discordId})? This will remove their gamertag link.`)) return;
+    try {
+        const res = await fetch(`/api/admin/player-links/${encodeURIComponent(discordId)}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok) {
+            const card = document.getElementById(`link-card-${discordId}`);
+            if (card) card.remove();
+        } else {
+            alert(`✗ ${data.error || "Failed to unlink"}`);
+        }
+    } catch { alert("✗ Network error."); }
 }
 
 async function adminGiveKit() {
@@ -1148,10 +1170,12 @@ async function loadGemShop() {
 function renderGemShopAdmin() {
     const container = document.getElementById("gem-shop-list");
     if (!gemShopItems.length) { container.innerHTML = '<div class="empty">No gem shop items yet. Add one above.</div>'; return; }
-    container.innerHTML = gemShopItems.map((it, i) => `
+    container.innerHTML = gemShopItems.map((it, i) => {
+        const qpp = it.quantity_per_purchase || 1;
+        return `
         <div class="kit-admin-card">
             <div class="kit-admin-header">
-                <div class="kit-admin-name">${esc(it.name)} <span style="font-size:11px;color:#eab308;">💎 ${it.gem_cost} gems</span> <span style="font-size:11px;color:#4c1d95;">${esc(it.category)}</span></div>
+                <div class="kit-admin-name">${esc(it.name)} <span style="font-size:11px;color:#eab308;">💎 ${it.gem_cost} gems</span> <span style="font-size:11px;color:#4c1d95;">${esc(it.category)}</span>${qpp > 1 ? ` <span style="font-size:11px;color:#4ade80;">×${qpp} bundle</span>` : ""}</div>
                 <div style="display:flex;gap:6px;">
                     <button class="btn btn-sm ${it.enabled?'btn-ghost':'btn-green'}" onclick="gemShopItems[${i}].enabled=!gemShopItems[${i}].enabled;renderGemShopAdmin()">${it.enabled?'Disable':'Enable'}</button>
                     <button class="btn btn-danger btn-sm" onclick="gemShopItems.splice(${i},1);renderGemShopAdmin()">✕</button>
@@ -1162,12 +1186,18 @@ function renderGemShopAdmin() {
                 <div class="field"><label>Shortname</label><input type="text" value="${esc(it.shortname)}" oninput="gemShopItems[${i}].shortname=this.value"></div>
                 <div class="field"><label>Gem Cost</label><input type="number" value="${it.gem_cost}" oninput="gemShopItems[${i}].gem_cost=parseInt(this.value)||10"></div>
             </div>
-        </div>`).join("");
+            <div class="grid-3">
+                <div class="field"><label>Qty Per Purchase <span class="badge-credit" style="font-size:9px;">BUNDLE</span></label><input type="number" value="${qpp}" min="1" oninput="gemShopItems[${i}].quantity_per_purchase=parseInt(this.value)||1"><span class="hint" style="font-size:10px;">Items given per unit (e.g. 2 = player gets ${qpp}× per unit purchased)</span></div>
+                <div class="field"><label>Category</label><input type="text" value="${esc(it.category)}" oninput="gemShopItems[${i}].category=this.value"></div>
+            </div>
+        </div>`;
+    }).join("");
 }
 
 function addGemShopItem() {
     const val = document.getElementById("new-gs-item").value;
     const cost = parseInt(document.getElementById("new-gs-cost").value) || 10;
+    const qpp = parseInt(document.getElementById("new-gs-qty").value) || 1;
     const server = document.getElementById("new-gs-server").value || null;
     if (!val) { alert("Select an item."); return; }
     const [sn, cat] = val.split("||");
@@ -1176,12 +1206,13 @@ function addGemShopItem() {
     for (const [c, items] of Object.entries(RUST_ITEMS_CATALOG)) {
         if (items[sn]) { itemName = items[sn]; break; }
     }
-    gemShopItems.push({ name: itemName, shortname: sn, category: cat || "General", gem_cost: cost, server_id: server, enabled: true });
+    gemShopItems.push({ name: itemName, shortname: sn, category: cat || "General", gem_cost: cost, quantity_per_purchase: qpp, server_id: server, enabled: true });
     renderGemShopAdmin();
     document.getElementById("new-gs-item").value = "";
     document.getElementById("new-gs-shortname").value = "";
     document.getElementById("new-gs-category").value = "";
     document.getElementById("new-gs-cost").value = "20";
+    document.getElementById("new-gs-qty").value = "1";
 }
 
 async function saveGemShop() {

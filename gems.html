@@ -20,7 +20,7 @@ nav {
 .nav-links a { color: #9a71d4; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
 .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .nav-links a.active { color: #a855f7; }
-.nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.nav-right { display: flex; align-items: center; gap: 8px; }
 .nav-btn { background: #7c3aed; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; transition: opacity 0.15s; }
 .nav-btn:hover { opacity: 0.85; }
 .nav-cog { color: #4a2080; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; }
@@ -41,46 +41,64 @@ nav {
 .mobile-menu a { color: #c4b5fd; text-decoration: none; font-size: 15px; font-weight: 600; padding: 12px 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
 .mobile-menu a:hover { background: rgba(124,58,237,0.12); color: #fff; }
 
-.page { max-width: 1100px; margin: 0 auto; padding: 40px 20px 100px; }
+.page { max-width: 900px; margin: 0 auto; padding: 0 20px 100px; }
 
-/* Hero balance card */
-.gems-hero {
-  text-align: center; padding: 48px 24px 36px;
-}
-.gems-hero-icon { font-size: 48px; margin-bottom: 12px; }
-.gems-hero h1 { font-size: 38px; font-weight: 900; color: #eab308; letter-spacing: 2px; margin-bottom: 8px; }
-.gems-hero-sub { font-size: 14px; color: #7c3aed; max-width: 460px; margin: 0 auto; }
+/* ── HERO ── */
+.gems-hero { text-align: center; padding: 48px 24px 0; }
+.gems-hero-icon { font-size: 48px; margin-bottom: 10px; }
+.gems-hero h1 { font-size: 40px; font-weight: 900; color: #eab308; letter-spacing: 3px; margin-bottom: 8px; }
+.gems-hero-sub { font-size: 14px; color: #7c3aed; max-width: 500px; margin: 0 auto 28px; line-height: 1.6; }
 
+/* ── BALANCE CARD ── */
 .balance-card {
   background: #130929; border: 1px solid #2d1060; border-radius: 16px;
-  padding: 28px 32px; text-align: center; max-width: 400px; margin: 28px auto 0;
+  padding: 28px 32px; text-align: center; max-width: 460px; margin: 0 auto 36px;
 }
 .balance-label { font-size: 11px; font-weight: 700; color: #6b21a8; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
-.balance-amount { font-size: 52px; font-weight: 900; color: #eab308; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.balance-gem-icon { font-size: 36px; }
-.balance-rate { font-size: 13px; color: #7c3aed; margin-top: 8px; }
+.balance-amount { font-size: 54px; font-weight: 900; color: #eab308; display: flex; align-items: center; justify-content: center; gap: 10px; line-height: 1; }
+.balance-gem-icon { font-size: 38px; }
+.balance-rate { font-size: 13px; color: #7c3aed; margin-top: 10px; }
 .balance-rate span { color: #a855f7; font-weight: 700; }
 
-/* Quick nav cards */
-.quick-nav { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 36px auto; max-width: 800px; }
+/* ── EARNING BREAKDOWN ── */
+.rate-card {
+  background: #130929; border: 1px solid #2d1060; border-radius: 16px;
+  padding: 22px 28px; max-width: 900px; margin: 0 auto 32px;
+}
+.rate-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.rate-card-label { font-size: 12px; font-weight: 700; color: #6b21a8; letter-spacing: 1.2px; text-transform: uppercase; }
+.rate-big { font-size: 24px; font-weight: 900; color: #eab308; display: flex; align-items: center; gap: 6px; }
+.rate-big span { font-size: 14px; color: #7c3aed; font-weight: 500; }
+.breakdown-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.breakdown-pill {
+  background: #1e0840; border: 1px solid #2d1060; border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; font-weight: 700; color: #6b21a8;
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.breakdown-pill.active { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.35); color: #4ade80; }
+.breakdown-pill .pill-plus { font-size: 12px; opacity: 0.7; }
+
+/* ── QUICK NAV ── */
+.quick-nav { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 0 auto 36px; max-width: 820px; }
 .quick-card {
   background: #130929; border: 2px solid #1e0840; border-radius: 14px;
-  padding: 20px 24px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s;
-  min-width: 120px; flex: 1; max-width: 160px; text-decoration: none;
+  padding: 20px 18px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  min-width: 110px; flex: 1; max-width: 150px; text-decoration: none;
 }
-.quick-card:hover, .quick-card.active { border-color: #eab308; background: rgba(234,179,8,0.06); }
-.quick-card-icon { font-size: 28px; margin-bottom: 8px; }
+.quick-card:hover { border-color: #eab308; background: rgba(234,179,8,0.06); }
+.quick-card.active { border-color: #eab308; background: rgba(234,179,8,0.08); }
+.quick-card-icon { font-size: 26px; margin-bottom: 8px; }
 .quick-card-title { font-size: 13px; font-weight: 700; color: #fff; }
 .quick-card-sub { font-size: 11px; color: #6b21a8; margin-top: 3px; }
 
-/* Shop section */
-.shop-section { margin-top: 0; }
-.shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.shop-title { font-size: 22px; font-weight: 800; color: #fff; }
-.shop-title span { color: #eab308; }
+/* ── SECTION PANELS ── */
+.section-panel { display: none; }
+.section-panel.visible { display: block; }
 
-/* Category filter tabs */
-.cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+/* ── SHOP ── */
+.shop-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.shop-title span { color: #eab308; }
+.cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
 .cat-tab {
   background: #130929; border: 1px solid #1e0840; border-radius: 8px;
   padding: 7px 14px; font-size: 12px; font-weight: 700; color: #7c3aed;
@@ -88,57 +106,139 @@ nav {
 }
 .cat-tab:hover { border-color: #eab308; color: #eab308; }
 .cat-tab.active { background: rgba(234,179,8,0.1); border-color: #eab308; color: #eab308; }
-
-/* Shop items grid */
-.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
 .shop-item-card {
   background: #130929; border: 1.5px solid #1e0840; border-radius: 14px;
-  padding: 18px; display: flex; flex-direction: column; gap: 10px;
-  transition: border-color 0.15s;
+  padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s;
 }
 .shop-item-card:hover { border-color: #3d1a7a; }
-
-.item-top { display: flex; align-items: center; gap: 12px; }
-.item-icon { font-size: 28px; flex-shrink: 0; }
+.item-top { display: flex; align-items: center; gap: 10px; }
+.item-icon { font-size: 26px; flex-shrink: 0; }
 .item-info { flex: 1; min-width: 0; }
-.item-name { font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.3; }
-.item-cat { font-size: 11px; color: #4c1d95; font-weight: 600; margin-top: 2px; }
-.item-price { font-size: 14px; font-weight: 800; color: #eab308; display: flex; align-items: center; gap: 4px; }
-.item-price-unit { font-size: 11px; color: #7c3aed; font-weight: 500; }
-
-/* Quantity control */
-.qty-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.item-name { font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.3; }
+.item-cat { font-size: 10px; color: #4c1d95; font-weight: 600; margin-top: 2px; }
+.item-price { font-size: 13px; font-weight: 800; color: #eab308; display: flex; align-items: center; gap: 4px; }
+.item-price-unit { font-size: 10px; color: #7c3aed; font-weight: 500; }
+.qty-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 .qty-btn {
   background: #1e0840; border: 1px solid #2d1060; color: #a855f7;
-  border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 700;
+  border-radius: 6px; padding: 4px 7px; font-size: 11px; font-weight: 700;
   cursor: pointer; transition: background 0.12s; user-select: none;
 }
 .qty-btn:hover { background: #2d1060; }
 .qty-display {
   background: #0a0420; border: 1px solid #2d1060; border-radius: 6px;
-  padding: 4px 12px; font-size: 14px; font-weight: 800; color: #fff;
-  min-width: 40px; text-align: center;
+  padding: 4px 10px; font-size: 13px; font-weight: 800; color: #fff;
+  min-width: 36px; text-align: center;
 }
-.qty-total { font-size: 12px; color: #7c3aed; font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.qty-total { font-size: 11px; color: #7c3aed; font-weight: 700; display: flex; align-items: center; gap: 3px; margin-top: 2px; }
 .qty-total .gem-dot { color: #eab308; }
-
 .buy-btn {
   width: 100%; padding: 10px; border-radius: 8px; border: none;
-  background: #eab308; color: #000; font-size: 13px; font-weight: 800;
+  background: #eab308; color: #000; font-size: 12px; font-weight: 800;
   cursor: pointer; transition: opacity 0.15s, transform 0.1s;
   text-transform: uppercase; letter-spacing: 0.5px;
 }
 .buy-btn:hover { opacity: 0.9; }
 .buy-btn:active { transform: scale(0.98); }
 .buy-btn:disabled { background: #3d1a7a; color: #6b21a8; cursor: not-allowed; }
-.buy-result { font-size: 12px; font-weight: 600; text-align: center; min-height: 16px; }
+.buy-result { font-size: 11px; font-weight: 600; text-align: center; min-height: 14px; }
 .buy-result.ok { color: #4ade80; }
 .buy-result.err { color: #f87171; }
-
 .shop-empty { text-align: center; padding: 48px; color: #4c1d95; font-size: 15px; }
 
-/* Login prompt */
+/* ── LEADERBOARD ── */
+.lb-table { width: 100%; border-collapse: collapse; }
+.lb-table th { font-size: 11px; font-weight: 700; color: #6b21a8; text-transform: uppercase; letter-spacing: 1px; padding: 10px 16px; text-align: left; border-bottom: 1px solid #1e0840; }
+.lb-table td { padding: 12px 16px; border-bottom: 1px solid #120828; font-size: 13px; }
+.lb-table tr:hover td { background: rgba(124,58,237,0.04); }
+.lb-rank { font-weight: 900; color: #a855f7; }
+.lb-rank.top1 { color: #eab308; }
+.lb-rank.top2 { color: #9ca3af; }
+.lb-rank.top3 { color: #d97706; }
+.lb-name { font-weight: 700; color: #fff; }
+.lb-balance { font-weight: 800; color: #eab308; display: flex; align-items: center; gap: 5px; }
+.lb-empty { text-align: center; padding: 48px; color: #4c1d95; }
+
+/* ── HISTORY ── */
+.history-item {
+  background: #130929; border: 1px solid #1e0840; border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+}
+.history-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.history-date { font-size: 11px; color: #4c1d95; }
+.history-amount { font-size: 16px; font-weight: 800; }
+.history-amount.earn { color: #4ade80; }
+.history-amount.spend { color: #f87171; }
+.history-amount.casino-win { color: #4ade80; }
+.history-amount.casino-lose { color: #f87171; }
+.history-empty { text-align: center; padding: 48px; color: #4c1d95; }
+
+/* ── CASINO ── */
+.casino-section { padding: 0; }
+.casino-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.casino-title span { color: #eab308; }
+.casino-sub { font-size: 13px; color: #7c3aed; margin-bottom: 24px; }
+.casino-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.casino-card {
+  background: #130929; border: 1.5px solid #1e0840; border-radius: 16px;
+  padding: 24px; display: flex; flex-direction: column; gap: 14px; transition: border-color 0.15s;
+}
+.casino-card:hover { border-color: #3d1a7a; }
+.casino-card-icon { font-size: 38px; text-align: center; }
+.casino-card-name { font-size: 16px; font-weight: 800; color: #fff; text-align: center; }
+.casino-card-odds { font-size: 12px; color: #7c3aed; text-align: center; line-height: 1.6; }
+.casino-wager-row { display: flex; gap: 8px; align-items: center; }
+.casino-wager-input {
+  flex: 1; background: #060d1a; border: 1px solid #1a2e4a; border-radius: 8px;
+  color: #e0e6f0; padding: 10px 12px; font-size: 14px; outline: none;
+  transition: border-color 0.15s; font-family: inherit;
+}
+.casino-wager-input:focus { border-color: #7c3aed; }
+.casino-play-btn {
+  padding: 10px 20px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff;
+  font-size: 13px; font-weight: 800; cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.casino-play-btn:hover { opacity: 0.9; }
+.casino-play-btn:active { transform: scale(0.97); }
+.casino-play-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.casino-result {
+  text-align: center; padding: 14px; border-radius: 10px;
+  font-size: 15px; font-weight: 700; min-height: 48px;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px;
+  transition: all 0.3s;
+}
+.casino-result.win { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+.casino-result.lose { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); color: #f87171; }
+.casino-result.idle { background: #1e0840; border: 1px solid #2d1060; color: #4c1d95; }
+.casino-result-icon { font-size: 24px; }
+.casino-quick-bets { display: flex; gap: 6px; flex-wrap: wrap; }
+.qbet { background: #1e0840; border: 1px solid #2d1060; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 700; color: #a855f7; cursor: pointer; transition: background 0.12s; }
+.qbet:hover { background: #2d1060; color: #fff; }
+.casino-history-title { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.casino-history-table { width: 100%; border-collapse: collapse; }
+.casino-history-table th { font-size: 10px; font-weight: 700; color: #6b21a8; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; text-align: left; border-bottom: 1px solid #1e0840; }
+.casino-history-table td { padding: 10px 12px; border-bottom: 1px solid #120828; font-size: 12px; }
+.cwin { color: #4ade80; font-weight: 700; }
+.close { color: #f87171; font-weight: 700; }
+
+/* ── BUY GEMS ── */
+.buy-gems-card {
+  background: #130929; border: 1px solid #2d1060; border-radius: 16px;
+  padding: 40px 32px; text-align: center; max-width: 480px; margin: 0 auto;
+}
+.buy-gems-icon { font-size: 48px; margin-bottom: 14px; }
+.buy-gems-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.buy-gems-sub { font-size: 13px; color: #7c3aed; line-height: 1.6; margin-bottom: 24px; }
+.buy-gems-btn { display: inline-block; background: #eab308; color: #000; padding: 14px 32px; border-radius: 10px; font-weight: 800; font-size: 15px; text-decoration: none; transition: opacity 0.15s; }
+.buy-gems-btn:hover { opacity: 0.88; }
+
+/* ── SECTION TITLE (non-shop) ── */
+.section-heading { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 18px; }
+
+/* ── LOGIN PROMPT ── */
 .prompt-card {
   text-align: center; background: #130929; border: 1px solid #1e0840; border-radius: 16px;
   padding: 48px 32px; max-width: 480px; margin: 60px auto;
@@ -146,23 +246,26 @@ nav {
 .prompt-card h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 10px; }
 .prompt-card p { color: #7c3aed; font-size: 14px; margin-bottom: 24px; }
 .prompt-btn { display: inline-block; background: #7c3aed; color: #fff; padding: 12px 28px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 15px; }
-.prompt-btn:hover { opacity: 0.85; }
 
-/* Sections */
-.section-divider { border: none; border-top: 1px solid #1e0840; margin: 40px 0; }
-.section-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+/* ── SPINNING ANIMATION ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-small { width: 16px; height: 16px; border: 2px solid rgba(168,85,247,0.3); border-top-color: #a855f7; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; vertical-align: middle; }
 
-@media (max-width: 600px) {
+@keyframes result-pop { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.casino-result.win, .casino-result.lose { animation: result-pop 0.25s ease-out; }
+
+@media (max-width: 640px) {
   .hamburger { display: flex; }
   .nav-links { display: none; }
   nav { padding: 0 20px; }
-  .gems-hero { padding: 32px 16px 24px; }
-  .gems-hero h1 { font-size: 28px; }
+  .gems-hero { padding: 28px 16px 0; }
+  .gems-hero h1 { font-size: 30px; }
   .balance-amount { font-size: 40px; }
-  .page { padding: 24px 12px 80px; }
+  .page { padding: 0 12px 80px; }
   .shop-grid { grid-template-columns: 1fr 1fr; }
   .quick-nav { gap: 8px; }
-  .quick-card { min-width: 90px; padding: 14px 12px; }
+  .quick-card { min-width: 80px; padding: 14px 10px; }
+  .casino-games { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -209,8 +312,8 @@ const CATEGORY_ICONS = {
   "Vehicles & Horses": "🚁", "Traps": "🪤", "Furniture": "🪑"
 };
 
-let state = { loggedIn: false, balance: 0, gemsPerHour: 10, multiplier: 1, items: [], category: "All" };
-let quantities = {}; // itemId → quantity
+let state = { loggedIn: false, balance: 0, gemsPerHour: 10, multiplier: 1, items: [], category: "All", kits: [], section: "shop" };
+let quantities = {};
 
 async function init() {
   const [userRes, gemsRes, shopRes] = await Promise.all([
@@ -236,6 +339,8 @@ async function init() {
   state.gemsPerHour = gemsRes.gemsPerHour || 10;
   state.multiplier = gemsRes.multiplier || 1;
   state.kitCount = gemsRes.kitCount || 0;
+  state.kits = gemsRes.kits || [];
+  state.baseRate = gemsRes.baseRate || 10;
   state.items = Array.isArray(shopRes) ? shopRes : [];
   state.items.forEach(it => { quantities[it.id] = quantities[it.id] || 1; });
   render();
@@ -251,15 +356,27 @@ function filteredItems() {
   return state.items.filter(i => i.category === state.category);
 }
 
+function setSection(name) {
+  state.section = name;
+  document.querySelectorAll(".quick-card").forEach(el => {
+    el.classList.toggle("active", el.dataset.section === name);
+  });
+  document.querySelectorAll(".section-panel").forEach(el => {
+    el.classList.toggle("visible", el.id === "panel-" + name);
+  });
+  if (name === "leaderboard") loadLeaderboard();
+  if (name === "history") loadHistory();
+  if (name === "casino") loadCasinoHistory();
+}
+
 function render() {
   const root = document.getElementById("page-root");
-
   if (!state.loggedIn) {
     root.innerHTML = `
       <div class="gems-hero">
         <div class="gems-hero-icon">💎</div>
         <h1>GEMS</h1>
-        <p class="gems-hero-sub">Earn gems by playing, spend them in the store, or buy items for your game session.</p>
+        <p class="gems-hero-sub">Earn gems by playing, buy more, spend them in the store, or try your luck at the casino.</p>
       </div>
       <div class="prompt-card">
         <h2>💎 Login to Access Gems</h2>
@@ -269,13 +386,23 @@ function render() {
     return;
   }
 
+  // Build earning breakdown pills
+  const breakdownPills = [];
+  breakdownPills.push(`<div class="breakdown-pill active"><span class="pill-plus">+10</span> Base</div>`);
+  state.kits.forEach(k => {
+    breakdownPills.push(`<div class="breakdown-pill active"><span class="pill-plus">+10</span> ${esc(k.name)}</div>`);
+  });
+
   const cats = getCategories();
 
   root.innerHTML = `
     <div class="gems-hero">
       <div class="gems-hero-icon">💎</div>
       <h1>GEMS</h1>
-      <p class="gems-hero-sub">Earn gems by playing, buy more, spend them in the store, or buy items for in-game.</p>
+      <p class="gems-hero-sub">Earn gems by playing, buy more, spend them in the store, or try your luck at the casino.</p>
+    </div>
+
+    <div class="page">
       <div class="balance-card">
         <div class="balance-label">YOUR BALANCE</div>
         <div class="balance-amount" id="balance-display">
@@ -283,26 +410,282 @@ function render() {
           <span>${Math.floor(state.balance).toLocaleString()}</span>
         </div>
         <div class="balance-rate">
-          Earning <span id="rate-display">${state.gemsPerHour}</span> gems/hr
-          ${state.multiplier > 1 ? `<span style="color:#eab308;font-size:11px;"> (${state.multiplier}x multiplier)</span>` : ""}
-          ${state.kitCount > 0 ? `· ${state.kitCount} kit${state.kitCount !== 1 ? "s" : ""} owned (+${state.kitCount * 10}/hr)` : ""}
+          Earning <span id="rate-display">${state.gemsPerHour}</span> gems/hr while playing
         </div>
       </div>
-    </div>
 
-    <div class="page">
-      <div class="shop-section">
-        <div class="shop-header">
-          <div class="shop-title">💎 <span>Gem</span> Shop</div>
+      <div class="rate-card">
+        <div class="rate-card-top">
+          <div class="rate-card-label">Earning Rate Breakdown</div>
+          <div class="rate-big">💎 <strong>${state.gemsPerHour}</strong> <span>gems/hr</span></div>
         </div>
+        <div class="breakdown-row" id="breakdown-row">
+          ${breakdownPills.join("")}
+          ${state.multiplier > 1 ? `<div class="breakdown-pill active" style="border-color:rgba(234,179,8,0.4);color:#eab308;background:rgba(234,179,8,0.08);">×${state.multiplier} multiplier</div>` : ""}
+          ${state.kits.length === 0 ? `<div class="breakdown-pill" style="font-size:11px;color:#4c1d95;">Get kits to earn bonus gems/hr</div>` : ""}
+        </div>
+      </div>
+
+      <div class="quick-nav">
+        <div class="quick-card active" data-section="shop" onclick="setSection('shop')">
+          <div class="quick-card-icon">🛒</div>
+          <div class="quick-card-title">Shop</div>
+          <div class="quick-card-sub">Spend your gems</div>
+        </div>
+        <div class="quick-card" data-section="buy" onclick="setSection('buy')">
+          <div class="quick-card-icon">➕</div>
+          <div class="quick-card-title">Buy Gems</div>
+          <div class="quick-card-sub">Get more gems</div>
+        </div>
+        <div class="quick-card" data-section="leaderboard" onclick="setSection('leaderboard')">
+          <div class="quick-card-icon">🏆</div>
+          <div class="quick-card-title">Leaderboard</div>
+          <div class="quick-card-sub">Top gem earners</div>
+        </div>
+        <div class="quick-card" data-section="history" onclick="setSection('history')">
+          <div class="quick-card-icon">🕐</div>
+          <div class="quick-card-title">History</div>
+          <div class="quick-card-sub">Your transactions</div>
+        </div>
+        <div class="quick-card" data-section="casino" onclick="setSection('casino')">
+          <div class="quick-card-icon">🎰</div>
+          <div class="quick-card-title">Casino</div>
+          <div class="quick-card-sub">Try your luck</div>
+        </div>
+      </div>
+
+      <!-- SHOP PANEL -->
+      <div class="section-panel visible" id="panel-shop">
+        <div class="shop-title">💎 <span>Gem</span> Shop</div>
         <div class="cat-tabs" id="cat-tabs">
           ${cats.map(c => `<div class="cat-tab${c === state.category ? " active" : ""}" onclick="setCategory('${esc(c)}')">${CATEGORY_ICONS[c] || "📦"} ${esc(c)}</div>`).join("")}
         </div>
         <div class="shop-grid" id="shop-grid"></div>
       </div>
+
+      <!-- BUY GEMS PANEL -->
+      <div class="section-panel" id="panel-buy">
+        <div class="buy-gems-card">
+          <div class="buy-gems-icon">💎</div>
+          <div class="buy-gems-title">Buy More Gems</div>
+          <div class="buy-gems-sub">Purchase gems with real money to get ahead in the store. Gems are used to buy in-game items and boost your rate.</div>
+          <a href="/store.html" class="buy-gems-btn">💰 Visit the Store</a>
+        </div>
+      </div>
+
+      <!-- LEADERBOARD PANEL -->
+      <div class="section-panel" id="panel-leaderboard">
+        <div class="section-heading">🏆 Gems Leaderboard</div>
+        <div id="lb-content"><div class="lb-empty">Loading…</div></div>
+      </div>
+
+      <!-- HISTORY PANEL -->
+      <div class="section-panel" id="panel-history">
+        <div class="section-heading">🕐 Transaction History</div>
+        <div id="history-content"><div class="history-empty">Loading…</div></div>
+      </div>
+
+      <!-- CASINO PANEL -->
+      <div class="section-panel" id="panel-casino">
+        ${renderCasinoHTML()}
+      </div>
     </div>`;
 
   renderShopGrid();
+}
+
+function renderCasinoHTML() {
+  return `<div class="casino-section">
+    <div class="casino-title">🎰 <span>Casino</span></div>
+    <div class="casino-sub">Try your luck! Win big or go home — your gems, your risk.</div>
+
+    <div class="casino-games">
+      <!-- Coin Flip -->
+      <div class="casino-card">
+        <div class="casino-card-icon">🪙</div>
+        <div class="casino-card-name">Coin Flip</div>
+        <div class="casino-card-odds">50% chance to double your gems.<br>Win: <strong>2×</strong> your wager</div>
+        <div class="casino-quick-bets">
+          <span class="qbet" onclick="setWager('coinflip',50)">50</span>
+          <span class="qbet" onclick="setWager('coinflip',100)">100</span>
+          <span class="qbet" onclick="setWager('coinflip',500)">500</span>
+          <span class="qbet" onclick="setWager('coinflip',1000)">1K</span>
+          <span class="qbet" onclick="setWager('coinflip',Math.floor(state.balance/2))">Half</span>
+        </div>
+        <div class="casino-wager-row">
+          <input class="casino-wager-input" id="wager-coinflip" type="number" min="1" max="50000" placeholder="Wager amount">
+          <button class="casino-play-btn" id="btn-coinflip" onclick="playCasino('coinflip')">Flip!</button>
+        </div>
+        <div class="casino-result idle" id="result-coinflip"><span style="font-size:13px;">Place your bet and flip!</span></div>
+      </div>
+
+      <!-- Dice Roll -->
+      <div class="casino-card">
+        <div class="casino-card-icon">🎲</div>
+        <div class="casino-card-name">Dice Roll</div>
+        <div class="casino-card-odds">🎲6 = <strong>4×</strong> · 🎲5 = <strong>2×</strong> · 🎲4 = <strong>1.5×</strong><br>1–3 = lose</div>
+        <div class="casino-quick-bets">
+          <span class="qbet" onclick="setWager('dice',50)">50</span>
+          <span class="qbet" onclick="setWager('dice',100)">100</span>
+          <span class="qbet" onclick="setWager('dice',500)">500</span>
+          <span class="qbet" onclick="setWager('dice',1000)">1K</span>
+          <span class="qbet" onclick="setWager('dice',Math.floor(state.balance/2))">Half</span>
+        </div>
+        <div class="casino-wager-row">
+          <input class="casino-wager-input" id="wager-dice" type="number" min="1" max="50000" placeholder="Wager amount">
+          <button class="casino-play-btn" id="btn-dice" onclick="playCasino('dice')">Roll!</button>
+        </div>
+        <div class="casino-result idle" id="result-dice"><span style="font-size:13px;">Roll for glory!</span></div>
+      </div>
+
+      <!-- Slots -->
+      <div class="casino-card">
+        <div class="casino-card-icon">🎰</div>
+        <div class="casino-card-name">Slots</div>
+        <div class="casino-card-odds">💎💎💎 = <strong>10×</strong> · 3-match = <strong>5×</strong><br>2-match = <strong>1.5×</strong> · else = lose</div>
+        <div class="casino-quick-bets">
+          <span class="qbet" onclick="setWager('slots',50)">50</span>
+          <span class="qbet" onclick="setWager('slots',100)">100</span>
+          <span class="qbet" onclick="setWager('slots',500)">500</span>
+          <span class="qbet" onclick="setWager('slots',1000)">1K</span>
+          <span class="qbet" onclick="setWager('slots',Math.floor(state.balance/2))">Half</span>
+        </div>
+        <div class="casino-wager-row">
+          <input class="casino-wager-input" id="wager-slots" type="number" min="1" max="50000" placeholder="Wager amount">
+          <button class="casino-play-btn" id="btn-slots" onclick="playCasino('slots')">Spin!</button>
+        </div>
+        <div class="casino-result idle" id="result-slots"><span style="font-size:13px;">Pull the lever!</span></div>
+      </div>
+    </div>
+
+    <div class="casino-history-title">📋 Recent Casino Sessions <button onclick="loadCasinoHistory()" style="background:none;border:none;color:#7c3aed;cursor:pointer;font-size:13px;">🔄 Refresh</button></div>
+    <div style="background:#130929;border:1px solid #1e0840;border-radius:12px;overflow:hidden;">
+      <table class="casino-history-table">
+        <thead><tr><th>Game</th><th>Wager</th><th>Outcome</th><th>Net</th><th>Time</th></tr></thead>
+        <tbody id="casino-history-body"><tr><td colspan="5" style="text-align:center;color:#4c1d95;padding:20px;">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function setWager(game, val) {
+  const inp = document.getElementById(`wager-${game}`);
+  if (inp) inp.value = Math.max(1, Math.floor(val));
+}
+
+async function playCasino(game) {
+  const wagerInput = document.getElementById(`wager-${game}`);
+  const btn = document.getElementById(`btn-${game}`);
+  const resultEl = document.getElementById(`result-${game}`);
+  const wager = parseInt(wagerInput?.value);
+  if (!wager || wager < 1) { if (resultEl) { resultEl.className = "casino-result lose"; resultEl.innerHTML = `<span>Enter a valid wager amount.</span>`; } return; }
+  if (btn) { btn.disabled = true; }
+  if (resultEl) { resultEl.className = "casino-result idle"; resultEl.innerHTML = `<span class="spinner-small"></span>`; }
+  try {
+    const r = await fetch("/api/casino/play", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ game, wager })
+    });
+    const data = await r.json();
+    if (r.ok && data.ok) {
+      state.balance = data.newBalance;
+      updateBalanceDisplay();
+      const won = data.net >= 0;
+      let outcomeLabel = "";
+      if (game === "coinflip") outcomeLabel = won ? "🪙 Heads! You win!" : "🪙 Tails! You lose.";
+      else if (game === "dice") {
+        const roll = data.outcome.split(":")[1];
+        outcomeLabel = won ? `🎲 Rolled a ${roll}! You win!` : `🎲 Rolled a ${roll}. You lose.`;
+      } else if (game === "slots") {
+        const symbols = data.outcome.split(":")[1];
+        outcomeLabel = `${symbols[0]}${symbols[1]}${symbols[2]}`;
+        if (won) outcomeLabel += " — You win!";
+        else outcomeLabel += " — No match.";
+      }
+      resultEl.className = `casino-result ${won ? "win" : "lose"}`;
+      resultEl.innerHTML = `
+        <div class="casino-result-icon">${won ? "✅" : "❌"}</div>
+        <div>${outcomeLabel}</div>
+        <div style="font-size:13px;">${won ? "+" : ""}${data.net.toLocaleString()} gems · Balance: ${Math.floor(state.balance).toLocaleString()}</div>`;
+      loadCasinoHistory();
+    } else {
+      resultEl.className = "casino-result lose";
+      resultEl.innerHTML = `<span>✗ ${esc(data.error || "Error")}</span>`;
+    }
+  } catch {
+    if (resultEl) { resultEl.className = "casino-result lose"; resultEl.innerHTML = `<span>✗ Network error</span>`; }
+  }
+  if (btn) { btn.disabled = false; }
+}
+
+function updateBalanceDisplay() {
+  const el = document.getElementById("balance-display");
+  if (el) el.innerHTML = `<span class="balance-gem-icon">💎</span><span>${Math.floor(state.balance).toLocaleString()}</span>`;
+}
+
+async function loadLeaderboard() {
+  const container = document.getElementById("lb-content");
+  if (!container) return;
+  container.innerHTML = `<div class="lb-empty">Loading…</div>`;
+  try {
+    const res = await fetch("/api/admin/credits");
+    if (!res.ok) { container.innerHTML = `<div class="lb-empty">Unavailable.</div>`; return; }
+    const rows = await res.json();
+    rows.sort((a, b) => parseFloat(b.balance) - parseFloat(a.balance));
+    const top = rows.slice(0, 20);
+    if (!top.length) { container.innerHTML = `<div class="lb-empty">No data yet.</div>`; return; }
+    container.innerHTML = `<table class="lb-table">
+      <thead><tr><th>#</th><th>Discord ID</th><th>Gems</th></tr></thead>
+      <tbody>${top.map((r, i) => `
+        <tr>
+          <td class="lb-rank ${i===0?'top1':i===1?'top2':i===2?'top3':''}">${i+1}</td>
+          <td class="lb-name">${esc(r.discord_id)}</td>
+          <td><div class="lb-balance">💎 ${parseFloat(r.balance).toLocaleString()}</div></td>
+        </tr>`).join("")}
+      </tbody></table>`;
+  } catch { container.innerHTML = `<div class="lb-empty">Could not load.</div>`; }
+}
+
+async function loadHistory() {
+  const container = document.getElementById("history-content");
+  if (!container) return;
+  container.innerHTML = `<div class="history-empty">Loading…</div>`;
+  try {
+    const res = await fetch("/api/casino/history");
+    const casinoRows = res.ok ? await res.json() : [];
+    if (!casinoRows.length) { container.innerHTML = `<div class="history-empty">No transactions yet.</div>`; return; }
+    container.innerHTML = casinoRows.map(r => {
+      const cls = r.net >= 0 ? "earn" : "spend";
+      return `<div class="history-item">
+        <div>
+          <div class="history-name">${esc(r.game)} · ${esc(r.outcome)}</div>
+          <div class="history-date">${new Date(r.created_at).toLocaleString()}</div>
+        </div>
+        <div class="history-amount ${cls}">${r.net >= 0 ? "+" : ""}${r.net.toLocaleString()} 💎</div>
+      </div>`;
+    }).join("");
+  } catch { container.innerHTML = `<div class="history-empty">Could not load.</div>`; }
+}
+
+async function loadCasinoHistory() {
+  const tbody = document.getElementById("casino-history-body");
+  if (!tbody) return;
+  try {
+    const res = await fetch("/api/casino/history");
+    if (!res.ok) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#4c1d95;padding:16px;">Unavailable.</td></tr>`; return; }
+    const rows = await res.json();
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#4c1d95;padding:16px;">No casino history yet.</td></tr>`; return; }
+    tbody.innerHTML = rows.map(r => {
+      const won = r.net >= 0;
+      return `<tr>
+        <td>${esc(r.game)}</td>
+        <td>💎 ${r.wager.toLocaleString()}</td>
+        <td style="font-size:11px;">${esc(r.outcome)}</td>
+        <td class="${won?'cwin':'close'}">${won?"+":""}${r.net.toLocaleString()}</td>
+        <td style="color:#4c1d95;font-size:11px;">${new Date(r.created_at).toLocaleString()}</td>
+      </tr>`;
+    }).join("");
+  } catch { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#4c1d95;padding:16px;">Could not load.</td></tr>`; }
 }
 
 function setCategory(cat) {
@@ -323,7 +706,9 @@ function renderShopGrid() {
   }
   grid.innerHTML = items.map(item => {
     const qty = quantities[item.id] || 1;
-    const total = item.gem_cost * qty;
+    const qpp = item.quantity_per_purchase || 1;
+    const totalCost = item.gem_cost * qty;
+    const totalItems = qpp * qty;
     const icon = CATEGORY_ICONS[item.category] || "📦";
     return `
       <div class="shop-item-card" id="card-${item.id}">
@@ -334,7 +719,7 @@ function renderShopGrid() {
             <div class="item-cat">${esc(item.category || "General")}</div>
           </div>
         </div>
-        <div class="item-price">💎 ${item.gem_cost} <span class="item-price-unit">per unit</span></div>
+        <div class="item-price">💎 ${item.gem_cost} <span class="item-price-unit">per unit${qpp > 1 ? ` (gives ${qpp})` : ""}</span></div>
         <div class="qty-row">
           <button class="qty-btn" onclick="adjustQty(${item.id}, -10)">-10</button>
           <button class="qty-btn" onclick="adjustQty(${item.id}, -5)">-5</button>
@@ -344,7 +729,7 @@ function renderShopGrid() {
           <button class="qty-btn" onclick="adjustQty(${item.id}, 5)">+5</button>
           <button class="qty-btn" onclick="adjustQty(${item.id}, 10)">+10</button>
         </div>
-        <div class="qty-total"><span class="gem-dot">💎</span> Total: <strong>${total}</strong></div>
+        <div class="qty-total"><span class="gem-dot">💎</span> Total: <strong id="total-cost-${item.id}">${totalCost}</strong>${qpp > 1 ? ` <span style="color:#4ade80;font-size:10px;margin-left:4px;">→ ${totalItems}x items</span>` : ""}</div>
         <button class="buy-btn" id="buy-btn-${item.id}" onclick="buyItem(${item.id})">BUY</button>
         <div class="buy-result" id="result-${item.id}"></div>
       </div>`;
@@ -355,13 +740,17 @@ function adjustQty(itemId, delta) {
   quantities[itemId] = Math.max(1, Math.min(100, (quantities[itemId] || 1) + delta));
   const display = document.getElementById(`qty-${itemId}`);
   if (display) display.textContent = quantities[itemId];
-  // Update total
   const item = state.items.find(i => i.id === itemId);
   if (item) {
+    const qpp = item.quantity_per_purchase || 1;
+    const totalCost = item.gem_cost * quantities[itemId];
+    const totalItems = qpp * quantities[itemId];
+    const costEl = document.getElementById(`total-cost-${itemId}`);
+    if (costEl) costEl.textContent = totalCost;
     const card = document.getElementById(`card-${itemId}`);
-    if (card) {
+    if (card && qpp > 1) {
       const totalEl = card.querySelector(".qty-total");
-      if (totalEl) totalEl.innerHTML = `<span class="gem-dot">💎</span> Total: <strong>${item.gem_cost * quantities[itemId]}</strong>`;
+      if (totalEl) totalEl.innerHTML = `<span class="gem-dot">💎</span> Total: <strong id="total-cost-${itemId}">${totalCost}</strong> <span style="color:#4ade80;font-size:10px;margin-left:4px;">→ ${totalItems}x items</span>`;
     }
   }
 }
@@ -380,8 +769,7 @@ async function buyItem(itemId) {
     const data = await r.json();
     if (r.ok && data.ok) {
       state.balance = data.newBalance;
-      const balEl = document.getElementById("balance-display");
-      if (balEl) balEl.innerHTML = `<span class="balance-gem-icon">💎</span><span>${Math.floor(state.balance).toLocaleString()}</span>`;
+      updateBalanceDisplay();
       if (resultEl) { resultEl.textContent = "✅ Sent to game!"; resultEl.className = "buy-result ok"; }
       if (btn) { btn.textContent = "BUY"; btn.disabled = false; }
     } else {

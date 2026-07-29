@@ -386,6 +386,20 @@ let kitTimers = {};
   if (userRes.loggedIn && myRes.clan) {
     loadClanKits();
   }
+
+  // Auto-refresh clans every 30 seconds
+  setInterval(async () => {
+    try {
+      const [clansRefresh, myRefresh] = await Promise.all([
+        fetch("/api/public/clans").then(r => r.json()).catch(() => []),
+        fetch("/api/public/clans/me").then(r => r.json()).catch(() => ({ loggedIn: false, clan: null }))
+      ]);
+      myClanId = myRefresh.clan?.id || null;
+      inClan = !!myRefresh.clan;
+      renderMyClan(myRefresh);
+      renderAllClans(clansRefresh, myRefresh.clan?.id);
+    } catch {}
+  }, 30000);
 })();
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
