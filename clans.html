@@ -316,7 +316,7 @@ nav {
     <div class="section-label">🛡️ MY CLAN</div>
     <div id="my-clan-card"></div>
     <!-- CLAN KITS -->
-    <div id="clan-kits-section" class="clan-kits-section" style="display:none">
+    <div id="clan-kits-section" class="clan-kits-section" style="display:none!important;visibility:hidden;height:0;overflow:hidden">
       <div class="clan-kits-label">🎒 CLAN KITS</div>
       <div class="clan-kits-grid" id="clan-kits-grid">
         <div style="color:#3b1a6e;font-size:13px;">Loading kits…</div>
@@ -382,11 +382,6 @@ let kitTimers = {};
   renderMyClan(myRes);
   renderAllClans(clansRes, myRes.clan?.id);
 
-  // Load kits if in a clan and logged in
-  if (userRes.loggedIn && myRes.clan) {
-    loadClanKits();
-  }
-
   // Auto-refresh clans every 30 seconds
   setInterval(async () => {
     try {
@@ -449,7 +444,7 @@ function renderMyClan(data) {
             ${c.is_owner ? "👑 Owner" : "🏷️ Member"}
           </span>
         </div>
-        <a href="https://discord.gg/playsolarix" target="_blank" class="view-details-btn">👁 View Details</a>
+        <button class="view-details-btn" onclick="openDetailsModal()">👁 View Details</button>
       </div>
     </div>`;
 }
@@ -681,6 +676,292 @@ function clanSvg(color, size) {
     <path d="M12 2L3 6v6c0 5.1 3.9 9.9 9 11 5.1-1.1 9-5.9 9-11V6L12 2z" fill="${color}" opacity="0.4"/>
     <path d="M12 2L3 6v6c0 5.1 3.9 9.9 9 11 5.1-1.1 9-5.9 9-11V6L12 2z" stroke="${color}" stroke-width="1.5" fill="none"/>
   </svg>`;
+}
+</script>
+
+<!-- DETAILS MODAL -->
+<div id="details-modal" class="modal-overlay" style="display:none" onclick="handleDetailsBackdrop(event)">
+  <div class="modal-box" style="max-width:560px;max-height:88vh;overflow-y:auto;padding:28px 28px 24px">
+    <button class="modal-close-btn" onclick="closeDetailsModal()">✕</button>
+    <div id="details-modal-content">
+      <div style="text-align:center;color:#4c1d95;padding:40px 0">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── DETAILS MODAL EXTRAS ── */
+.details-section { margin-top: 20px; }
+.details-section-title {
+  font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #6b21a8; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.code-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #0d0620; border: 1px solid #2d1060; border-radius: 8px;
+  padding: 6px 12px; font-family: monospace; font-size: 13px; color: #c084fc;
+  cursor: pointer; transition: border-color .15s; margin: 3px 4px 3px 0;
+  user-select: all;
+}
+.code-pill:hover { border-color: #7c3aed; }
+.code-meta { font-size: 10px; color: #4c1d95; margin-top: 2px; }
+.member-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px; background: #0d0620; border: 1px solid #1e0840;
+  border-radius: 8px; margin-bottom: 6px; gap: 8px;
+}
+.member-name { font-size: 13px; color: #e0e6f0; font-weight: 600; }
+.member-sub  { font-size: 11px; color: #4c1d95; }
+.kick-btn {
+  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+  border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.1);
+  color: #f87171; cursor: pointer; transition: background .15s, border-color .15s;
+  flex-shrink: 0;
+}
+.kick-btn:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.6); }
+.kick-btn:disabled { opacity: .45; cursor: not-allowed; }
+.owner-badge { font-size: 10px; color: #fbbf24; margin-left: 4px; }
+.edit-textarea {
+  width: 100%; background: #0d0620; border: 1px solid #2d1060; border-radius: 8px;
+  padding: 10px 12px; color: #e0e6f0; font-size: 13px; font-family: inherit;
+  resize: vertical; min-height: 64px; outline: none;
+}
+.edit-textarea:focus { border-color: #7c3aed; }
+.save-btn {
+  margin-top: 8px; padding: 8px 18px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff;
+  font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity .15s;
+}
+.save-btn:hover:not(:disabled) { opacity: .88; }
+.save-btn:disabled { opacity: .45; cursor: not-allowed; }
+.disband-btn {
+  margin-top: 16px; width: 100%; padding: 10px; border-radius: 8px;
+  border: 1px solid rgba(239,68,68,0.4); background: rgba(239,68,68,0.08);
+  color: #f87171; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.disband-btn:hover { background: rgba(239,68,68,0.18); border-color: rgba(239,68,68,0.6); }
+.disband-confirm { display: none; margin-top: 8px; }
+.disband-confirm-yes {
+  padding: 7px 16px; border-radius: 6px; border: none;
+  background: #dc2626; color: #fff; font-weight: 700; font-size: 12px;
+  cursor: pointer; margin-right: 6px;
+}
+.disband-confirm-no {
+  padding: 7px 14px; border-radius: 6px;
+  border: 1px solid #2d1060; background: transparent; color: #9a71d4;
+  font-weight: 700; font-size: 12px; cursor: pointer;
+}
+.details-status { font-size: 12px; margin-top: 6px; min-height: 16px; }
+.details-status.ok  { color: #34d399; }
+.details-status.err { color: #f87171; }
+.no-codes-note { font-size: 12px; color: #4c1d95; font-style: italic; }
+</style>
+
+<script>
+// ── Details Modal ─────────────────────────────────────────────────────────────
+let detailsClanData = null;
+
+async function openDetailsModal() {
+  document.getElementById("details-modal").style.display = "flex";
+  document.getElementById("details-modal-content").innerHTML =
+    '<div style="text-align:center;color:#4c1d95;padding:40px 0">Loading…</div>';
+  document.body.style.overflow = "hidden";
+
+  try {
+    const [meRes, membersRes, codesRes] = await Promise.all([
+      fetch("/api/public/clans/me").then(r => r.json()),
+      fetch(`/api/clans/${myClanId}/members`).then(r => r.json()),
+      fetch(`/api/clans/${myClanId}/codes`).then(r => r.json()),
+    ]);
+    const clan = meRes.clan;
+    const members = membersRes.members || [];
+    const codes   = codesRes.codes   || [];
+    detailsClanData = { clan, members, codes };
+    renderDetailsModal(clan, members, codes);
+  } catch(e) {
+    document.getElementById("details-modal-content").innerHTML =
+      `<div style="color:#f87171;padding:24px">Failed to load details.</div>`;
+  }
+}
+
+function renderDetailsModal(clan, members, codes) {
+  if (!clan) return;
+  const isOwner = clan.is_owner;
+  const color   = clan.color || "#a855f7";
+  const now     = Math.floor(Date.now() / 1000);
+
+  // ── Header ──────────────────────────────────────────────────────────────────
+  let html = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:48px;height:48px;border-radius:10px;background:rgba(168,85,247,0.1);
+                  border:2px solid ${color};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        ${clanSvg(color, 24)}
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:800;color:#fff">
+          ${esc(clan.name)}
+          ${clan.clantag ? `<span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:5px;border:1px solid ${color};color:${color};background:rgba(168,85,247,0.08);margin-left:6px">[${esc(clan.clantag)}]</span>` : ""}
+        </div>
+        <div style="font-size:12px;color:#6b21a8;margin-top:2px">${esc(clan.description || "No description provided.")}</div>
+      </div>
+    </div>`;
+
+  // ── Edit description (owner only) ────────────────────────────────────────
+  if (isOwner) {
+    html += `
+      <div class="details-section">
+        <div class="details-section-title">✏️ Edit Description</div>
+        <textarea class="edit-textarea" id="edit-desc-input" maxlength="200">${esc(clan.description || "")}</textarea>
+        <button class="save-btn" onclick="saveDescription()">Save</button>
+        <div class="details-status" id="edit-status"></div>
+      </div>`;
+  }
+
+  // ── Invite Codes ─────────────────────────────────────────────────────────
+  html += `<div class="details-section">
+    <div class="details-section-title">🔑 Invite Codes <span style="font-size:10px;color:#4c1d95;font-weight:500;text-transform:none;letter-spacing:0">(created via Discord)</span></div>`;
+  if (!codes.length) {
+    html += `<div class="no-codes-note">No active codes. Use <code style="background:#0d0620;padding:1px 5px;border-radius:4px;color:#c084fc">/clan invitecode create</code> in Discord.</div>`;
+  } else {
+    codes.forEach(c => {
+      const exp = c.expires_at ? new Date(c.expires_at * 1000).toLocaleDateString() : "Never";
+      const uses = `${c.uses ?? 0}${c.max_uses ? " / " + c.max_uses : ""}`;
+      const expired = c.expires_at && c.expires_at < now;
+      html += `
+        <div>
+          <span class="code-pill" onclick="copyCode('${esc(c.code)}')" title="Click to copy" style="${expired ? "opacity:.45" : ""}">
+            ${esc(c.code)} <span style="font-size:10px;color:#4c1d95">📋</span>
+          </span>
+          <div class="code-meta">Uses: ${uses} · Expires: ${exp}${expired ? " · <span style='color:#f87171'>Expired</span>" : ""}</div>
+        </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // ── Members ───────────────────────────────────────────────────────────────
+  html += `<div class="details-section">
+    <div class="details-section-title">👥 Members (${members.length})</div>`;
+  if (!members.length) {
+    html += `<div class="no-codes-note">No members found.</div>`;
+  } else {
+    members.forEach(m => {
+      const isThisOwner = String(m.user_id) === String(clan.owner_id);
+      const displayName = m.gamertag || m.account_name || ("User …" + String(m.user_id).slice(-4));
+      html += `
+        <div class="member-row" id="mrow-${esc(m.user_id)}">
+          <div>
+            <span class="member-name">${esc(displayName)}</span>
+            ${isThisOwner ? '<span class="owner-badge">👑 Owner</span>' : ""}
+            ${m.gamertag ? `<div class="member-sub">Gamertag: ${esc(m.gamertag)}</div>` : ""}
+          </div>
+          ${isOwner && !isThisOwner
+            ? `<button class="kick-btn" id="kick-${esc(m.user_id)}" onclick="kickMember('${esc(m.user_id)}','${esc(displayName)}')">Kick</button>`
+            : ""}
+        </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // ── Disband (owner only) ─────────────────────────────────────────────────
+  if (isOwner) {
+    html += `
+      <div class="details-section" style="border-top:1px solid #1e0840;padding-top:16px;margin-top:20px">
+        <button class="disband-btn" onclick="showDisbandConfirm()">💀 Disband Clan</button>
+        <div class="disband-confirm" id="disband-confirm">
+          <div style="font-size:12px;color:#f87171;margin-bottom:8px">This will permanently disband the clan. Are you sure?</div>
+          <button class="disband-confirm-yes" onclick="disbandClan()">Yes, disband</button>
+          <button class="disband-confirm-no" onclick="hideDisbandConfirm()">Cancel</button>
+        </div>
+        <div class="details-status" id="disband-status"></div>
+      </div>`;
+  }
+
+  document.getElementById("details-modal-content").innerHTML = html;
+}
+
+function closeDetailsModal() {
+  document.getElementById("details-modal").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function handleDetailsBackdrop(e) {
+  if (e.target.id === "details-modal") closeDetailsModal();
+}
+
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    // brief visual flash
+  });
+}
+
+// ── Save description ──────────────────────────────────────────────────────────
+async function saveDescription() {
+  const val = (document.getElementById("edit-desc-input")?.value || "").trim();
+  const st  = document.getElementById("edit-status");
+  st.textContent = "Saving…"; st.className = "details-status";
+  try {
+    const r = await fetch(`/api/clans/${myClanId}/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description: val })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      st.textContent = "✅ Saved!"; st.className = "details-status ok";
+      setTimeout(() => { st.textContent = ""; }, 3000);
+    } else {
+      st.textContent = d.error || "Error saving."; st.className = "details-status err";
+    }
+  } catch { st.textContent = "Network error."; st.className = "details-status err"; }
+}
+
+// ── Kick member ───────────────────────────────────────────────────────────────
+async function kickMember(userId, name) {
+  if (!confirm(`Kick ${name} from the clan?`)) return;
+  const btn = document.getElementById(`kick-${userId}`);
+  if (btn) { btn.disabled = true; btn.textContent = "…"; }
+  try {
+    const r = await fetch(`/api/clans/${myClanId}/kick`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      const row = document.getElementById(`mrow-${userId}`);
+      if (row) row.remove();
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = "Kick"; }
+      alert(d.error || "Could not kick member.");
+    }
+  } catch {
+    if (btn) { btn.disabled = false; btn.textContent = "Kick"; }
+    alert("Network error.");
+  }
+}
+
+// ── Disband clan ──────────────────────────────────────────────────────────────
+function showDisbandConfirm() {
+  document.getElementById("disband-confirm").style.display = "block";
+}
+function hideDisbandConfirm() {
+  document.getElementById("disband-confirm").style.display = "none";
+}
+
+async function disbandClan() {
+  const st = document.getElementById("disband-status");
+  st.textContent = "Disbanding…"; st.className = "details-status";
+  try {
+    const r = await fetch(`/api/clans/${myClanId}/disband`, { method: "POST" });
+    const d = await r.json();
+    if (d.ok) {
+      st.textContent = "✅ Clan disbanded."; st.className = "details-status ok";
+      setTimeout(() => { closeDetailsModal(); window.location.reload(); }, 1500);
+    } else {
+      st.textContent = d.error || "Error."; st.className = "details-status err";
+    }
+  } catch { st.textContent = "Network error."; st.className = "details-status err"; }
 }
 </script>
 </body>

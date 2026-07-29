@@ -1669,6 +1669,151 @@ app.get("/api/public/clans", async (req, res) => {
     }
 });
 
+
+// ── Clan Details: members, codes, kick, edit, disband ─────────────────────────
+
+// GET /api/clans/:clanId/members — list members with gamertags
+app.get("/api/clans/:clanId/members", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const clanId = parseInt(req.params.clanId);
+    if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
+    try {
+        // Verify caller is in this clan
+        const { rows: membership } = await pool.query(
+            "SELECT 1 FROM clan_members_mirror WHERE clan_id=$1 AND user_id=$2 LIMIT 1",
+            [clanId, String(req.user.id)]
+        );
+        if (!membership[0]) return res.status(403).json({ error: "You are not in this clan" });
+
+        const { rows: members } = await pool.query(`
+            SELECT cm.user_id,
+                   COALESCE(cs.gamertag, wpl.gamertag) AS gamertag,
+                   la.account_name
+            FROM clan_members_mirror cm
+            LEFT JOIN clan_stats_mirror cs ON cs.user_id = cm.user_id
+            LEFT JOIN web_player_links wpl ON wpl.discord_id = cm.user_id
+            LEFT JOIN linked_accounts_mirror la ON la.discord_user_id = cm.user_id
+            WHERE cm.clan_id = $1
+            ORDER BY cm.user_id
+        `, [clanId]);
+        res.json({ members });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/clans/:clanId/codes — invite codes (caller must be in clan)
+app.get("/api/clans/:clanId/codes", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const clanId = parseInt(req.params.clanId);
+    if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
+    try {
+        const { rows: membership } = await pool.query(
+            "SELECT 1 FROM clan_members_mirror WHERE clan_id=$1 AND user_id=$2 LIMIT 1",
+            [clanId, String(req.user.id)]
+        );
+        if (!membership[0]) return res.status(403).json({ error: "You are not in this clan" });
+
+        const now = Math.floor(Date.now() / 1000);
+        const { rows: codes } = await pool.query(
+            `SELECT code, expires_at, max_uses, uses
+             FROM clan_invite_codes_mirror
+             WHERE clan_id=$1
+             ORDER BY expires_at DESC NULLS LAST`,
+            [clanId]
+        );
+        res.json({ codes });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/clans/:clanId/kick — kick a member (owner only)
+app.post("/api/clans/:clanId/kick", express.json(), async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const clanId = parseInt(req.params.clanId);
+    const { userId } = req.body;
+    if (!clanId || !userId) return res.status(400).json({ error: "Missing fields" });
+    try {
+        const { rows: clan } = await pool.query(
+            "SELECT owner_id FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
+        );
+        if (!clan[0]) return res.status(404).json({ error: "Clan not found" });
+        if (String(clan[0].owner_id) !== String(req.user.id))
+            return res.status(403).json({ error: "Only the clan owner can kick members" });
+        if (String(userId) === String(req.user.id))
+            return res.status(400).json({ error: "You cannot kick yourself" });
+
+        await pool.query(
+            "DELETE FROM clan_members_mirror WHERE clan_id=$1 AND user_id=$2",
+            [clanId, String(userId)]
+        );
+        // Record kick request for bot to process
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS web_kick_requests (
+                    id SERIAL PRIMARY KEY, clan_id INT, user_id TEXT,
+                    kicked_by TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+                )`);
+            await pool.query(
+                "INSERT INTO web_kick_requests (clan_id, user_id, kicked_by) VALUES ($1,$2,$3)",
+                [clanId, String(userId), String(req.user.id)]
+            );
+        } catch {}
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/clans/:clanId/edit — update description (owner only)
+app.post("/api/clans/:clanId/edit", express.json(), async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const clanId = parseInt(req.params.clanId);
+    const { description } = req.body;
+    if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
+    try {
+        const { rows: clan } = await pool.query(
+            "SELECT owner_id FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
+        );
+        if (!clan[0]) return res.status(404).json({ error: "Clan not found" });
+        if (String(clan[0].owner_id) !== String(req.user.id))
+            return res.status(403).json({ error: "Only the clan owner can edit the clan" });
+
+        await pool.query(
+            "UPDATE clans_mirror SET description=$1 WHERE id=$2",
+            [(description || "").slice(0, 200), clanId]
+        );
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/clans/:clanId/disband — disband clan (owner only)
+app.post("/api/clans/:clanId/disband", express.json(), async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const clanId = parseInt(req.params.clanId);
+    if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
+    try {
+        const { rows: clan } = await pool.query(
+            "SELECT owner_id FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
+        );
+        if (!clan[0]) return res.status(404).json({ error: "Clan not found" });
+        if (String(clan[0].owner_id) !== String(req.user.id))
+            return res.status(403).json({ error: "Only the clan owner can disband the clan" });
+
+        await pool.query("DELETE FROM clan_members_mirror WHERE clan_id=$1", [clanId]);
+        await pool.query("DELETE FROM clan_invite_codes_mirror WHERE clan_id=$1", [clanId]);
+        await pool.query("DELETE FROM clans_mirror WHERE id=$1", [clanId]);
+        // Record disband request for bot to process
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS web_disband_requests (
+                    id SERIAL PRIMARY KEY, clan_id INT,
+                    disbanded_by TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+                )`);
+            await pool.query(
+                "INSERT INTO web_disband_requests (clan_id, disbanded_by) VALUES ($1,$2)",
+                [clanId, String(req.user.id)]
+            );
+        } catch {}
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Public: Leaderboard ───────────────────────────────────────────────────────
 // Reads from Postgres mirror first, falls back to bot SQLite.
 app.get("/api/public/leaderboard", async (req, res) => {
