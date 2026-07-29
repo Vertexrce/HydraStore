@@ -571,7 +571,8 @@ async function loadServers() {
             countEl.innerHTML = `Players <span class="loading-dots">—</span> / ${st.maxPlayers}`;
             if (statusEl) { statusEl.className = "server-status-badge offline"; statusEl.innerHTML = `<span class="server-status-dot"></span> Offline`; }
           } else {
-            countEl.innerHTML = `Players <strong>${st.players}</strong> / ${st.maxPlayers}`;
+            const playerDisplay = st.players != null ? `<strong>${st.players}</strong>` : `<span class="loading-dots">—</span>`;
+            countEl.innerHTML = `Players ${playerDisplay} / ${st.maxPlayers}`;
             if (statusEl) { statusEl.className = "server-status-badge online"; statusEl.innerHTML = `<span class="server-status-dot"></span> Online`; }
           }
         });

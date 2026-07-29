@@ -478,8 +478,9 @@ app.get("/api/public/server-status", async (req, res) => {
                 _playerCountCache.set(s.id, { count, ts: now });
                 return { id: s.id, online: true, players: count, maxPlayers: s.max_players || 100 };
             } catch {
-                // RCON unreachable — treat as offline
-                return { id: s.id, online: false, players: null, maxPlayers: s.max_players || 100 };
+                // RCON unreachable — server status_label says online so keep it online,
+                // just show unknown player count rather than marking the whole server offline
+                return { id: s.id, online: true, players: null, maxPlayers: s.max_players || 100 };
             }
         }));
         res.json(results);
@@ -1504,7 +1505,7 @@ app.get("/api/public/clans/me", async (req, res) => {
     if (!req.user) return res.json({ loggedIn: false, clan: null });
     try {
         const { rows } = await pool.query(`
-            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.owner_discord_name,
+            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.owner_discord_name, c.image_url,
                    COUNT(DISTINCT cm2.user_id)::int AS member_count
             FROM clan_members_mirror cm
             JOIN clans_mirror c ON c.id = cm.clan_id
@@ -1513,12 +1514,36 @@ app.get("/api/public/clans/me", async (req, res) => {
             GROUP BY c.id
             LIMIT 1
         `, [String(req.user.id)]);
-        if (!rows[0]) return res.json({ loggedIn: true, clan: null });
-        const clan = rows[0];
-        const isOwner = String(clan.owner_id) === String(req.user.id);
-        return res.json({ loggedIn: true, clan: { ...clan, is_owner: isOwner } });
+        if (rows[0]) {
+            const clan = rows[0];
+            const isOwner = String(clan.owner_id) === String(req.user.id);
+            return res.json({ loggedIn: true, clan: { ...clan, is_owner: isOwner } });
+        }
     } catch (e) {
-        return res.status(500).json({ error: e.message });
+        console.warn("clans/me Postgres query failed:", e.message);
+    }
+
+    // Fallback: bot SQLite (local dev / same-machine setups)
+    const db = openBotDb();
+    if (!db) return res.json({ loggedIn: true, clan: null });
+    try {
+        const row = db.prepare(`
+            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id,
+                   COUNT(DISTINCT cm2.user_id) as member_count
+            FROM clan_members cm
+            JOIN clans c ON c.id = cm.clan_id
+            LEFT JOIN clan_members cm2 ON cm2.clan_id = c.id
+            WHERE CAST(cm.user_id AS TEXT) = ?
+            GROUP BY c.id
+            LIMIT 1
+        `).get(String(req.user.id));
+        db.close();
+        if (!row) return res.json({ loggedIn: true, clan: null });
+        const isOwner = String(row.owner_id) === String(req.user.id);
+        return res.json({ loggedIn: true, clan: { ...row, image_url: null, owner_discord_name: null, is_owner: isOwner } });
+    } catch (e) {
+        try { db.close(); } catch {}
+        return res.json({ loggedIn: true, clan: null });
     }
 });
 
