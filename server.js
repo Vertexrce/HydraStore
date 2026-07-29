@@ -1522,7 +1522,7 @@ app.get("/api/public/clans/me", async (req, res) => {
             return res.json({ loggedIn: true, clan: { ...clan, is_owner: isOwner } });
         }
 
-        // Second: check if user is the owner of a clan (even if not in members table)
+        // Second: check if user is the owner by numeric Discord ID
         const { rows: ownedRows } = await pool.query(`
             SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.owner_discord_name, c.image_url,
                    COUNT(DISTINCT cm.user_id)::int AS member_count
@@ -1535,6 +1535,25 @@ app.get("/api/public/clans/me", async (req, res) => {
         if (ownedRows[0]) {
             const clan = ownedRows[0];
             return res.json({ loggedIn: true, clan: { ...clan, is_owner: true } });
+        }
+
+        // Third: match by Discord username stored in owner_discord_name
+        // (some bots store username instead of snowflake ID in owner_id)
+        const username = req.user.username || "";
+        if (username) {
+            const { rows: namedRows } = await pool.query(`
+                SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.owner_discord_name, c.image_url,
+                       COUNT(DISTINCT cm.user_id)::int AS member_count
+                FROM clans_mirror c
+                LEFT JOIN clan_members_mirror cm ON cm.clan_id = c.id
+                WHERE LOWER(c.owner_discord_name) = LOWER($1)
+                GROUP BY c.id
+                LIMIT 1
+            `, [username]);
+            if (namedRows[0]) {
+                const clan = namedRows[0];
+                return res.json({ loggedIn: true, clan: { ...clan, is_owner: true } });
+            }
         }
     } catch (e) {
         console.warn("clans/me Postgres query failed:", e.message);
@@ -1730,14 +1749,16 @@ app.get("/api/clans/:clanId/members", async (req, res) => {
     const clanId = parseInt(req.params.clanId);
     if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
     try {
-        // Verify caller is in this clan OR is the owner
+        // Verify caller is in this clan OR is the owner (by ID or username)
+        const uid = String(req.user.id);
+        const uname = (req.user.username || "").toLowerCase();
         const { rows: membership } = await pool.query(
             "SELECT 1 FROM clan_members_mirror WHERE clan_id=$1 AND user_id=$2 LIMIT 1",
-            [clanId, String(req.user.id)]
+            [clanId, uid]
         );
         const { rows: ownership } = await pool.query(
-            "SELECT 1 FROM clans_mirror WHERE id=$1 AND owner_id=$2 LIMIT 1",
-            [clanId, String(req.user.id)]
+            "SELECT 1 FROM clans_mirror WHERE id=$1 AND (owner_id=$2 OR LOWER(owner_discord_name)=$3) LIMIT 1",
+            [clanId, uid, uname]
         );
         if (!membership[0] && !ownership[0]) return res.status(403).json({ error: "You are not in this clan" });
 
@@ -1762,13 +1783,15 @@ app.get("/api/clans/:clanId/codes", async (req, res) => {
     const clanId = parseInt(req.params.clanId);
     if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
     try {
+        const uid = String(req.user.id);
+        const uname = (req.user.username || "").toLowerCase();
         const { rows: membership } = await pool.query(
             "SELECT 1 FROM clan_members_mirror WHERE clan_id=$1 AND user_id=$2 LIMIT 1",
-            [clanId, String(req.user.id)]
+            [clanId, uid]
         );
         const { rows: ownership } = await pool.query(
-            "SELECT 1 FROM clans_mirror WHERE id=$1 AND owner_id=$2 LIMIT 1",
-            [clanId, String(req.user.id)]
+            "SELECT 1 FROM clans_mirror WHERE id=$1 AND (owner_id=$2 OR LOWER(owner_discord_name)=$3) LIMIT 1",
+            [clanId, uid, uname]
         );
         if (!membership[0] && !ownership[0]) return res.status(403).json({ error: "You are not in this clan" });
 
