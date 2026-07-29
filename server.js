@@ -1210,6 +1210,55 @@ app.post("/api/sync/clans", express.json(), async (req, res) => {
 
 // ── My clan (logged-in user) ──────────────────────────────────────────────────
 app.get("/api/public/clans/me", async (req, res) => {
+    if (!req.user) {
+        return res.json({
+            loggedIn:false,
+            clan:null
+        });
+    }
+
+    try {
+
+        const { rows } = await pool.query(`
+            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.owner_discord_name,
+       ic.code AS clan_code,
+                COUNT(cm2.user_id)::int AS member_count
+            FROM clan_members_mirror cm
+            JOIN clans_mirror c 
+                ON c.id = cm.clan_id
+            LEFT JOIN clan_members_mirror cm2 
+                ON cm2.clan_id = c.id
+            WHERE cm.user_id=$1
+            GROUP BY c.id
+        `,[String(req.user.id)]);
+
+
+        if(!rows[0]){
+            return res.json({
+                loggedIn:true,
+                clan:null
+            });
+        }
+
+
+        const clan = rows[0];
+
+        clan.is_owner =
+            String(clan.owner_id) === String(req.user.id);
+
+
+        res.json({
+            loggedIn:true,
+            clan:clan
+        });
+
+
+    } catch(e){
+        res.status(500).json({
+            error:e.message
+        });
+    }
+});
     if (!req.user) return res.json({ loggedIn: false, clan: null });
     try {
         const { rows } = await pool.query(`
@@ -1294,7 +1343,62 @@ function openBotDb() {
 // ── Public: Clans ─────────────────────────────────────────────────────────────
 // Reads from Postgres mirror (populated by bot via /api/sync/clans).
 // Falls back to bot SQLite if mirror is empty and BOT_DB_PATH is set.
-app.get("/api/public/clans", async (req, res) => {
+app.get("/api/public/clans/me", async (req, res) => {
+    if (!req.user) {
+        return res.json({
+            loggedIn:false,
+            clan:null
+        });
+    }
+
+    try {
+
+        const { rows } = await pool.query(`
+            SELECT 
+                c.id,
+                c.name,
+                c.clantag,
+                c.color,
+                c.description,
+                c.owner_id,
+                c.owner_discord_name,
+                COUNT(cm2.user_id)::int AS member_count
+            FROM clan_members_mirror cm
+            JOIN clans_mirror c 
+                ON c.id = cm.clan_id
+            LEFT JOIN clan_members_mirror cm2 
+                ON cm2.clan_id = c.id
+            WHERE cm.user_id=$1
+            GROUP BY c.id
+        `,[String(req.user.id)]);
+
+
+        if(!rows[0]){
+            return res.json({
+                loggedIn:true,
+                clan:null
+            });
+        }
+
+
+        const clan = rows[0];
+
+        clan.is_owner =
+            String(clan.owner_id) === String(req.user.id);
+
+
+        res.json({
+            loggedIn:true,
+            clan:clan
+        });
+
+
+    } catch(e){
+        res.status(500).json({
+            error:e.message
+        });
+    }
+});
     try {
         const { rows: clans } = await pool.query(`
             SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.created_at,
