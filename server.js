@@ -1518,7 +1518,9 @@ app.get("/api/public/clans/me", async (req, res) => {
         `, [uid]);
         if (rows[0]) {
             const clan = rows[0];
-            const isOwner = String(clan.owner_id) === uid;
+            const username = (req.user.username || "").toLowerCase();
+            const isOwner = String(clan.owner_id) === uid ||
+                            (username && (clan.owner_discord_name || "").toLowerCase() === username);
             return res.json({ loggedIn: true, clan: { ...clan, is_owner: isOwner } });
         }
 
