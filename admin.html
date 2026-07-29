@@ -377,7 +377,7 @@
             </div>
             <div class="section-head-actions">
                 <span style="font-size:12px;color:#2a4070;align-self:center;" id="kits-count"></span>
-                <button class="btn btn-danger btn-sm" onclick="disableAllKits()">🚫 Disable All</button>
+                <button class="btn btn-danger btn-sm" id="toggle-kits-btn" onclick="toggleAllKits()">🚫 Disable All</button>
                 <button class="btn btn-blue btn-sm" onclick="saveKits()">💾 Save Kits</button>
             </div>
         </div>
@@ -883,15 +883,33 @@ async function adminGiveKit() {
     setTimeout(() => statusEl.textContent = "", 6000);
 }
 
-async function disableAllKits() {
-    if (!confirm("Disable ALL kits? Players won't be able to claim any kit until you re-enable them.")) return;
-    const res = await fetch("/api/admin/disable-all-kits", { method: "POST", headers: { "Content-Type": "application/json" } });
-    const data = await res.json();
-    if (res.ok) {
-        alert("✓ All kits disabled.");
-        await loadKits();
+function updateToggleKitsBtn() {
+    const btn = document.getElementById('toggle-kits-btn');
+    if (!btn || !kits.length) return;
+    const allDisabled = kits.every(k => !k.enabled);
+    if (allDisabled) {
+        btn.textContent = '✅ Enable All';
+        btn.className = 'btn btn-green btn-sm';
     } else {
-        alert("✗ " + (data.error || "Failed"));
+        btn.textContent = '🚫 Disable All';
+        btn.className = 'btn btn-danger btn-sm';
+    }
+}
+
+async function toggleAllKits() {
+    const allDisabled = kits.every(k => !k.enabled);
+    if (allDisabled) {
+        if (!confirm('Enable ALL kits? Players will be able to claim kits again.')) return;
+        const res = await fetch('/api/admin/enable-all-kits', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (res.ok) { alert('✓ All kits enabled.'); await loadKits(); }
+        else alert('✗ ' + (data.error || 'Failed'));
+    } else {
+        if (!confirm("Disable ALL kits? Players won't be able to claim any kit until you re-enable them.")) return;
+        const res = await fetch('/api/admin/disable-all-kits', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (res.ok) { alert('✓ All kits disabled.'); await loadKits(); }
+        else alert('✗ ' + (data.error || 'Failed'));
     }
 }
 
@@ -907,6 +925,7 @@ async function loadKits() {
     // Also populate give-kit select
     const giveSel = document.getElementById("give-kit-select");
     giveSel.innerHTML = '<option value="">— Select kit —</option>' + kits.map(k => `<option value="${esc(k.name)}">${esc(k.name)}</option>`).join("");
+    updateToggleKitsBtn();
 }
 
 function renderKitsAdmin() {

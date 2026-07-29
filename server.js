@@ -267,6 +267,41 @@ async function setupDB() {
     await pool.query(`ALTER TABLE store_items ADD COLUMN IF NOT EXISTS zip_url TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE purchases ADD COLUMN IF NOT EXISTS discord_user_id TEXT DEFAULT ''`);
 
+    // ── New tables for per-user kits, gem shop, and gem multipliers ──
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_kits (
+            discord_id TEXT NOT NULL,
+            kit_id INTEGER NOT NULL,
+            given_by TEXT DEFAULT 'admin',
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            PRIMARY KEY (discord_id, kit_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_shop_items (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            shortname TEXT NOT NULL,
+            category TEXT DEFAULT 'Weapons',
+            gem_cost INTEGER DEFAULT 10,
+            server_id INTEGER,
+            sort_order INTEGER DEFAULT 0,
+            enabled INTEGER DEFAULT 1
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_multipliers (
+            discord_id TEXT PRIMARY KEY,
+            multiplier NUMERIC(5,2) DEFAULT 1.0,
+            reason TEXT DEFAULT '',
+            updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_accrual_log (
+            discord_id TEXT PRIMARY KEY,
+            last_accrued_at TIMESTAMPTZ DEFAULT NOW()
+        );
+    `);
+    await pool.query(`ALTER TABLE web_kit_configs ADD COLUMN IF NOT EXISTS is_public INTEGER DEFAULT 0`);
+
     const { rows } = await pool.query("SELECT COUNT(*) FROM store_items");
     if (parseInt(rows[0].count) === 0) {
         await pool.query(`
@@ -784,47 +819,69 @@ app.get("/api/admin/player-links", checkAdminJson, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Admin: give kit manually ──────────────────────────────────────────────────
+// ── Admin: give kit to user's kits tab (not directly in-game) ────────────────
 app.post("/api/admin/give-kit", checkAdminJson, async (req, res) => {
-    const { player, kitName, serverId } = req.body;
-    if (!player || !kitName || !serverId) return res.status(400).json({ error: "Missing player, kitName, or serverId" });
+    const { player, kitId, kitName } = req.body;
+    if (!player || (!kitId && !kitName)) return res.status(400).json({ error: "Missing player or kit" });
 
     try {
-        // Resolve gamertag — player can be a gamertag or Discord ID
-        let gamertag = player.trim();
+        // Resolve discord_id — player can be gamertag or Discord ID
+        let discordId = null;
+        let gamertag = null;
+        const playerTrimmed = player.trim();
 
-        // If it looks like a Discord ID (all digits), try to find their linked gamertag
-        if (/^\d{15,20}$/.test(gamertag)) {
-            const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [gamertag]);
+        if (/^\d{15,20}$/.test(playerTrimmed)) {
+            // Looks like a Discord ID
+            discordId = playerTrimmed;
+            const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [discordId]);
+            gamertag = rows[0]?.gamertag || null;
+            if (!gamertag) {
+                const botGt = await getBotLinkedGamertag(discordId);
+                gamertag = botGt || null;
+            }
+        } else {
+            // Treat as gamertag — look up discord ID from linked accounts
+            const { rows } = await pool.query("SELECT discord_id FROM web_player_links WHERE LOWER(gamertag) = LOWER($1)", [playerTrimmed]);
             if (rows[0]) {
-                gamertag = rows[0].gamertag;
+                discordId = rows[0].discord_id;
+                gamertag = playerTrimmed;
             } else {
-                // Try Valora bot SQLite / Postgres mirror
-                const botGamertag = await getBotLinkedGamertag(gamertag);
-                if (botGamertag) gamertag = botGamertag;
-                else return res.status(404).json({ error: `No linked gamertag found for Discord ID ${player}. Ask them to link on the Kits page first.` });
+                return res.status(404).json({ error: `No linked Discord account found for gamertag "${playerTrimmed}". Ask them to link on the Kits page first.` });
             }
         }
 
-        // Get server RCON details
-        const { rows: serverRows } = await pool.query("SELECT * FROM web_game_servers WHERE id = $1", [serverId]);
-        const server = serverRows[0];
-        if (!server) return res.status(404).json({ error: "Server not found" });
-        if (!server.rcon_host) return res.status(400).json({ error: "Server has no RCON host configured" });
+        if (!discordId) return res.status(404).json({ error: "Could not resolve Discord ID for this player." });
 
-        // Send RCON command
-        await sendRconCommand(server.rcon_host, server.rcon_port, server.rcon_password, `kit givetoplayer "${kitName}" "${gamertag}"`);
+        // Resolve kit ID by name if needed
+        let resolvedKitId = kitId;
+        let resolvedKitName = kitName;
+        if (!resolvedKitId && kitName) {
+            const { rows } = await pool.query("SELECT id, name FROM web_kit_configs WHERE name = $1 LIMIT 1", [kitName]);
+            if (!rows[0]) return res.status(404).json({ error: `Kit "${kitName}" not found in kit configs.` });
+            resolvedKitId = rows[0].id;
+            resolvedKitName = rows[0].name;
+        } else if (resolvedKitId) {
+            const { rows } = await pool.query("SELECT name FROM web_kit_configs WHERE id = $1", [resolvedKitId]);
+            resolvedKitName = rows[0]?.name || resolvedKitName;
+        }
+
+        // Add to user_kits (their kits tab)
+        await pool.query(
+            `INSERT INTO user_kits (discord_id, kit_id, given_by) VALUES ($1, $2, 'admin')
+             ON CONFLICT (discord_id, kit_id) DO NOTHING`,
+            [discordId, resolvedKitId]
+        );
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `⚡ **Admin Kit Give** (Solarix)\n` +
-            `📦 Kit: **${kitName}**\n` +
-            `🎮 Gamertag: **${gamertag}**\n` +
-            `🖥️ Server: ${server.name}\n` +
+            `🎒 **Admin Kit Give** (Solarix)\n` +
+            `📦 Kit: **${resolvedKitName}**\n` +
+            `🎮 Player: **${gamertag || discordId}**\n` +
+            `💬 Added to kits tab (player claims in-game themselves)\n` +
             `🕐 Time: ${ts}`
         );
 
-        res.json({ ok: true, gamertag });
+        res.json({ ok: true, discordId, gamertag, kitName: resolvedKitName, addedToKitsTab: true });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -873,27 +930,26 @@ app.post("/api/kits/gamertag", async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Kits: list available kits ─────────────────────────────────────────────────
+// ── Kits: list kits for this user (only kits they own via user_kits) ──────────
 app.get("/api/kits", async (req, res) => {
     try {
-        const { rows: allKits } = await pool.query(
-            `SELECT k.*, s.name as server_name, s.rcon_host, s.rcon_port, s.rcon_password
-             FROM web_kit_configs k
-             LEFT JOIN web_game_servers s ON s.id = k.server_id
-             WHERE k.enabled = 1
-             ORDER BY k.sort_order, k.id`
-        );
-
         if (!req.user) {
-            return res.json({ loggedIn: false, gamertag: null, kits: allKits.map(k => ({
-                id: k.id, name: k.name, description: k.description,
-                cooldownMinutes: k.cooldown_minutes, requiredRoleId: k.required_role_id,
-                serverName: k.server_name || "Server", hasRole: false, onCooldown: false, expiresAt: null
-            }))});
+            return res.json({ loggedIn: false, gamertag: null, kits: [] });
         }
 
         const { rows: linkRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
         const gamertag = linkRows[0]?.gamertag || null;
+
+        // Get only kits this user owns (from user_kits) + their kit configs
+        const { rows: userKitRows } = await pool.query(
+            `SELECT k.*, s.name as server_name, s.rcon_host, s.rcon_port, s.rcon_password, uk.given_by
+             FROM user_kits uk
+             JOIN web_kit_configs k ON k.id = uk.kit_id
+             LEFT JOIN web_game_servers s ON s.id = k.server_id
+             WHERE uk.discord_id = $1
+             ORDER BY k.sort_order, k.id`,
+            [req.user.id]
+        );
 
         // Check cooldowns
         const { rows: cooldownRows } = await pool.query(
@@ -903,42 +959,17 @@ app.get("/api/kits", async (req, res) => {
         const cooldownMap = {};
         cooldownRows.forEach(r => { cooldownMap[r.kit_id] = r.expires_at; });
 
-        // Check user roles via Discord API (if bot token available)
-        let userRoles = [];
-        try {
-            const token = await getSetting("discordBotToken");
-            const guildId = await getSetting("discordGuildId");
-            if (token && guildId && req.user.id) {
-                const data = await new Promise((resolve) => {
-                    const opts = {
-                        hostname: "discord.com",
-                        path: `/api/v10/guilds/${guildId}/members/${req.user.id}`,
-                        method: "GET",
-                        headers: { "Authorization": `Bot ${token}`, "User-Agent": "Solarix/1.0" }
-                    };
-                    const r = https.request(opts, res => {
-                        let body = "";
-                        res.on("data", c => body += c);
-                        res.on("end", () => resolve(JSON.parse(body)));
-                    });
-                    r.on("error", () => resolve({}));
-                    r.end();
-                });
-                userRoles = data.roles || [];
-            }
-        } catch {}
-
         res.json({
             loggedIn: true,
             gamertag,
-            kits: allKits.map(k => ({
+            kits: userKitRows.map(k => ({
                 id: k.id, name: k.name, description: k.description,
                 cooldownMinutes: k.cooldown_minutes,
-                requiredRoleId: k.required_role_id,
                 serverName: k.server_name || "Server",
-                hasRole: !k.required_role_id || userRoles.includes(k.required_role_id),
+                enabled: k.enabled === 1 || k.enabled === true,
                 onCooldown: !!cooldownMap[k.id],
-                expiresAt: cooldownMap[k.id] || null
+                expiresAt: cooldownMap[k.id] || null,
+                givenBy: k.given_by || "admin"
             }))
         });
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -951,15 +982,23 @@ app.post("/api/kits/claim", async (req, res) => {
     if (!kitId) return res.status(400).json({ error: "Missing kitId" });
 
     try {
+        // Verify user owns this kit
+        const { rows: ownerRows } = await pool.query(
+            "SELECT 1 FROM user_kits WHERE discord_id = $1 AND kit_id = $2",
+            [req.user.id, kitId]
+        );
+        if (!ownerRows[0]) return res.status(403).json({ error: "You don't own this kit." });
+
         const { rows } = await pool.query(
             `SELECT k.*, s.name as server_name, s.rcon_host, s.rcon_port, s.rcon_password
              FROM web_kit_configs k
              LEFT JOIN web_game_servers s ON s.id = k.server_id
-             WHERE k.id = $1 AND k.enabled = 1`,
+             WHERE k.id = $1`,
             [kitId]
         );
         const kit = rows[0];
-        if (!kit) return res.status(404).json({ error: "Kit not found or disabled." });
+        if (!kit) return res.status(404).json({ error: "Kit not found." });
+        if (!kit.enabled) return res.status(400).json({ error: "This kit is currently disabled." });
 
         // Check cooldown
         const { rows: cdRows } = await pool.query(
@@ -1044,8 +1083,8 @@ function sendRconCommand(host, port, password, command) {
         ws.on("open", () => {
             ws.send(JSON.stringify({ Identifier: 1, Message: command, Name: "Solarix" }));
         });
-        ws.on("message", () => {
-            if (!done) { done = true; clearTimeout(timeout); ws.close(); resolve(); }
+        ws.on("message", (data) => {
+            if (!done) { done = true; clearTimeout(timeout); ws.close(); try { const parsed = JSON.parse(data.toString()); resolve(parsed.Message || data.toString()); } catch { resolve(data.toString()); } }
         });
         ws.on("error", e => {
             if (!done) { done = true; clearTimeout(timeout); reject(e); }
@@ -1134,6 +1173,220 @@ app.get("/api/debug/volume", checkAdminJson, (req, res) => {
     res.json({ BOT_DB_PATH: botPath, dir, dir_contents: files, file_exists: exists });
 });
 
+// ── Gems page ─────────────────────────────────────────────────────────────────
+app.get("/gems", (req, res) => res.sendFile(path.join(__dirname, "gems.html")));
+
+// ── Gems: user balance + earning rate ────────────────────────────────────────
+app.get("/api/gems/me", async (req, res) => {
+    if (!req.user) return res.json({ loggedIn: false, balance: 0, gemsPerHour: 10, multiplier: 1 });
+    try {
+        // Accrue any outstanding gems first
+        await accrueGems(req.user.id);
+        const { rows: cr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        const balance = parseFloat(cr[0]?.balance || 0);
+        const { rows: kitRows } = await pool.query("SELECT COUNT(*) as cnt FROM user_kits WHERE discord_id = $1", [req.user.id]);
+        const kitCount = parseInt(kitRows[0]?.cnt || 0);
+        const { rows: mxRows } = await pool.query("SELECT multiplier FROM gem_multipliers WHERE discord_id = $1", [req.user.id]);
+        const multiplier = parseFloat(mxRows[0]?.multiplier || 1);
+        const baseRate = 10 + kitCount * 10;
+        const gemsPerHour = Math.round(baseRate * multiplier);
+        res.json({ loggedIn: true, balance, gemsPerHour, multiplier, kitCount, baseRate });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Gem Shop: list items ──────────────────────────────────────────────────────
+app.get("/api/gem-shop", async (req, res) => {
+    try {
+        const { rows } = await pool.query(
+            "SELECT id, name, shortname, category, gem_cost, sort_order FROM gem_shop_items WHERE enabled = 1 ORDER BY sort_order, id"
+        );
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Gem Shop: buy item (deduct gems, send via RCON immediately) ───────────────
+app.post("/api/gem-shop/buy", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
+    const { itemId, quantity } = req.body;
+    if (!itemId || !quantity || quantity < 1 || quantity > 100) return res.status(400).json({ error: "Invalid itemId or quantity" });
+
+    try {
+        const { rows: itemRows } = await pool.query("SELECT * FROM gem_shop_items WHERE id = $1 AND enabled = 1", [itemId]);
+        const item = itemRows[0];
+        if (!item) return res.status(404).json({ error: "Item not found." });
+
+        const totalCost = item.gem_cost * quantity;
+
+        // Check balance
+        const { rows: cr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        const balance = parseFloat(cr[0]?.balance || 0);
+        if (balance < totalCost) return res.status(400).json({ error: `Not enough gems. Need ${totalCost}, you have ${Math.floor(balance)}.` });
+
+        // Get gamertag
+        const { rows: linkRows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [req.user.id]);
+        const gamertag = linkRows[0]?.gamertag;
+        if (!gamertag) return res.status(400).json({ error: "Link your in-game name first on the Kits page." });
+
+        // Get server
+        let rconHost, rconPort, rconPassword;
+        if (item.server_id) {
+            const { rows: srv } = await pool.query("SELECT * FROM web_game_servers WHERE id = $1", [item.server_id]);
+            if (!srv[0]) return res.status(400).json({ error: "Server not configured for this item." });
+            rconHost = srv[0].rcon_host; rconPort = srv[0].rcon_port; rconPassword = srv[0].rcon_password;
+        } else {
+            // Use first server
+            const { rows: srv } = await pool.query("SELECT * FROM web_game_servers ORDER BY sort_order, id LIMIT 1");
+            if (!srv[0]) return res.status(400).json({ error: "No game server configured." });
+            rconHost = srv[0].rcon_host; rconPort = srv[0].rcon_port; rconPassword = srv[0].rcon_password;
+        }
+
+        // Send RCON — give item
+        await sendRconCommand(rconHost, rconPort, rconPassword, `inventory.giveto "${gamertag}" "${item.shortname}" ${quantity}`);
+
+        // Deduct gems
+        await pool.query("UPDATE store_credits SET balance = balance - $1, updated_at = NOW() WHERE discord_id = $2", [totalCost, req.user.id]);
+        await pool.query("INSERT INTO credit_transactions (discord_id, amount, reason, type) VALUES ($1,$2,$3,'spend')", [req.user.id, -totalCost, `Gem shop: ${item.name} x${quantity}`]);
+
+        const { rows: newCr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [req.user.id]);
+        const newBalance = parseFloat(newCr[0]?.balance || 0);
+
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(`💎 **Gem Shop Purchase** (Solarix)\n📦 Item: **${item.name}** x${quantity}\n💎 Cost: **${totalCost} gems**\n👤 Discord: <@${req.user.id}>\n🎮 Gamertag: **${gamertag}**\n💰 Remaining: **${Math.floor(newBalance)} gems**\n🕐 Time: ${ts}`);
+
+        res.json({ ok: true, newBalance });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: Gem Shop management ────────────────────────────────────────────────
+app.get("/api/admin/gem-shop", checkAdminJson, async (req, res) => {
+    try {
+        const { rows } = await pool.query("SELECT gs.*, s.name as server_name FROM gem_shop_items gs LEFT JOIN web_game_servers s ON s.id = gs.server_id ORDER BY gs.sort_order, gs.id");
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/admin/gem-shop", checkAdminJson, async (req, res) => {
+    const items = req.body;
+    if (!Array.isArray(items)) return res.status(400).json({ error: "Expected array" });
+    try {
+        await pool.query("DELETE FROM gem_shop_items");
+        for (let i = 0; i < items.length; i++) {
+            const it = items[i];
+            if (!it.name || !it.shortname) continue;
+            if (it.id) {
+                await pool.query("INSERT INTO gem_shop_items (id, name, shortname, category, gem_cost, server_id, sort_order, enabled) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+                    [it.id, it.name, it.shortname, it.category||"Weapons", parseInt(it.gem_cost)||10, it.server_id||null, i, it.enabled===false?0:1]);
+            } else {
+                await pool.query("INSERT INTO gem_shop_items (name, shortname, category, gem_cost, server_id, sort_order, enabled) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                    [it.name, it.shortname, it.category||"Weapons", parseInt(it.gem_cost)||10, it.server_id||null, i, it.enabled===false?0:1]);
+            }
+        }
+        try { await pool.query("SELECT setval('gem_shop_items_id_seq', COALESCE((SELECT MAX(id) FROM gem_shop_items), 1))"); } catch {}
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: Give item via RCON to player by gamertag/discord ID ────────────────
+app.post("/api/admin/give-item", checkAdminJson, async (req, res) => {
+    const { player, shortname, itemName, quantity, serverId } = req.body;
+    if (!player || !shortname || !serverId) return res.status(400).json({ error: "Missing player, shortname, or serverId" });
+    const qty = parseInt(quantity) || 1;
+    try {
+        let gamertag = player.trim();
+        if (/^\d{15,20}$/.test(gamertag)) {
+            const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [gamertag]);
+            if (rows[0]) gamertag = rows[0].gamertag;
+            else {
+                const bg = await getBotLinkedGamertag(gamertag);
+                if (bg) gamertag = bg;
+                else return res.status(404).json({ error: `No linked gamertag for Discord ID ${player}` });
+            }
+        }
+        const { rows: srv } = await pool.query("SELECT * FROM web_game_servers WHERE id = $1", [serverId]);
+        if (!srv[0]) return res.status(404).json({ error: "Server not found" });
+        await sendRconCommand(srv[0].rcon_host, srv[0].rcon_port, srv[0].rcon_password, `inventory.giveto "${gamertag}" "${shortname}" ${qty}`);
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(`⚡ **Admin Give Item** (Solarix)\n📦 Item: **${itemName||shortname}** x${qty}\n🎮 Gamertag: **${gamertag}**\n🖥️ Server: ${srv[0].name}\n🕐 Time: ${ts}`);
+        res.json({ ok: true, gamertag });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: Give gems to user by gamertag or Discord ID ───────────────────────
+app.post("/api/admin/give-gems-by-gamertag", checkAdminJson, async (req, res) => {
+    const { player, amount, reason } = req.body;
+    if (!player || !amount) return res.status(400).json({ error: "Missing player or amount" });
+    const playerTrimmed = player.trim();
+    try {
+        let discordId = null;
+        let gamertag = null;
+        if (/^\d{15,20}$/.test(playerTrimmed)) {
+            discordId = playerTrimmed;
+            const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [discordId]);
+            gamertag = rows[0]?.gamertag || discordId;
+        } else {
+            const { rows } = await pool.query("SELECT discord_id FROM web_player_links WHERE LOWER(gamertag) = LOWER($1)", [playerTrimmed]);
+            if (!rows[0]) return res.status(404).json({ error: `No linked account for gamertag "${playerTrimmed}"` });
+            discordId = rows[0].discord_id;
+            gamertag = playerTrimmed;
+        }
+        const numAmount = parseFloat(amount);
+        await pool.query(
+            `INSERT INTO store_credits (discord_id, balance, updated_at) VALUES ($1, GREATEST(0, $2), NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET balance = GREATEST(0, store_credits.balance + $2), updated_at = NOW()`,
+            [discordId, numAmount]
+        );
+        await pool.query("INSERT INTO credit_transactions (discord_id, amount, reason, type) VALUES ($1,$2,$3,'grant')", [discordId, numAmount, reason || "Admin grant"]);
+        const { rows: nr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [discordId]);
+        const newBalance = parseFloat(nr[0]?.balance || 0);
+        const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+        await sendDiscordLog(`💎 **Admin Give Gems** (Solarix)\n💎 Amount: **${numAmount > 0 ? '+' : ''}${numAmount}**\n🎮 Player: **${gamertag}**\n📝 Reason: ${reason || "Admin grant"}\n💰 New Balance: **${Math.floor(newBalance)}**\n🕐 Time: ${ts}`);
+        res.json({ ok: true, discordId, gamertag, newBalance });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: Set gem multiplier for user ────────────────────────────────────────
+app.post("/api/admin/gem-multiplier", checkAdminJson, async (req, res) => {
+    const { player, multiplier, reason } = req.body;
+    if (!player || !multiplier) return res.status(400).json({ error: "Missing player or multiplier" });
+    const playerTrimmed = player.trim();
+    try {
+        let discordId = null;
+        let gamertag = null;
+        if (/^\d{15,20}$/.test(playerTrimmed)) {
+            discordId = playerTrimmed;
+            const { rows } = await pool.query("SELECT gamertag FROM web_player_links WHERE discord_id = $1", [discordId]);
+            gamertag = rows[0]?.gamertag || discordId;
+        } else {
+            const { rows } = await pool.query("SELECT discord_id FROM web_player_links WHERE LOWER(gamertag) = LOWER($1)", [playerTrimmed]);
+            if (!rows[0]) return res.status(404).json({ error: `No linked account for "${playerTrimmed}"` });
+            discordId = rows[0].discord_id;
+            gamertag = playerTrimmed;
+        }
+        await pool.query(
+            `INSERT INTO gem_multipliers (discord_id, multiplier, reason, updated_at) VALUES ($1,$2,$3,NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET multiplier=$2, reason=$3, updated_at=NOW()`,
+            [discordId, parseFloat(multiplier), reason || ""]
+        );
+        res.json({ ok: true, gamertag, multiplier: parseFloat(multiplier) });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: Disable all kits ───────────────────────────────────────────────────
+app.post("/api/admin/disable-all-kits", checkAdminJson, async (req, res) => {
+    try {
+        await pool.query("UPDATE web_kit_configs SET enabled = 0");
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: Enable all kits ────────────────────────────────────────────────────
+app.post("/api/admin/enable-all-kits", checkAdminJson, async (req, res) => {
+    try {
+        await pool.query("UPDATE web_kit_configs SET enabled = 1");
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── /link → redirect to kits (where gamertag linking lives) ──────────────────
 app.get("/link", (req, res) => res.redirect("/kits"));
 
@@ -1210,49 +1463,6 @@ app.post("/api/sync/clans", express.json(), async (req, res) => {
 
 // ── My clan (logged-in user) ──────────────────────────────────────────────────
 app.get("/api/public/clans/me", async (req, res) => {
-
-    try {
-
-        const { rows } = await pool.query(`
-            SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.owner_discord_name,
-       ic.code AS clan_code,
-                COUNT(cm2.user_id)::int AS member_count
-            FROM clan_members_mirror cm
-            JOIN clans_mirror c 
-                ON c.id = cm.clan_id
-            LEFT JOIN clan_members_mirror cm2 
-                ON cm2.clan_id = c.id
-            WHERE cm.user_id=$1
-            GROUP BY c.id
-        `,[String(req.user.id)]);
-
-
-        if(!rows[0]){
-            return res.json({
-                loggedIn:true,
-                clan:null
-            });
-        }
-
-
-        const clan = rows[0];
-
-        clan.is_owner =
-            String(clan.owner_id) === String(req.user.id);
-
-
-        res.json({
-            loggedIn:true,
-            clan:clan
-        });
-
-
-    } catch(e){
-        res.status(500).json({
-            error:e.message
-        });
-    }
-});
     if (!req.user) return res.json({ loggedIn: false, clan: null });
     try {
         const { rows } = await pool.query(`
@@ -1290,7 +1500,7 @@ app.post("/api/clans/join", async (req, res) => {
         // Validate code
         const now = Math.floor(Date.now() / 1000);
         const { rows: codes } = await pool.query(
-            `SELECT * FROM clan_invite_codes_mirror WHERE code=$1
+            `SELECT * FROM clan_invite_codes_mirror WHERE UPPER(code) = UPPER($1)
              AND (expires_at IS NULL OR expires_at > $2)
              AND (max_uses IS NULL OR uses < max_uses)`,
             [code.trim().toUpperCase(), now]
@@ -1320,54 +1530,6 @@ app.post("/api/clans/join", async (req, res) => {
         return res.status(500).json({ error: e.message });
     }
 });
-app.post("/api/clans/disband", async(req,res)=>{
-
-if(!req.user)
-return res.status(401).json({error:"Not logged in"});
-
-
-try{
-
-const {rows}=await pool.query(
-"SELECT clan_id FROM clan_members_mirror WHERE user_id=$1",
-[String(req.user.id)]
-);
-
-
-if(!rows[0])
-return res.status(404).json({error:"No clan"});
-
-
-const {rows:clan}=await pool.query(
-"SELECT owner_id FROM clans_mirror WHERE id=$1",
-[rows[0].clan_id]
-);
-
-
-if(String(clan[0].owner_id)!==String(req.user.id))
-return res.status(403).json({error:"Not owner"});
-
-
-await pool.query(
-"DELETE FROM clan_members_mirror WHERE clan_id=$1",
-[rows[0].clan_id]
-);
-
-
-await pool.query(
-"DELETE FROM clans_mirror WHERE id=$1",
-[rows[0].clan_id]
-);
-
-
-res.json({ok:true});
-
-
-}catch(e){
-res.status(500).json({error:e.message});
-}
-
-});
 
 // ── Bot SQLite helper — opens fresh each request so startup-time file absence is fine ──
 function openBotDb() {
@@ -1385,62 +1547,7 @@ function openBotDb() {
 // ── Public: Clans ─────────────────────────────────────────────────────────────
 // Reads from Postgres mirror (populated by bot via /api/sync/clans).
 // Falls back to bot SQLite if mirror is empty and BOT_DB_PATH is set.
-app.get("/api/public/clans/me", async (req, res) => {
-    if (!req.user) {
-        return res.json({
-            loggedIn:false,
-            clan:null
-        });
-    }
-
-    try {
-
-        const { rows } = await pool.query(`
-            SELECT 
-                c.id,
-                c.name,
-                c.clantag,
-                c.color,
-                c.description,
-                c.owner_id,
-                c.owner_discord_name,
-                COUNT(cm2.user_id)::int AS member_count
-           FROM clan_members_mirror cm
-JOIN clans_mirror c ON c.id = cm.clan_id
-LEFT JOIN clan_invite_codes_mirror ic ON ic.clan_id = c.id
-            LEFT JOIN clan_members_mirror cm2 
-                ON cm2.clan_id = c.id
-            WHERE cm.user_id=$1
-            GROUP BY c.id
-        `,[String(req.user.id)]);
-
-
-        if(!rows[0]){
-            return res.json({
-                loggedIn:true,
-                clan:null
-            });
-        }
-
-
-        const clan = rows[0];
-
-        clan.is_owner =
-            String(clan.owner_id) === String(req.user.id);
-
-
-        res.json({
-            loggedIn:true,
-            clan:clan
-        });
-
-
-    } catch(e){
-        res.status(500).json({
-            error:e.message
-        });
-    }
-});
+app.get("/api/public/clans", async (req, res) => {
     try {
         const { rows: clans } = await pool.query(`
             SELECT c.id, c.name, c.clantag, c.color, c.description, c.owner_id, c.created_at,
@@ -1577,6 +1684,48 @@ app.get("/api/public/leaderboard", async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+
+// ── Gem accrual helper ────────────────────────────────────────────────────────
+async function accrueGems(discordId) {
+    try {
+        // Get last accrual time
+        const { rows: la } = await pool.query("SELECT last_accrued_at FROM gem_accrual_log WHERE discord_id = $1", [discordId]);
+        const lastAccrued = la[0]?.last_accrued_at ? new Date(la[0].last_accrued_at) : null;
+        if (!lastAccrued) {
+            // First time — initialize without awarding
+            await pool.query("INSERT INTO gem_accrual_log (discord_id, last_accrued_at) VALUES ($1, NOW()) ON CONFLICT (discord_id) DO NOTHING", [discordId]);
+            return;
+        }
+        const hoursSince = (Date.now() - lastAccrued.getTime()) / 3600000;
+        if (hoursSince < 0.01) return; // < 36s, skip
+
+        // Calculate rate
+        const { rows: kitRows } = await pool.query("SELECT COUNT(*) as cnt FROM user_kits WHERE discord_id = $1", [discordId]);
+        const kitCount = parseInt(kitRows[0]?.cnt || 0);
+        const { rows: mxRows } = await pool.query("SELECT multiplier FROM gem_multipliers WHERE discord_id = $1", [discordId]);
+        const multiplier = parseFloat(mxRows[0]?.multiplier || 1);
+        const rate = (10 + kitCount * 10) * multiplier; // gems per hour
+
+        const earned = Math.floor(rate * hoursSince);
+        if (earned <= 0) return;
+
+        await pool.query(
+            `INSERT INTO store_credits (discord_id, balance, updated_at) VALUES ($1, $2, NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET balance = store_credits.balance + $2, updated_at = NOW()`,
+            [discordId, earned]
+        );
+        await pool.query("INSERT INTO credit_transactions (discord_id, amount, reason, type) VALUES ($1,$2,'Gem accrual','earn')", [discordId, earned]);
+        await pool.query("UPDATE gem_accrual_log SET last_accrued_at = NOW() WHERE discord_id = $1", [discordId]);
+    } catch {}
+}
+
+// ── Background: accrue gems for all users every hour ─────────────────────────
+setInterval(async () => {
+    try {
+        const { rows } = await pool.query("SELECT discord_id FROM gem_accrual_log");
+        for (const r of rows) { await accrueGems(r.discord_id); }
+    } catch {}
+}, 60 * 60 * 1000);
 
 setupDB()
     .then(() => {

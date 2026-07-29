@@ -134,8 +134,8 @@
 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
     <div>
-      <h1 style="font-size:28px;font-weight:800;color:#fff;">💎 Gem Shop</h1>
-      <p style="font-size:13px;color:#7c3aed;margin-top:4px;">Spend your gems on exclusive items. Earn gems by playing, winning events, and gambling.</p>
+      <h1 style="font-size:28px;font-weight:800;color:#fff;">🛒 Solarix Store</h1>
+      <p style="font-size:13px;color:#7c3aed;margin-top:4px;">Buy VIP packages, perks, and items with real money or store credits.</p>
     </div>
   </div>
 
@@ -143,8 +143,8 @@
   <div id="gems-bar" class="gems-bar" style="display:none">
     <span class="gems-bar-icon">💎</span>
     <div class="gems-bar-text">
-      <h3>Your Gems</h3>
-      <p>Earned in-game — not purchasable with real money</p>
+      <h3>💳 Store Credits</h3>
+      <p>Store credits balance — used to buy items in this store</p>
     </div>
     <div class="gems-balance-pill">
       💎 <span id="gems-balance">0</span>
@@ -175,16 +175,156 @@ function filterCat(cat, btn) {
   });
 }
 
-function buildBuyBtn(item, user, gemBalance) {
+function buildBuyBtn(item, user, creditBalance) {
   if (!user?.loggedIn) {
-    return `<a href="/auth/discord" class="store-buy-btn">Login to Buy</a>`;
+    return '<a href="/auth/discord" class="store-buy-btn">Login to Buy</a>';
   }
-  // Parse gem price from item.price (strip non-numeric except decimal)
   const priceNum = parseFloat(String(item.price).replace(/[^0-9.]/g, "")) || 0;
-  const canAfford = gemBalance >= priceNum;
-  return `<button class="store-buy-btn" id="buy-btn-${item.id}" onclick="buyWithGems(${item.id}, this)" ${!canAfford ? 'title="Not enough gems"' : ''}>
-    💎 Buy — ${esc(item.price)} gems
-  </button>`;
+
+  // If item has a Stripe link, primary action is card payment
+  if (item.stripeLink) {
+    const creditBtn = creditBalance >= priceNum && priceNum > 0
+      ? '<button class="store-buy-btn" style="background:rgba(124,58,237,0.7);font-size:13px;padding:9px 0;margin-top:6px;" onclick="buyWithCredits(' + item.id + ', this)">💳 Use Credits — ' + esc(item.price) + '</button>'
+      : '';
+    return '<button class="store-buy-btn" onclick="buyWithCard(' + item.id + ', this)">💳 Buy — 
+
+function renderSections(items, user, gemBalance) {
+  const cats = [...new Set(items.map(i => i.category || "General"))];
+  const tabBar = document.getElementById("category-tabs");
+  const sectionsEl = document.getElementById("store-sections");
+
+  cats.forEach(cat => {
+    const btn = document.createElement("button");
+    btn.className = "category-tab";
+    btn.textContent = cat;
+    btn.onclick = () => filterCat(cat, btn);
+    tabBar.appendChild(btn);
+  });
+
+  sectionsEl.innerHTML = cats.map(cat => {
+    const catItems = items.filter(i => (i.category || "General") === cat);
+    return `
+      <div class="category-section" data-cat="${esc(cat)}">
+        <div class="category-title">${esc(cat)}</div>
+        <div class="store-grid-inner">
+          ${catItems.map(item => `
+            <div class="store-card-v2">
+              ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" class="store-card-img" alt="${esc(item.name)}" onerror="this.classList.add('hidden')">` : ""}
+              <div class="store-card-body">
+                <div class="store-card-name">${esc(item.name)}</div>
+                <div class="store-card-price"><span class="gems-icon">💎</span>${esc(item.price)}</div>
+                <div class="store-card-desc">${esc(item.description)}</div>
+                <div class="card-btns">
+                  ${buildBuyBtn(item, user, gemBalance)}
+                </div>
+              </div>
+            </div>`).join("")}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function buyWithCard(itemId, btn) {
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Redirecting…";
+  try {
+    const r = await fetch("/api/create-checkout-session", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId })
+    });
+    const data = await r.json();
+    if (r.ok && data.url) {
+      window.location.href = data.url;
+    } else {
+      btn.disabled = false;
+      btn.textContent = orig;
+      alert(data.error || "Checkout failed. Check Stripe is configured.");
+    }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = orig;
+    alert("Network error.");
+  }
+}
+
+async function buyWithCredits(itemId, btn) {
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Processing…";
+  try {
+    const r = await fetch("/api/pay-with-credits", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId })
+    });
+    const data = await r.json();
+    if (r.ok) {
+      btn.textContent = "✅ Purchased!";
+      btn.classList.add("success");
+      document.getElementById("gems-balance").textContent = Math.floor(data.newBalance || 0);
+    } else {
+      btn.disabled = false;
+      btn.textContent = orig;
+      alert(data.error || "Purchase failed.");
+    }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = orig;
+    alert("Network error.");
+  }
+}
+
+async function init() {
+  const [statusRes, itemsRes, userRes] = await Promise.all([
+    fetch("/api/admin-status"),
+    fetch("/api/store-items"),
+    fetch("/user")
+  ]);
+  const { isAdmin } = await statusRes.json();
+  const items = await itemsRes.json();
+  const user = await userRes.json();
+
+  if (isAdmin) document.getElementById("admin-banner").style.display = "block";
+
+  let gemBalance = 0;
+
+  if (user.loggedIn) {
+    document.getElementById("account-area").innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <img src="${esc(user.avatar)}" style="width:32px;height:32px;border-radius:50%;border:2px solid #7c3aed;" alt="">
+        <span style="font-size:13px;color:#e0e6f0;font-weight:600;">${esc(user.username)}</span>
+        <a href="/logout" style="color:#f87171;font-size:13px;font-weight:600;text-decoration:none;">Logout</a>
+      </div>`;
+    document.getElementById("mob-account").innerHTML =
+      `<a href="/logout" style="color:#f87171">Logout</a>`;
+
+    // Load store credits balance
+    try {
+      const gRes = await fetch("/api/credits/me");
+      const gData = await gRes.json();
+      if (gData.loggedIn) {
+        gemBalance = parseFloat(gData.balance) || 0;
+        document.getElementById("gems-balance").textContent = Math.floor(gemBalance);
+        document.getElementById("gems-bar").style.display = "flex";
+      }
+    } catch {}
+  } else {
+    document.getElementById("login-banner").style.display = "flex";
+  }
+
+  renderSections(items, user, gemBalance);
+}
+
+init();
+</script>
+</body>
+</html>
+ + esc(item.price) + '</button>' + creditBtn;
+  }
+
+  // Credits-only item
+  const canAfford = creditBalance >= priceNum;
+  return '<button class="store-buy-btn" onclick="buyWithCredits(' + item.id + ', this)" ' + (!canAfford ? 'title="Not enough credits"' : '') + '>💳 Buy — ' + esc(item.price) + ' credits</button>';
 }
 
 function renderSections(items, user, gemBalance) {
