@@ -1210,12 +1210,6 @@ app.post("/api/sync/clans", express.json(), async (req, res) => {
 
 // ── My clan (logged-in user) ──────────────────────────────────────────────────
 app.get("/api/public/clans/me", async (req, res) => {
-    if (!req.user) {
-        return res.json({
-            loggedIn:false,
-            clan:null
-        });
-    }
 
     try {
 
@@ -1326,6 +1320,54 @@ app.post("/api/clans/join", async (req, res) => {
         return res.status(500).json({ error: e.message });
     }
 });
+app.post("/api/clans/disband", async(req,res)=>{
+
+if(!req.user)
+return res.status(401).json({error:"Not logged in"});
+
+
+try{
+
+const {rows}=await pool.query(
+"SELECT clan_id FROM clan_members_mirror WHERE user_id=$1",
+[String(req.user.id)]
+);
+
+
+if(!rows[0])
+return res.status(404).json({error:"No clan"});
+
+
+const {rows:clan}=await pool.query(
+"SELECT owner_id FROM clans_mirror WHERE id=$1",
+[rows[0].clan_id]
+);
+
+
+if(String(clan[0].owner_id)!==String(req.user.id))
+return res.status(403).json({error:"Not owner"});
+
+
+await pool.query(
+"DELETE FROM clan_members_mirror WHERE clan_id=$1",
+[rows[0].clan_id]
+);
+
+
+await pool.query(
+"DELETE FROM clans_mirror WHERE id=$1",
+[rows[0].clan_id]
+);
+
+
+res.json({ok:true});
+
+
+}catch(e){
+res.status(500).json({error:e.message});
+}
+
+});
 
 // ── Bot SQLite helper — opens fresh each request so startup-time file absence is fine ──
 function openBotDb() {
@@ -1363,9 +1405,9 @@ app.get("/api/public/clans/me", async (req, res) => {
                 c.owner_id,
                 c.owner_discord_name,
                 COUNT(cm2.user_id)::int AS member_count
-            FROM clan_members_mirror cm
-            JOIN clans_mirror c 
-                ON c.id = cm.clan_id
+           FROM clan_members_mirror cm
+JOIN clans_mirror c ON c.id = cm.clan_id
+LEFT JOIN clan_invite_codes_mirror ic ON ic.clan_id = c.id
             LEFT JOIN clan_members_mirror cm2 
                 ON cm2.clan_id = c.id
             WHERE cm.user_id=$1
