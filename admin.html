@@ -215,26 +215,22 @@
         <div class="section-head">
             <div>
                 <h2>🎒 Give Kit (Admin)</h2>
-                <p>Manually send a kit to a player by gamertag or Discord ID. The player must be linked and online on the server.</p>
+                <p>Give a kit to a player — it appears in their Kits tab on the website. They can claim it in-game themselves.</p>
             </div>
         </div>
         <div class="add-panel">
-            <div class="grid-3">
+            <div class="grid-2">
                 <div class="field">
                     <label>Player — Gamertag or Discord ID</label>
                     <input type="text" id="give-player" placeholder="Gamertag or Discord ID">
-                    <span class="hint">If they're linked on the site, Discord ID will auto-resolve their gamertag.</span>
+                    <span class="hint">Player must have linked their in-game name on the Kits page.</span>
                 </div>
                 <div class="field">
-                    <label>Kit Name</label>
+                    <label>Kit</label>
                     <select id="give-kit-select"><option value="">— Select kit —</option></select>
                 </div>
-                <div class="field">
-                    <label>Game Server</label>
-                    <select id="give-server-select"><option value="">— Select server —</option></select>
-                </div>
             </div>
-            <button class="btn btn-green" onclick="adminGiveKit()">⚡ Give Kit Now</button>
+            <button class="btn btn-green" onclick="adminGiveKit()">🎒 Add to Player's Kits Tab</button>
             <span id="give-kit-status" style="font-size:13px;margin-left:12px;font-weight:600;"></span>
         </div>
         <div style="margin-top:12px;">
@@ -253,16 +249,16 @@
         <div class="section-head">
             <div>
                 <h2>💎 Gems</h2>
-                <p>Give or deduct gems (in-game currency) from players. Players spend gems in the store.</p>
+                <p>Give or deduct gems from players. Use gamertag (linked in-game name) or Discord ID.</p>
             </div>
         </div>
         <div class="add-panel">
-            <h3>Give / Deduct Gems</h3>
+            <h3>Give / Deduct Gems by Gamertag</h3>
             <div class="grid-3">
                 <div class="field">
-                    <label>Discord ID</label>
-                    <input type="text" id="credit-discord-id" placeholder="1234567890123456789">
-                    <span class="hint">The player's Discord User ID. Right-click username → Copy User ID.</span>
+                    <label>Player — Gamertag or Discord ID</label>
+                    <input type="text" id="credit-gamertag" placeholder="Gamertag or Discord ID">
+                    <span class="hint">The player's linked in-game name, or their Discord ID.</span>
                 </div>
                 <div class="field">
                     <label>Gems Amount</label>
@@ -276,6 +272,26 @@
             </div>
             <button class="btn btn-green" onclick="giveCredit()">💎 Update Gems</button>
             <span id="credit-status" style="font-size:13px;margin-left:12px;font-weight:600;"></span>
+        </div>
+        <div class="add-panel" style="margin-top:12px;">
+            <h3>🔢 Set Gem Multiplier</h3>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Player — Gamertag or Discord ID</label>
+                    <input type="text" id="mult-player" placeholder="Gamertag or Discord ID">
+                </div>
+                <div class="field">
+                    <label>Multiplier</label>
+                    <input type="number" id="mult-value" placeholder="e.g. 2 = double rate" step="0.1" min="0.1">
+                    <span class="hint">1 = normal, 2 = double, 3 = triple, etc.</span>
+                </div>
+                <div class="field">
+                    <label>Reason (optional)</label>
+                    <input type="text" id="mult-reason" placeholder="e.g. VIP bonus">
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="setMultiplier()">🔢 Set Multiplier</button>
+            <span id="mult-status" style="font-size:13px;margin-left:12px;font-weight:600;"></span>
         </div>
         <div id="credits-list"></div>
     </div>
@@ -357,10 +373,11 @@
         <div class="section-head">
             <div>
                 <h2>🎁 Kits Config</h2>
-                <p>Configure kits shown on the Kits page. Kit name must match exactly the in-game kit name.</p>
+                <p>Configure kits. Kit name must match exactly the in-game kit name. Give kits to specific players using the Give Kit section above.</p>
             </div>
             <div class="section-head-actions">
                 <span style="font-size:12px;color:#2a4070;align-self:center;" id="kits-count"></span>
+                <button class="btn btn-danger btn-sm" onclick="disableAllKits()">🚫 Disable All</button>
                 <button class="btn btn-blue btn-sm" onclick="saveKits()">💾 Save Kits</button>
             </div>
         </div>
@@ -395,6 +412,91 @@
         </div>
         <div id="kits-admin-list"></div>
         <span id="kits-status" style="font-size:13px;color:#5b21b6;display:block;margin-top:8px;"></span>
+    </div>
+
+    <!-- ── Gem Shop ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>💎 Gem Shop Items</h2>
+                <p>Add items players can buy with gems. Select from all Rust Console items — items are delivered via RCON when purchased.</p>
+            </div>
+            <div class="section-head-actions">
+                <button class="btn btn-blue btn-sm" onclick="saveGemShop()">💾 Save Shop</button>
+            </div>
+        </div>
+        <div class="add-panel">
+            <h3>+ Add Gem Shop Item</h3>
+            <div class="grid-3">
+                <div class="field">
+                    <label>Item</label>
+                    <select id="new-gs-item" onchange="onGsItemSelect(this.value)" style="max-height:200px;">
+                        <option value="">— Select Rust item —</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Category</label>
+                    <input type="text" id="new-gs-category" placeholder="e.g. Weapons" readonly>
+                </div>
+                <div class="field">
+                    <label>Gem Cost</label>
+                    <input type="number" id="new-gs-cost" value="20" min="1">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Game Server</label>
+                    <select id="new-gs-server"><option value="">— Default (first server) —</option></select>
+                </div>
+                <div class="field">
+                    <label>Shortname (auto-filled)</label>
+                    <input type="text" id="new-gs-shortname" readonly placeholder="Auto-filled when item selected">
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="addGemShopItem()">+ Add Item</button>
+        </div>
+        <div id="gem-shop-list"></div>
+        <span id="gem-shop-status" style="font-size:13px;color:#5b21b6;display:block;margin-top:8px;"></span>
+    </div>
+
+    <!-- ── Admin: Give Item in-game ── -->
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <h2>⚡ Give Item (RCON)</h2>
+                <p>Give a Rust item directly to a player in-game via RCON. Player must be online on the server.</p>
+            </div>
+        </div>
+        <div class="add-panel">
+            <div class="grid-3">
+                <div class="field">
+                    <label>Player — Gamertag or Discord ID</label>
+                    <input type="text" id="gi-player" placeholder="Gamertag or Discord ID">
+                </div>
+                <div class="field">
+                    <label>Item</label>
+                    <select id="gi-item-select" onchange="onGiItemSelect(this.value)">
+                        <option value="">— Select Rust item —</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Quantity</label>
+                    <input type="number" id="gi-qty" value="1" min="1" max="10000">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Game Server</label>
+                    <select id="gi-server-select"><option value="">— Select server —</option></select>
+                </div>
+                <div class="field">
+                    <label>Shortname (auto-filled)</label>
+                    <input type="text" id="gi-shortname" readonly placeholder="Auto-filled when item selected">
+                </div>
+            </div>
+            <button class="btn btn-green" onclick="adminGiveItem()">⚡ Give Item Now</button>
+            <span id="gi-status" style="font-size:13px;margin-left:12px;font-weight:600;"></span>
+        </div>
     </div>
 
     <!-- ── Settings ── -->
@@ -604,23 +706,18 @@ async function loadPurchases() {
     }).join("");
 }
 
-/* ── Gems ── */
-async function giveCredit() {
-    const discordId = document.getElementById("credit-discord-id").value.trim();
+/* ── Gems (legacy placeholder — new version defined at bottom) ── */
+async function giveCreditLegacy_unused() {
+    const discordId = "";
     const amount = document.getElementById("credit-amount").value.trim();
     const reason = document.getElementById("credit-reason").value.trim();
     const statusEl = document.getElementById("credit-status");
-    if (!discordId || !amount) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter Discord ID and amount."; return; }
+    if (!discordId || !amount) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter player and amount."; return; }
     statusEl.style.color = "#5b21b6"; statusEl.textContent = "Processing…";
-    const res = await fetch("/api/admin/give-credit", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ discordId, amount: parseFloat(amount), reason })
-    });
-    const data = await res.json();
-    if (res.ok) {
+    const data = {};
+    if (true) {
         statusEl.style.color = "#4ade80";
-        statusEl.textContent = `✓ Done! New balance: ${data.newBalance.toFixed(0)} gems`;
-        document.getElementById("credit-discord-id").value = "";
+        statusEl.textContent = `✓ Done! New balance: ${(data.newBalance||0).toFixed(0)} gems`;
         document.getElementById("credit-amount").value = "";
         document.getElementById("credit-reason").value = "";
         loadCredits();
@@ -772,20 +869,30 @@ async function loadLinks() {
 async function adminGiveKit() {
     const player = document.getElementById("give-player").value.trim();
     const kitVal = document.getElementById("give-kit-select").value;
-    const serverId = document.getElementById("give-server-select").value;
     const statusEl = document.getElementById("give-kit-status");
     if (!player) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter gamertag or Discord ID."; return; }
     if (!kitVal) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Select a kit."; return; }
-    if (!serverId) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Select a server."; return; }
-    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Sending kit…";
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Adding kit to player's tab…";
     const res = await fetch("/api/admin/give-kit", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player, kitName: kitVal, serverId })
+        body: JSON.stringify({ player, kitName: kitVal })
     });
     const data = await res.json();
     statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
-    statusEl.textContent = res.ok ? `✓ Kit "${kitVal}" sent to ${esc(data.gamertag || player)}!` : `✗ ${data.error}`;
-    setTimeout(() => statusEl.textContent = "", 5000);
+    statusEl.textContent = res.ok ? `✓ Kit "${kitVal}" added to ${esc(data.gamertag || player)}'s Kits tab!` : `✗ ${data.error}`;
+    setTimeout(() => statusEl.textContent = "", 6000);
+}
+
+async function disableAllKits() {
+    if (!confirm("Disable ALL kits? Players won't be able to claim any kit until you re-enable them.")) return;
+    const res = await fetch("/api/admin/disable-all-kits", { method: "POST", headers: { "Content-Type": "application/json" } });
+    const data = await res.json();
+    if (res.ok) {
+        alert("✓ All kits disabled.");
+        await loadKits();
+    } else {
+        alert("✗ " + (data.error || "Failed"));
+    }
 }
 
 /* ── Kits ── */
@@ -918,8 +1025,200 @@ async function testDiscord() {
     setTimeout(() => statusEl.textContent = "", 4000);
 }
 
+/* ── Give Credit (by gamertag) ── */
+async function giveCredit() {
+    const player = document.getElementById("credit-gamertag")?.value?.trim() || document.getElementById("credit-discord-id")?.value?.trim();
+    const amount = document.getElementById("credit-amount").value.trim();
+    const reason = document.getElementById("credit-reason").value.trim();
+    const statusEl = document.getElementById("credit-status");
+    if (!player || !amount) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter player and amount."; return; }
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Updating gems…";
+    try {
+        const res = await fetch("/api/admin/give-gems-by-gamertag", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ player, amount, reason })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            statusEl.style.color = "#4ade80";
+            statusEl.textContent = `✓ Done! New balance: ${Math.floor(data.newBalance)} gems (${esc(data.gamertag || player)})`;
+            document.getElementById("credit-gamertag") && (document.getElementById("credit-gamertag").value = "");
+            document.getElementById("credit-discord-id") && (document.getElementById("credit-discord-id").value = "");
+            document.getElementById("credit-amount").value = "";
+            document.getElementById("credit-reason").value = "";
+            loadCredits();
+        } else {
+            statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${data.error}`;
+        }
+    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    setTimeout(() => statusEl.textContent = "", 5000);
+}
+
+async function setMultiplier() {
+    const player = document.getElementById("mult-player").value.trim();
+    const multiplier = document.getElementById("mult-value").value.trim();
+    const reason = document.getElementById("mult-reason").value.trim();
+    const statusEl = document.getElementById("mult-status");
+    if (!player || !multiplier) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter player and multiplier."; return; }
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Setting multiplier…";
+    try {
+        const res = await fetch("/api/admin/gem-multiplier", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ player, multiplier, reason })
+        });
+        const data = await res.json();
+        statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
+        statusEl.textContent = res.ok ? `✓ Multiplier set to ${data.multiplier}x for ${esc(data.gamertag || player)}` : `✗ ${data.error}`;
+    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    setTimeout(() => statusEl.textContent = "", 5000);
+}
+
+/* ── Gem Shop Admin ── */
+const RUST_ITEMS_CATALOG = {
+  "Weapons": { "rifle.ak":"AK-47","rifle.ak.ice":"Ice AK-47","rifle.bolt":"Bolt Action Rifle","rifle.l96":"L96 Rifle","rifle.lr300":"LR-300 Assault Rifle","rifle.m39":"M39 Rifle","rifle.semiauto":"Semi-Automatic Rifle","smg.2":"Custom SMG","smg.mp5":"MP5A4","smg.thompson":"Thompson","pistol.m92":"M92 Pistol","pistol.python":"Python Revolver","pistol.revolver":"Revolver","pistol.semiauto":"Semi-Automatic Pistol","pistol.eoka":"Eoka Pistol","pistol.nailgun":"Nailgun","shotgun.double":"Double Barrel Shotgun","shotgun.pump":"Pump Shotgun","shotgun.spas12":"SPAS-12 Shotgun","shotgun.waterpipe":"Waterpipe Shotgun","bow.compound":"Compound Bow","bow.hunting":"Hunting Bow","crossbow":"Crossbow","grenade.f1":"F1 Grenade","grenade.beancan":"Beancan Grenade","explosive.satchel":"Satchel Charge","explosive.timed":"C4","rocket.launcher":"Rocket Launcher","multiplegrenadelauncher":"Multiple Grenade Launcher","flamethrower":"Flame Thrower","spear.wooden":"Wooden Spear","spear.stone":"Stone Spear","knife.combat":"Combat Knife","knife.bone":"Bone Knife","longsword":"Longsword","salvaged.sword":"Salvaged Sword","salvaged.cleaver":"Salvaged Cleaver","mace":"Mace","bone.club":"Bone Club","torch":"Torch","rock":"Rock" },
+  "Ammunition": { "ammo.rifle":"5.56 Rifle Ammo","ammo.rifle.explosive":"Explosive 5.56","ammo.rifle.hv":"HV 5.56 Rifle Ammo","ammo.rifle.incendiary":"Incendiary 5.56","ammo.pistol":"Pistol Bullet","ammo.pistol.fire":"Incendiary Pistol Bullet","ammo.pistol.hv":"HV Pistol Bullet","ammo.shotgun":"12 Gauge Buckshot","ammo.shotgun.fire":"Incendiary 12 Gauge","ammo.shotgun.slug":"12 Gauge Slug","ammo.handmade.shell":"Handmade Shell","ammo.rocket.basic":"Rocket","ammo.rocket.fire":"Incendiary Rocket","ammo.rocket.hv":"HV Rocket","ammo.rocket.smoke":"Smoke Rocket","ammo.grenadelauncher.he":"40mm HE Grenade","ammo.grenadelauncher.smoke":"40mm Smoke Grenade","ammo.nailgun.nails":"Nailgun Nails","arrow.wooden":"Wooden Arrow","arrow.hv":"HV Arrow","arrow.fire":"Fire Arrow","arrow.bone":"Bone Arrow" },
+  "Construction": { "wall.frame.garagedoor":"Garage Door","door.hinged.metal":"Metal Door","door.hinged.toptier":"Armored Door","door.hinged.wood":"Wooden Door","door.double.hinged.metal":"Double Metal Door","door.double.hinged.toptier":"Double Armored Door","door.double.hinged.wood":"Double Wooden Door","lock.code":"Code Lock","lock.key":"Key Lock","gates.external.high.stone":"High External Stone Gate","gates.external.high.wood":"High External Wooden Gate","wall.window.bars.metal":"Metal Window Bars","wall.window.bars.toptier":"Armoured Window Bars","wall.window.bars.wood":"Wooden Window Bars","shutter.metal.embrasure.a":"Metal Shop Front","shutter.wood.a":"Wood Shutters","floor.ladder.hatch":"Ladder Hatch","door.closer":"Door Closer" },
+  "Resources": { "wood":"Wood","stones":"Stone","metal.fragments":"Metal Fragments","metal.refined":"High Quality Metal","sulfur":"Sulfur","metal.ore":"Metal Ore","sulfur.ore":"Sulfur Ore","charcoal":"Charcoal","cloth":"Cloth","leather":"Leather","fat.animal":"Animal Fat","lowgradefuel":"Low Grade Fuel","crude.oil":"Crude Oil","gunpowder":"Gun Powder","explosives":"Explosives","techparts":"Tech Trash","scrap":"Scrap","rope":"Rope","sewingkit":"Sewing Kit","riflebody":"Rifle Body","smgbody":"SMG Body","metalspring":"Metal Spring","gears":"Gears","metalblade":"Metal Blade","metalpipe":"Metal Pipe","propanetank":"Propane Tank","bleach":"Bleach","horsedung":"Horse Dung","fertilizer":"Fertilizer","pumpkin":"Pumpkin","potato":"Potato","skull.human":"Human Skull","skull.wolf":"Wolf Skull" },
+  "Medical": { "syringe.medical":"Medical Syringe","bandage":"Bandage","largemedkit":"Large Medkit","antiradpills":"Anti-Radiation Pills","blood":"Blood" },
+  "Attire": { "metal.plate.torso":"Metal Chest Plate","metal.facemask":"Metal Facemask","coffeecan.helmet":"Coffee Can Helmet","riot.helmet":"Riot Helmet","roadsign.jacket":"Road Sign Jacket","roadsign.kilt":"Road Sign Kilt","roadsign.gloves":"Road Sign Gloves","hazmatsuit":"Hazmat Suit","jacket":"Jacket","jacket.snow":"Snow Jacket","hoodie":"Hoodie","pants":"Pants","pants.shorts":"Shorts","attire.hide.pants":"Hide Pants","attire.hide.vest":"Hide Vest","attire.hide.poncho":"Hide Poncho","burlap.shirt":"Burlap Shirt","burlap.trousers":"Burlap Trousers","burlap.headwrap":"Burlap Headwrap","burlap.gloves":"Burlap Gloves","burlap.shoes":"Burlap Shoes","hat.boonie":"Boonie Hat","hat.cap":"Baseball Cap","hat.beenie":"Beenie Hat","hat.miner":"Miners Hat","hat.wolf":"Wolf Headdress","hat.candle":"Candle Hat","mask.balaclava":"Balaclava","mask.bandana":"Bandana Mask","boots.project":"Boots","shoes.boots":"Leather Boots","attire.hide.boots":"Hide Boots","tactical.gloves":"Tactical Gloves","tshirt":"T-Shirt","tshirt.long":"Longsleeve T-Shirt","shirt.collared":"Collared Shirt","shirt.tanktop":"Tank Top","dress":"Dress","diving.mask":"Diving Mask","diving.wetsuit":"Diving Wetsuit","diving.fins":"Diving Fins","diving.tank":"Diving Tank","scarecrow.suit":"Scarecrow Suit","scarecrow.wrap":"Scarecrow Head Wrap","attire.reindeer.headband":"Reindeer Antlers","halloween.mummysuit":"Mummy Suit" },
+  "Tools": { "hatchet":"Hatchet","stone.hatchet":"Stone Hatchet","pickaxe":"Pick Axe","stone.pickaxe":"Stone Pick Axe","hammer":"Hammer","hammer.salvaged":"Salvaged Hammer","icepick.salvaged":"Salvaged Icepick","axe.salvaged":"Salvaged Axe","chainsaw":"Chainsaw","jackhammer":"Jackhammer","flashlight.held":"Flashlight","binoculars":"Binoculars","fishing.rod":"Fishing Rod","supply.signal":"Supply Signal","flare":"Flare","map":"Map","sickle":"Sickle","bucket.water":"Water Bucket","survey.charge":"Survey Charge" },
+  "Food & Drink": { "can.tuna":"Canned Tuna","can.beans":"Canned Beans","water.jug":"Water Jug","water.purified":"Purified Water","chicken.cooked":"Cooked Chicken","chicken.raw":"Raw Chicken","bearmeat.cooked":"Cooked Bear Meat","bearmeat":"Raw Bear Meat","wolfmeat.cooked":"Cooked Wolf Meat","wolfmeat.raw":"Raw Wolf Meat","deermeat.cooked":"Cooked Deer Meat","deermeat.raw":"Raw Deer Meat","horse.cooked":"Cooked Horse Meat","food.apple":"Apple","corn":"Corn","corn.boiled":"Boiled Corn" },
+  "Electrical": { "battery.small":"Small Rechargeable Battery","electric.battery.rechargable.large":"Large Rechargeable Battery","electric.battery.rechargable.medium":"Medium Rechargeable Battery","electric.generator.small":"Electric Generator","solarpanel.large":"Large Solar Panel","electric.windmill.small":"Wind Turbine","electric.switch":"Switch","electric.button":"Button","electric.timer":"Timer","electric.flasherlight":"Flasher Light","electric.sirenlight":"Siren Light","electric.ceiling.light":"Ceiling Light","electric.splitter":"Splitter","electric.combiner":"Power Combiner","electric.counter":"Counter","electric.blocker":"Blocker","electric.andswitch":"AND Switch","electric.orswitch":"OR Switch","electric.memorycell":"Memory Cell","electric.rf.broadcaster":"RF Broadcaster","electric.rf.receiver":"RF Receiver","electric.hbhfsensor":"HBHF Sensor","electric.igniter":"Igniter","electric.doorcontroller":"Door Controller","electric.laserdetector":"Laser Detector","electric.pressurepad":"Pressure Pad","electric.sprinkler":"Sprinkler","electric.heater":"Electric Heater" },
+  "Vehicles & Horses": { "minicopter.entity":"Minicopter","scraptransporthelicopter":"Scrap Transport Helicopter","rowboat":"Row Boat","rhib":"Rigid Hulled Inflatable Boat","horse.saddle":"Horse Saddle","horse.armor.wood":"Wood Horse Armor","horse.armor.roadsign":"Road Sign Horse Armor" }
+};
+
+function buildRustItemDropdown(selectId) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = `<option value="">— Select Rust item —</option>`;
+    for (const [cat, items] of Object.entries(RUST_ITEMS_CATALOG)) {
+        const optgroup = document.createElement("optgroup");
+        optgroup.label = cat;
+        for (const [sn, name] of Object.entries(items)) {
+            const opt = document.createElement("option");
+            opt.value = `${sn}||${cat}`;
+            opt.textContent = name;
+            optgroup.appendChild(opt);
+        }
+        sel.appendChild(optgroup);
+    }
+}
+
+function onGsItemSelect(val) {
+    if (!val) return;
+    const [sn, cat] = val.split("||");
+    document.getElementById("new-gs-shortname").value = sn;
+    document.getElementById("new-gs-category").value = cat || "";
+}
+
+function onGiItemSelect(val) {
+    if (!val) return;
+    const [sn] = val.split("||");
+    document.getElementById("gi-shortname").value = sn;
+}
+
+let gemShopItems = [];
+
+async function loadGemShop() {
+    const res = await fetch("/api/admin/gem-shop");
+    if (!res.ok) return;
+    gemShopItems = await res.json();
+    renderGemShopAdmin();
+}
+
+function renderGemShopAdmin() {
+    const container = document.getElementById("gem-shop-list");
+    if (!gemShopItems.length) { container.innerHTML = '<div class="empty">No gem shop items yet. Add one above.</div>'; return; }
+    container.innerHTML = gemShopItems.map((it, i) => `
+        <div class="kit-admin-card">
+            <div class="kit-admin-header">
+                <div class="kit-admin-name">${esc(it.name)} <span style="font-size:11px;color:#eab308;">💎 ${it.gem_cost} gems</span> <span style="font-size:11px;color:#4c1d95;">${esc(it.category)}</span></div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm ${it.enabled?'btn-ghost':'btn-green'}" onclick="gemShopItems[${i}].enabled=!gemShopItems[${i}].enabled;renderGemShopAdmin()">${it.enabled?'Disable':'Enable'}</button>
+                    <button class="btn btn-danger btn-sm" onclick="gemShopItems.splice(${i},1);renderGemShopAdmin()">✕</button>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div class="field"><label>Name</label><input type="text" value="${esc(it.name)}" oninput="gemShopItems[${i}].name=this.value"></div>
+                <div class="field"><label>Shortname</label><input type="text" value="${esc(it.shortname)}" oninput="gemShopItems[${i}].shortname=this.value"></div>
+                <div class="field"><label>Gem Cost</label><input type="number" value="${it.gem_cost}" oninput="gemShopItems[${i}].gem_cost=parseInt(this.value)||10"></div>
+            </div>
+        </div>`).join("");
+}
+
+function addGemShopItem() {
+    const val = document.getElementById("new-gs-item").value;
+    const cost = parseInt(document.getElementById("new-gs-cost").value) || 10;
+    const server = document.getElementById("new-gs-server").value || null;
+    if (!val) { alert("Select an item."); return; }
+    const [sn, cat] = val.split("||");
+    // Find item name from catalog
+    let itemName = sn;
+    for (const [c, items] of Object.entries(RUST_ITEMS_CATALOG)) {
+        if (items[sn]) { itemName = items[sn]; break; }
+    }
+    gemShopItems.push({ name: itemName, shortname: sn, category: cat || "General", gem_cost: cost, server_id: server, enabled: true });
+    renderGemShopAdmin();
+    document.getElementById("new-gs-item").value = "";
+    document.getElementById("new-gs-shortname").value = "";
+    document.getElementById("new-gs-category").value = "";
+    document.getElementById("new-gs-cost").value = "20";
+}
+
+async function saveGemShop() {
+    const statusEl = document.getElementById("gem-shop-status");
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Saving…";
+    try {
+        const res = await fetch("/api/admin/gem-shop", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(gemShopItems) });
+        if (res.ok) {
+            statusEl.style.color = "#4ade80"; statusEl.textContent = "✓ Gem shop saved!";
+            await loadGemShop();
+        } else {
+            const d = await res.json();
+            statusEl.style.color = "#f87171"; statusEl.textContent = `✗ ${d.error}`;
+        }
+    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    setTimeout(() => statusEl.textContent = "", 3000);
+}
+
+async function adminGiveItem() {
+    const player = document.getElementById("gi-player").value.trim();
+    const itemVal = document.getElementById("gi-item-select").value;
+    const shortname = document.getElementById("gi-shortname").value.trim();
+    const qty = document.getElementById("gi-qty").value;
+    const serverId = document.getElementById("gi-server-select").value;
+    const statusEl = document.getElementById("gi-status");
+    if (!player) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Enter player."; return; }
+    if (!shortname) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Select an item."; return; }
+    if (!serverId) { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Select a server."; return; }
+    statusEl.style.color = "#5b21b6"; statusEl.textContent = "Sending item via RCON…";
+    let itemName = shortname;
+    for (const [c, items] of Object.entries(RUST_ITEMS_CATALOG)) { if (items[shortname]) { itemName = items[shortname]; break; } }
+    try {
+        const res = await fetch("/api/admin/give-item", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ player, shortname, itemName, quantity: qty, serverId })
+        });
+        const data = await res.json();
+        statusEl.style.color = res.ok ? "#4ade80" : "#f87171";
+        statusEl.textContent = res.ok ? `✓ ${itemName} x${qty} given to ${esc(data.gamertag || player)}!` : `✗ ${data.error}`;
+    } catch { statusEl.style.color = "#f87171"; statusEl.textContent = "✗ Network error."; }
+    setTimeout(() => statusEl.textContent = "", 6000);
+}
+
 // Init
-Promise.all([loadItems(), loadPurchases(), loadServers(), loadKits(), loadCredits(), loadSettings(), loadLinks()]);
+Promise.all([loadItems(), loadPurchases(), loadServers(), loadKits(), loadCredits(), loadSettings(), loadLinks(), loadGemShop()]);
+
+// Populate Rust item dropdowns after init
+setTimeout(() => {
+    buildRustItemDropdown("new-gs-item");
+    buildRustItemDropdown("gi-item-select");
+    // Populate give-item server dropdown
+    const giSel = document.getElementById("gi-server-select");
+    const gsNewSel = document.getElementById("new-gs-server");
+    if (giSel) giSel.innerHTML = '<option value="">— Select server —</option>' + servers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+    if (gsNewSel) gsNewSel.innerHTML = '<option value="">— Default (first server) —</option>' + servers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+}, 800);
 </script>
 </body>
 </html>

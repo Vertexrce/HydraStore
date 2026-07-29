@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gems — Solarix</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0420; color: #e0e6f0; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+
+nav {
+  background: rgba(8,4,20,0.97); border-bottom: 1px solid #1e0a40;
+  padding: 0 40px; height: 62px; display: flex; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.nav-logo-text { font-size: 18px; font-weight: 900; color: #a855f7; letter-spacing: 3px; text-shadow: 0 0 12px rgba(168,85,247,0.4); text-decoration: none; }
+.nav-links { display: flex; gap: 4px; align-items: center; list-style: none; }
+.nav-links a { color: #9a71d4; text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.nav-links a.active { color: #a855f7; }
+.nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.nav-btn { background: #7c3aed; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.85; }
+.nav-cog { color: #4a2080; text-decoration: none; font-size: 18px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; }
+.nav-cog:hover { color: #a855f7; }
+
+.hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+.hamburger span { display: block; width: 24px; height: 2px; background: #a855f7; border-radius: 2px; transition: all 0.25s; }
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.mobile-menu {
+  display: none; position: fixed; top: 62px; left: 0; right: 0;
+  background: rgba(10,4,32,0.98); backdrop-filter: blur(12px);
+  border-bottom: 1px solid #1e0a40; z-index: 99;
+  flex-direction: column; padding: 16px 20px 20px; gap: 4px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a { color: #c4b5fd; text-decoration: none; font-size: 15px; font-weight: 600; padding: 12px 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
+.mobile-menu a:hover { background: rgba(124,58,237,0.12); color: #fff; }
+
+.page { max-width: 1100px; margin: 0 auto; padding: 40px 20px 100px; }
+
+/* Hero balance card */
+.gems-hero {
+  text-align: center; padding: 48px 24px 36px;
+}
+.gems-hero-icon { font-size: 48px; margin-bottom: 12px; }
+.gems-hero h1 { font-size: 38px; font-weight: 900; color: #eab308; letter-spacing: 2px; margin-bottom: 8px; }
+.gems-hero-sub { font-size: 14px; color: #7c3aed; max-width: 460px; margin: 0 auto; }
+
+.balance-card {
+  background: #130929; border: 1px solid #2d1060; border-radius: 16px;
+  padding: 28px 32px; text-align: center; max-width: 400px; margin: 28px auto 0;
+}
+.balance-label { font-size: 11px; font-weight: 700; color: #6b21a8; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+.balance-amount { font-size: 52px; font-weight: 900; color: #eab308; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.balance-gem-icon { font-size: 36px; }
+.balance-rate { font-size: 13px; color: #7c3aed; margin-top: 8px; }
+.balance-rate span { color: #a855f7; font-weight: 700; }
+
+/* Quick nav cards */
+.quick-nav { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 36px auto; max-width: 800px; }
+.quick-card {
+  background: #130929; border: 2px solid #1e0840; border-radius: 14px;
+  padding: 20px 24px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  min-width: 120px; flex: 1; max-width: 160px; text-decoration: none;
+}
+.quick-card:hover, .quick-card.active { border-color: #eab308; background: rgba(234,179,8,0.06); }
+.quick-card-icon { font-size: 28px; margin-bottom: 8px; }
+.quick-card-title { font-size: 13px; font-weight: 700; color: #fff; }
+.quick-card-sub { font-size: 11px; color: #6b21a8; margin-top: 3px; }
+
+/* Shop section */
+.shop-section { margin-top: 0; }
+.shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.shop-title { font-size: 22px; font-weight: 800; color: #fff; }
+.shop-title span { color: #eab308; }
+
+/* Category filter tabs */
+.cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.cat-tab {
+  background: #130929; border: 1px solid #1e0840; border-radius: 8px;
+  padding: 7px 14px; font-size: 12px; font-weight: 700; color: #7c3aed;
+  cursor: pointer; transition: all 0.15s;
+}
+.cat-tab:hover { border-color: #eab308; color: #eab308; }
+.cat-tab.active { background: rgba(234,179,8,0.1); border-color: #eab308; color: #eab308; }
+
+/* Shop items grid */
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+
+.shop-item-card {
+  background: #130929; border: 1.5px solid #1e0840; border-radius: 14px;
+  padding: 18px; display: flex; flex-direction: column; gap: 10px;
+  transition: border-color 0.15s;
+}
+.shop-item-card:hover { border-color: #3d1a7a; }
+
+.item-top { display: flex; align-items: center; gap: 12px; }
+.item-icon { font-size: 28px; flex-shrink: 0; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.3; }
+.item-cat { font-size: 11px; color: #4c1d95; font-weight: 600; margin-top: 2px; }
+.item-price { font-size: 14px; font-weight: 800; color: #eab308; display: flex; align-items: center; gap: 4px; }
+.item-price-unit { font-size: 11px; color: #7c3aed; font-weight: 500; }
+
+/* Quantity control */
+.qty-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.qty-btn {
+  background: #1e0840; border: 1px solid #2d1060; color: #a855f7;
+  border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background 0.12s; user-select: none;
+}
+.qty-btn:hover { background: #2d1060; }
+.qty-display {
+  background: #0a0420; border: 1px solid #2d1060; border-radius: 6px;
+  padding: 4px 12px; font-size: 14px; font-weight: 800; color: #fff;
+  min-width: 40px; text-align: center;
+}
+.qty-total { font-size: 12px; color: #7c3aed; font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.qty-total .gem-dot { color: #eab308; }
+
+.buy-btn {
+  width: 100%; padding: 10px; border-radius: 8px; border: none;
+  background: #eab308; color: #000; font-size: 13px; font-weight: 800;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.buy-btn:hover { opacity: 0.9; }
+.buy-btn:active { transform: scale(0.98); }
+.buy-btn:disabled { background: #3d1a7a; color: #6b21a8; cursor: not-allowed; }
+.buy-result { font-size: 12px; font-weight: 600; text-align: center; min-height: 16px; }
+.buy-result.ok { color: #4ade80; }
+.buy-result.err { color: #f87171; }
+
+.shop-empty { text-align: center; padding: 48px; color: #4c1d95; font-size: 15px; }
+
+/* Login prompt */
+.prompt-card {
+  text-align: center; background: #130929; border: 1px solid #1e0840; border-radius: 16px;
+  padding: 48px 32px; max-width: 480px; margin: 60px auto;
+}
+.prompt-card h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+.prompt-card p { color: #7c3aed; font-size: 14px; margin-bottom: 24px; }
+.prompt-btn { display: inline-block; background: #7c3aed; color: #fff; padding: 12px 28px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 15px; }
+.prompt-btn:hover { opacity: 0.85; }
+
+/* Sections */
+.section-divider { border: none; border-top: 1px solid #1e0840; margin: 40px 0; }
+.section-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+@media (max-width: 600px) {
+  .hamburger { display: flex; }
+  .nav-links { display: none; }
+  nav { padding: 0 20px; }
+  .gems-hero { padding: 32px 16px 24px; }
+  .gems-hero h1 { font-size: 28px; }
+  .balance-amount { font-size: 40px; }
+  .page { padding: 24px 12px 80px; }
+  .shop-grid { grid-template-columns: 1fr 1fr; }
+  .quick-nav { gap: 8px; }
+  .quick-card { min-width: 90px; padding: 14px 12px; }
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo-text">SOLARIX</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/store.html">Store</a></li>
+    <li><a href="/clans">Clans</a></li>
+    <li><a href="/kits">Kits</a></li>
+    <li><a href="/gems" class="active">💎 Gems</a></li>
+  </ul>
+  <div class="nav-right">
+    <div id="account-area"></div>
+    <a href="/admin" class="nav-cog" title="Admin">⚙</a>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/">Home</a>
+  <a href="/store.html">Store</a>
+  <a href="/clans">Clans</a>
+  <a href="/kits">Kits</a>
+  <a href="/gems">💎 Gems</a>
+  <div id="mob-account"></div>
+</div>
+
+<div id="page-root"></div>
+
+<script>
+function toggleMenu() {
+  document.getElementById("hamburger").classList.toggle("open");
+  document.getElementById("mobile-menu").classList.toggle("open");
+}
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+const CATEGORY_ICONS = {
+  "All": "🎁", "Weapons": "🔫", "Ammunition": "🟡", "Resources": "🪨",
+  "Attire": "🧥", "Medical": "💊", "Components": "⚙️", "Construction": "🧱",
+  "Tools": "🔧", "Attachments": "🔭", "Food & Drink": "🍗", "Electrical": "⚡",
+  "Vehicles & Horses": "🚁", "Traps": "🪤", "Furniture": "🪑"
+};
+
+let state = { loggedIn: false, balance: 0, gemsPerHour: 10, multiplier: 1, items: [], category: "All" };
+let quantities = {}; // itemId → quantity
+
+async function init() {
+  const [userRes, gemsRes, shopRes] = await Promise.all([
+    fetch("/user").then(r => r.json()).catch(() => ({})),
+    fetch("/api/gems/me").then(r => r.json()).catch(() => ({ loggedIn: false, balance: 0, gemsPerHour: 10 })),
+    fetch("/api/gem-shop").then(r => r.json()).catch(() => [])
+  ]);
+
+  if (userRes.loggedIn) {
+    document.getElementById("account-area").innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <img src="${esc(userRes.avatar)}" style="width:30px;height:30px;border-radius:50%;border:2px solid #7c3aed;" alt="">
+        <span style="font-size:13px;color:#e0e6f0;font-weight:600;">${esc(userRes.username)}</span>
+        <a href="/logout" style="color:#f87171;font-size:13px;font-weight:600;text-decoration:none;">Logout</a>
+      </div>`;
+    document.getElementById("mob-account").innerHTML = `<a href="/logout" style="color:#f87171">Logout</a>`;
+  } else {
+    document.getElementById("account-area").innerHTML = `<a href="/auth/discord" class="nav-btn">Login</a>`;
+  }
+
+  state.loggedIn = gemsRes.loggedIn;
+  state.balance = gemsRes.balance || 0;
+  state.gemsPerHour = gemsRes.gemsPerHour || 10;
+  state.multiplier = gemsRes.multiplier || 1;
+  state.kitCount = gemsRes.kitCount || 0;
+  state.items = Array.isArray(shopRes) ? shopRes : [];
+  state.items.forEach(it => { quantities[it.id] = quantities[it.id] || 1; });
+  render();
+}
+
+function getCategories() {
+  const cats = new Set(state.items.map(i => i.category).filter(Boolean));
+  return ["All", ...Array.from(cats).sort()];
+}
+
+function filteredItems() {
+  if (state.category === "All") return state.items;
+  return state.items.filter(i => i.category === state.category);
+}
+
+function render() {
+  const root = document.getElementById("page-root");
+
+  if (!state.loggedIn) {
+    root.innerHTML = `
+      <div class="gems-hero">
+        <div class="gems-hero-icon">💎</div>
+        <h1>GEMS</h1>
+        <p class="gems-hero-sub">Earn gems by playing, spend them in the store, or buy items for your game session.</p>
+      </div>
+      <div class="prompt-card">
+        <h2>💎 Login to Access Gems</h2>
+        <p>Log in with Discord to view your gem balance and access the gem shop.</p>
+        <a href="/auth/discord" class="prompt-btn">🔐 Login with Discord</a>
+      </div>`;
+    return;
+  }
+
+  const cats = getCategories();
+
+  root.innerHTML = `
+    <div class="gems-hero">
+      <div class="gems-hero-icon">💎</div>
+      <h1>GEMS</h1>
+      <p class="gems-hero-sub">Earn gems by playing, buy more, spend them in the store, or buy items for in-game.</p>
+      <div class="balance-card">
+        <div class="balance-label">YOUR BALANCE</div>
+        <div class="balance-amount" id="balance-display">
+          <span class="balance-gem-icon">💎</span>
+          <span>${Math.floor(state.balance).toLocaleString()}</span>
+        </div>
+        <div class="balance-rate">
+          Earning <span id="rate-display">${state.gemsPerHour}</span> gems/hr
+          ${state.multiplier > 1 ? `<span style="color:#eab308;font-size:11px;"> (${state.multiplier}x multiplier)</span>` : ""}
+          ${state.kitCount > 0 ? `· ${state.kitCount} kit${state.kitCount !== 1 ? "s" : ""} owned (+${state.kitCount * 10}/hr)` : ""}
+        </div>
+      </div>
+    </div>
+
+    <div class="page">
+      <div class="shop-section">
+        <div class="shop-header">
+          <div class="shop-title">💎 <span>Gem</span> Shop</div>
+        </div>
+        <div class="cat-tabs" id="cat-tabs">
+          ${cats.map(c => `<div class="cat-tab${c === state.category ? " active" : ""}" onclick="setCategory('${esc(c)}')">${CATEGORY_ICONS[c] || "📦"} ${esc(c)}</div>`).join("")}
+        </div>
+        <div class="shop-grid" id="shop-grid"></div>
+      </div>
+    </div>`;
+
+  renderShopGrid();
+}
+
+function setCategory(cat) {
+  state.category = cat;
+  document.querySelectorAll(".cat-tab").forEach(el => {
+    el.classList.toggle("active", el.textContent.trim().endsWith(cat));
+  });
+  renderShopGrid();
+}
+
+function renderShopGrid() {
+  const grid = document.getElementById("shop-grid");
+  if (!grid) return;
+  const items = filteredItems();
+  if (!items.length) {
+    grid.innerHTML = `<div class="shop-empty" style="grid-column:1/-1">No items in this category yet.</div>`;
+    return;
+  }
+  grid.innerHTML = items.map(item => {
+    const qty = quantities[item.id] || 1;
+    const total = item.gem_cost * qty;
+    const icon = CATEGORY_ICONS[item.category] || "📦";
+    return `
+      <div class="shop-item-card" id="card-${item.id}">
+        <div class="item-top">
+          <div class="item-icon">${icon}</div>
+          <div class="item-info">
+            <div class="item-name">${esc(item.name)}</div>
+            <div class="item-cat">${esc(item.category || "General")}</div>
+          </div>
+        </div>
+        <div class="item-price">💎 ${item.gem_cost} <span class="item-price-unit">per unit</span></div>
+        <div class="qty-row">
+          <button class="qty-btn" onclick="adjustQty(${item.id}, -10)">-10</button>
+          <button class="qty-btn" onclick="adjustQty(${item.id}, -5)">-5</button>
+          <button class="qty-btn" onclick="adjustQty(${item.id}, -1)">-</button>
+          <div class="qty-display" id="qty-${item.id}">${qty}</div>
+          <button class="qty-btn" onclick="adjustQty(${item.id}, 1)">+</button>
+          <button class="qty-btn" onclick="adjustQty(${item.id}, 5)">+5</button>
+          <button class="qty-btn" onclick="adjustQty(${item.id}, 10)">+10</button>
+        </div>
+        <div class="qty-total"><span class="gem-dot">💎</span> Total: <strong>${total}</strong></div>
+        <button class="buy-btn" id="buy-btn-${item.id}" onclick="buyItem(${item.id})">BUY</button>
+        <div class="buy-result" id="result-${item.id}"></div>
+      </div>`;
+  }).join("");
+}
+
+function adjustQty(itemId, delta) {
+  quantities[itemId] = Math.max(1, Math.min(100, (quantities[itemId] || 1) + delta));
+  const display = document.getElementById(`qty-${itemId}`);
+  if (display) display.textContent = quantities[itemId];
+  // Update total
+  const item = state.items.find(i => i.id === itemId);
+  if (item) {
+    const card = document.getElementById(`card-${itemId}`);
+    if (card) {
+      const totalEl = card.querySelector(".qty-total");
+      if (totalEl) totalEl.innerHTML = `<span class="gem-dot">💎</span> Total: <strong>${item.gem_cost * quantities[itemId]}</strong>`;
+    }
+  }
+}
+
+async function buyItem(itemId) {
+  const btn = document.getElementById(`buy-btn-${itemId}`);
+  const resultEl = document.getElementById(`result-${itemId}`);
+  const qty = quantities[itemId] || 1;
+  if (btn) { btn.disabled = true; btn.textContent = "Buying…"; }
+  if (resultEl) { resultEl.textContent = ""; resultEl.className = "buy-result"; }
+  try {
+    const r = await fetch("/api/gem-shop/buy", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId, quantity: qty })
+    });
+    const data = await r.json();
+    if (r.ok && data.ok) {
+      state.balance = data.newBalance;
+      const balEl = document.getElementById("balance-display");
+      if (balEl) balEl.innerHTML = `<span class="balance-gem-icon">💎</span><span>${Math.floor(state.balance).toLocaleString()}</span>`;
+      if (resultEl) { resultEl.textContent = "✅ Sent to game!"; resultEl.className = "buy-result ok"; }
+      if (btn) { btn.textContent = "BUY"; btn.disabled = false; }
+    } else {
+      if (resultEl) { resultEl.textContent = `✗ ${data.error || "Failed"}`; resultEl.className = "buy-result err"; }
+      if (btn) { btn.textContent = "BUY"; btn.disabled = false; }
+    }
+  } catch {
+    if (resultEl) { resultEl.textContent = "✗ Network error"; resultEl.className = "buy-result err"; }
+    if (btn) { btn.textContent = "BUY"; btn.disabled = false; }
+  }
+  setTimeout(() => { if (resultEl) resultEl.textContent = ""; }, 5000);
+}
+
+init();
+</script>
+</body>
+</html>
