@@ -117,29 +117,6 @@ nav {
 }
 .view-details-btn:hover { background: rgba(124,58,237,0.22); border-color: #7c3aed; }
 
-/* ── CLAN KITS ── */
-.clan-kits-section { margin-top: 24px; border-top: 1px solid #1e0840; padding-top: 20px; }
-.clan-kits-label { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #6b21a8; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-.clan-kits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-.clan-kit-item {
-    background: #0d0620; border: 1px solid #1e0840; border-radius: 10px;
-    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-}
-.clan-kit-item.ready { border-color: rgba(34,197,94,0.25); }
-.clan-kit-item.on-cd { border-color: rgba(234,179,8,0.2); }
-.clan-kit-name { font-size: 13px; font-weight: 700; color: #e0e6f0; }
-.clan-kit-status { font-size: 11px; font-weight: 600; white-space: nowrap; }
-.clan-kit-status.ready { color: #22c55e; }
-.clan-kit-status.on-cd { color: #fbbf24; }
-.clan-kit-status.no-link { color: #6b21a8; }
-.claim-kit-btn {
-    font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; border: none;
-    background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff;
-    cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
-}
-.claim-kit-btn:hover:not(:disabled) { opacity: 0.85; }
-.claim-kit-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #2d1060; }
-
 /* ── ALL CLANS HEADER ── */
 .all-clans-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -269,428 +246,7 @@ nav {
 .login-banner-btn { background: #5865f2; color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 8px; white-space: nowrap; }
 .login-banner-btn:hover { opacity: 0.85; }
 
-/* ── RESPONSIVE NAV ── */
-@media (max-width: 768px) {
-    nav { padding: 0 16px; }
-    .nav-links { display: none; }
-    .clans-page { padding: 32px 16px 80px; }
-    .my-clan-card { flex-direction: column; gap: 16px; }
-    .clan-kits-grid { grid-template-columns: 1fr; }
-}
-</style>
-</head>
-<body>
-
-<nav>
-  <a href="/" class="nav-logo">
-    <span class="nav-logo-text">SOLARIX</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="/">Home</a></li>
-    <li><a href="/clans" class="active">Clans</a></li>
-    <li><a href="/kits">Kits</a></li>
-    <li><a href="/gems">💎 Gems</a></li>
-    <li><a href="/store.html">Store</a></li>
-  </ul>
-  <div class="nav-right">
-    <a href="https://discord.gg/playsolarix" class="nav-discord-btn" target="_blank">Discord</a>
-    <div id="nav-account"></div>
-    <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
-  </div>
-</nav>
-
-<div class="clans-page">
-  <div class="page-header">
-    <h1>⚔️ CLANS</h1>
-    <p>Create or join a clan to dominate the servers together</p>
-  </div>
-
-  <!-- Login banner (shown if not logged in) -->
-  <div id="login-banner" class="login-banner" style="display:none">
-    <p><strong>Log in with Discord</strong> to see your clan and join others.</p>
-    <a href="/auth/discord" class="login-banner-btn">🔑 Login with Discord</a>
-  </div>
-
-  <!-- MY CLAN -->
-  <section id="my-clan-section" style="display:none">
-    <div class="section-label">🛡️ MY CLAN</div>
-    <div id="my-clan-card"></div>
-    <!-- CLAN KITS -->
-    <div id="clan-kits-section" class="clan-kits-section" style="display:none!important;visibility:hidden;height:0;overflow:hidden">
-      <div class="clan-kits-label">🎒 CLAN KITS</div>
-      <div class="clan-kits-grid" id="clan-kits-grid">
-        <div style="color:#3b1a6e;font-size:13px;">Loading kits…</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ALL CLANS -->
-  <section>
-    <div class="all-clans-header">
-      <div class="section-label">
-        👥 ALL CLANS
-        <span class="count-badge" id="clan-count-badge" style="display:none"></span>
-      </div>
-      <button class="join-clan-btn" id="join-clan-btn" onclick="openJoinModal()">➜ JOIN CLAN</button>
-    </div>
-    <div id="all-clans-grid" class="clans-grid">
-      <div class="clans-loading"><div class="spinner"></div></div>
-    </div>
-  </section>
-</div>
-
-<!-- JOIN MODAL -->
-<div id="join-modal" class="modal-overlay" style="display:none" onclick="handleModalBackdrop(event)">
-  <div class="modal-box">
-    <button class="modal-close-btn" onclick="closeJoinModal()">✕</button>
-    <h2>🔗 Join a Clan</h2>
-    <p>Enter the invite code from the clan owner. Top right to paste your code.</p>
-    <div id="join-error" class="modal-error"></div>
-    <div id="join-success" class="modal-success"></div>
-    <input id="join-code-input" class="modal-input" placeholder="Enter invite code..." maxlength="20" oninput="this.value=this.value.toUpperCase()">
-    <button class="modal-submit-btn" id="join-submit-btn" onclick="submitJoin()">Join Clan</button>
-    <p class="modal-hint">
-      Don't have a code? Ask a clan owner in
-      <a href="https://discord.gg/playsolarix" target="_blank">our Discord</a>.
-    </p>
-  </div>
-</div>
-
-<script>
-let currentUser = null;
-let myDiscordId = null;
-let inClan = false;
-let myClanId = null;
-let kitsData = [];
-let kitTimers = {};
-
-// ── Boot ──────────────────────────────────────────────────────────────────────
-(async function init() {
-  const [userRes, clansRes, myRes] = await Promise.all([
-    fetch("/user").then(r => r.json()).catch(() => ({ loggedIn: false })),
-    fetch("/api/public/clans").then(r => r.json()).catch(() => []),
-    fetch("/api/public/clans/me").then(r => r.json()).catch(() => ({ loggedIn: false, clan: null }))
-  ]);
-
-  currentUser = userRes;
-  renderNav(userRes);
-
-  if (!userRes.loggedIn) {
-    document.getElementById("login-banner").style.display = "flex";
-  }
-
-  renderMyClan(myRes);
-  renderAllClans(clansRes, myRes.clan?.id);
-
-  // Auto-refresh clans every 30 seconds
-  setInterval(async () => {
-    try {
-      const [clansRefresh, myRefresh] = await Promise.all([
-        fetch("/api/public/clans").then(r => r.json()).catch(() => []),
-        fetch("/api/public/clans/me").then(r => r.json()).catch(() => ({ loggedIn: false, clan: null }))
-      ]);
-      myClanId = myRefresh.clan?.id || null;
-      inClan = !!myRefresh.clan;
-      renderMyClan(myRefresh);
-      renderAllClans(clansRefresh, myRefresh.clan?.id);
-    } catch {}
-  }, 30000);
-})();
-
-// ── Nav ───────────────────────────────────────────────────────────────────────
-function renderNav(user) {
-  const area = document.getElementById("nav-account");
-  if (!user.loggedIn) {
-    area.innerHTML = `<a href="/auth/discord" class="nav-login-btn">Login</a>`;
-    return;
-  }
-  myDiscordId = user.id;
-  area.innerHTML = `
-    <div class="nav-user">
-      <img src="${esc(user.avatar)}" class="nav-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-      <span class="nav-username">${esc(user.username)}</span>
-      <a href="/logout" class="nav-logout">Logout</a>
-    </div>`;
-}
-
-// ── My Clan ───────────────────────────────────────────────────────────────────
-function renderMyClan(data) {
-  const section = document.getElementById("my-clan-section");
-  if (!data.loggedIn || !data.clan) { section.style.display = "none"; return; }
-  inClan = true;
-  myClanId = data.clan.id;
-  const c = data.clan;
-  const color = c.color || "#a855f7";
-  const tag = c.clantag ? `[${c.clantag}]` : "";
-  section.style.display = "block";
-
-  const imgHtml = c.image_url
-    ? `<img src="${esc(c.image_url)}" alt="${esc(c.name)}" onerror="this.parentElement.innerHTML='🛡️'">`
-    : clanSvg(color, 40);
-
-  document.getElementById("my-clan-card").innerHTML = `
-    <div class="my-clan-card" style="--clan-color:${color}">
-      <div class="my-clan-img">${imgHtml}</div>
-      <div class="my-clan-body">
-        <div class="my-clan-name-row">
-          <span class="my-clan-name">${esc(c.name)}</span>
-          ${tag ? `<span class="my-clan-tag" style="color:${color};border-color:${color}">${esc(tag)}</span>` : ""}
-          <span class="online-dot" title="Active"></span>
-        </div>
-        <div class="my-clan-desc">${esc(c.description || "No description provided.")}</div>
-        <div class="my-clan-meta">
-          <span class="meta-badge">👥 <strong>${c.member_count || 0}</strong> members</span>
-          <span class="meta-badge ${c.is_owner ? 'badge-owner' : 'badge-member'}">
-            ${c.is_owner ? "👑 Owner" : "🏷️ Member"}
-          </span>
-        </div>
-        <button class="view-details-btn" onclick="openDetailsModal()">👁 View Details</button>
-      </div>
-    </div>`;
-}
-
-// ── Clan Kits ─────────────────────────────────────────────────────────────────
-async function loadClanKits() {
-  try {
-    const res = await fetch("/api/kits");
-    const data = await res.json();
-    kitsData = data.kits || [];
-
-    const section = document.getElementById("clan-kits-section");
-    const grid = document.getElementById("clan-kits-grid");
-
-    if (!kitsData.length) {
-      grid.innerHTML = `<div style="color:#3b1a6e;font-size:13px;">No kits configured.</div>`;
-      section.style.display = "block";
-      return;
-    }
-
-    section.style.display = "block";
-    renderClanKits(data);
-  } catch (e) {
-    console.error("Failed to load kits:", e);
-  }
-}
-
-function renderClanKits(data) {
-  const grid = document.getElementById("clan-kits-grid");
-  const hasGamertag = !!data.gamertag;
-
-  grid.innerHTML = kitsData.map(kit => {
-    let statusHtml = "";
-    let btnHtml = "";
-
-    if (!hasGamertag) {
-      statusHtml = `<span class="clan-kit-status no-link">Link account first</span>`;
-      btnHtml = `<button class="claim-kit-btn" disabled>Claim</button>`;
-    } else if (kit.onCooldown && kit.expiresAt) {
-      const ms = Math.max(0, new Date(kit.expiresAt) - Date.now());
-      statusHtml = `<span class="clan-kit-status on-cd" id="ck-status-${kit.id}">⏳ ${formatMs(ms)}</span>`;
-      btnHtml = `<button class="claim-kit-btn" disabled id="ck-btn-${kit.id}">On cooldown</button>`;
-      startKitTimer(kit.id, kit.expiresAt);
-    } else {
-      statusHtml = `<span class="clan-kit-status ready">✅ Ready to claim</span>`;
-      btnHtml = `<button class="claim-kit-btn" id="ck-btn-${kit.id}" onclick="claimClanKit(${kit.id})">Claim</button>`;
-    }
-
-    return `
-      <div class="clan-kit-item ${kit.onCooldown ? 'on-cd' : 'ready'}" id="ck-item-${kit.id}">
-        <div>
-          <div class="clan-kit-name">${esc(kit.name)}</div>
-          ${statusHtml}
-        </div>
-        ${btnHtml}
-      </div>`;
-  }).join("");
-}
-
-async function claimClanKit(kitId) {
-  const btn = document.getElementById(`ck-btn-${kitId}`);
-  if (btn) { btn.disabled = true; btn.textContent = "Claiming…"; }
-  try {
-    const r = await fetch("/api/kits/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kitId })
-    });
-    const data = await r.json();
-    if (r.ok && data.ok) {
-      const status = document.getElementById(`ck-status-${kitId}`);
-      if (status) { status.className = "clan-kit-status on-cd"; status.textContent = "⏳ Starting…"; }
-      if (btn) { btn.disabled = true; btn.textContent = "On cooldown"; }
-      if (data.expiresAt) startKitTimer(kitId, data.expiresAt);
-      const item = document.getElementById(`ck-item-${kitId}`);
-      if (item) { item.classList.remove("ready"); item.classList.add("on-cd"); }
-    } else {
-      if (btn) { btn.disabled = false; btn.textContent = "Claim"; }
-      alert(data.error || "Failed to claim kit.");
-    }
-  } catch {
-    if (btn) { btn.disabled = false; btn.textContent = "Claim"; }
-    alert("Network error.");
-  }
-}
-
-function startKitTimer(kitId, expiresAt) {
-  if (kitTimers[kitId]) clearInterval(kitTimers[kitId]);
-  const expTime = new Date(expiresAt).getTime();
-  kitTimers[kitId] = setInterval(() => {
-    const left = expTime - Date.now();
-    const status = document.getElementById(`ck-status-${kitId}`);
-    const btn = document.getElementById(`ck-btn-${kitId}`);
-    if (left <= 0) {
-      clearInterval(kitTimers[kitId]);
-      if (status) { status.className = "clan-kit-status ready"; status.textContent = "✅ Ready to claim"; }
-      if (btn) { btn.disabled = false; btn.textContent = "Claim"; btn.onclick = () => claimClanKit(kitId); }
-      const item = document.getElementById(`ck-item-${kitId}`);
-      if (item) { item.classList.remove("on-cd"); item.classList.add("ready"); }
-    } else {
-      if (status) status.textContent = `⏳ ${formatMs(left)}`;
-    }
-  }, 1000);
-}
-
-function formatMs(ms) {
-  const totalS = Math.ceil(ms / 1000);
-  const h = Math.floor(totalS / 3600);
-  const m = Math.floor((totalS % 3600) / 60);
-  const s = totalS % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${s}s`;
-  return `${s}s`;
-}
-
-// ── All Clans ─────────────────────────────────────────────────────────────────
-function renderAllClans(clans, myClanId) {
-  const grid = document.getElementById("all-clans-grid");
-  const badge = document.getElementById("clan-count-badge");
-
-  if (!Array.isArray(clans) || clans.length === 0) {
-    grid.innerHTML = `<div class="clans-empty">No clans yet — create one via the Discord bot!</div>`;
-    return;
-  }
-
-  badge.textContent = clans.length;
-  badge.style.display = "inline";
-
-  // Sort: my clan first, then by members
-  clans.sort((a, b) => {
-    if (a.id === myClanId) return -1;
-    if (b.id === myClanId) return 1;
-    return (b.member_count || 0) - (a.member_count || 0);
-  });
-
-  grid.innerHTML = clans.map(c => {
-    const color = c.color || "#7c3aed";
-    const tag = c.clantag ? `[${c.clantag}]` : "";
-    const isMine = c.id === myClanId;
-    const leader = c.owner_discord_name || c.owner_gamertag || null;
-
-    const imgHtml = c.image_url
-      ? `<img src="${esc(c.image_url)}" alt="${esc(c.name)}" onerror="this.parentElement.innerHTML='${clanSvg(color, 24).replace(/"/g, "&quot;")}'>">`
-      : clanSvg(color, 24);
-
-    return `
-      <div class="clan-card ${isMine ? 'is-mine' : ''}" style="--clan-color:${color}">
-        <div class="clan-icon" style="border-color:${color}30;background:${color}10">
-          ${imgHtml}
-        </div>
-        <div class="clan-body">
-          <div class="clan-name-row">
-            <span class="clan-card-name">${esc(c.name)}</span>
-            ${tag ? `<span class="clan-card-tag" style="color:${color};border-color:${color}">${esc(tag)}</span>` : ""}
-          </div>
-          <div class="clan-card-desc">${esc(c.description || "No description provided.")}</div>
-          <div class="clan-card-footer">
-            <div class="clan-card-meta">
-              <span>👥 <strong>${c.member_count || 0}</strong> members</span>
-              ${leader ? `<span>👑 <strong>${esc(leader)}</strong></span>` : ""}
-            </div>
-            ${isMine ? `<span class="clan-mine-badge">✓ Your Clan</span>` : ""}
-          </div>
-        </div>
-      </div>`;
-  }).join("");
-}
-
-// ── Join Modal ────────────────────────────────────────────────────────────────
-function openJoinModal() {
-  if (!currentUser?.loggedIn) { window.location.href = "/auth/discord"; return; }
-  document.getElementById("join-modal").style.display = "flex";
-  document.getElementById("join-code-input").focus();
-  clearJoinMessages();
-}
-function closeJoinModal() {
-  document.getElementById("join-modal").style.display = "none";
-  document.getElementById("join-code-input").value = "";
-  clearJoinMessages();
-}
-function handleModalBackdrop(e) { if (e.target === e.currentTarget) closeJoinModal(); }
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeJoinModal(); });
-
-function clearJoinMessages() {
-  document.getElementById("join-error").style.display = "none";
-  document.getElementById("join-success").style.display = "none";
-}
-
-async function submitJoin() {
-  const code = document.getElementById("join-code-input").value.trim();
-  if (!code) return;
-  const btn = document.getElementById("join-submit-btn");
-  btn.disabled = true; btn.textContent = "Joining…";
-  clearJoinMessages();
-
-  try {
-    const r = await fetch("/api/clans/join", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code })
-    });
-    const data = await r.json();
-    if (data.ok) {
-      const s = document.getElementById("join-success");
-      s.textContent = `✅ You joined ${data.clanName}! The Discord bot will assign your clan role shortly.`;
-      s.style.display = "block";
-      btn.textContent = "Joined!";
-      setTimeout(() => window.location.reload(), 2500);
-    } else {
-      const err = document.getElementById("join-error");
-      err.textContent = data.error || "Something went wrong.";
-      err.style.display = "block";
-      btn.disabled = false; btn.textContent = "Join Clan";
-    }
-  } catch {
-    const err = document.getElementById("join-error");
-    err.textContent = "Network error. Please try again.";
-    err.style.display = "block";
-    btn.disabled = false; btn.textContent = "Join Clan";
-  }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function esc(s) {
-  return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-function clanSvg(color, size) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-    <path d="M12 2L3 6v6c0 5.1 3.9 9.9 9 11 5.1-1.1 9-5.9 9-11V6L12 2z" fill="${color}" opacity="0.4"/>
-    <path d="M12 2L3 6v6c0 5.1 3.9 9.9 9 11 5.1-1.1 9-5.9 9-11V6L12 2z" stroke="${color}" stroke-width="1.5" fill="none"/>
-  </svg>`;
-}
-</script>
-
-<!-- DETAILS MODAL -->
-<div id="details-modal" class="modal-overlay" style="display:none" onclick="handleDetailsBackdrop(event)">
-  <div class="modal-box" style="max-width:560px;max-height:88vh;overflow-y:auto;padding:28px 28px 24px">
-    <button class="modal-close-btn" onclick="closeDetailsModal()">✕</button>
-    <div id="details-modal-content">
-      <div style="text-align:center;color:#4c1d95;padding:40px 0">Loading…</div>
-    </div>
-  </div>
-</div>
-
-<style>
-/* ── DETAILS MODAL EXTRAS ── */
+/* ── DETAILS MODAL ── */
 .details-section { margin-top: 20px; }
 .details-section-title {
   font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
@@ -756,12 +312,292 @@ function clanSvg(color, size) {
 .details-status.ok  { color: #34d399; }
 .details-status.err { color: #f87171; }
 .no-codes-note { font-size: 12px; color: #4c1d95; font-style: italic; }
+
+@media (max-width: 768px) {
+    nav { padding: 0 16px; }
+    .nav-links { display: none; }
+    .clans-page { padding: 32px 16px 80px; }
+    .my-clan-card { flex-direction: column; gap: 16px; }
+}
 </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="nav-logo-text">SOLARIX</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/clans" class="active">Clans</a></li>
+    <li><a href="/kits">Kits</a></li>
+    <li><a href="/gems">💎 Gems</a></li>
+    <li><a href="/store.html">Store</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="https://discord.gg/playsolarix" class="nav-discord-btn" target="_blank">Discord</a>
+    <div id="nav-account"></div>
+    <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
+  </div>
+</nav>
+
+<div class="clans-page">
+  <div class="page-header">
+    <h1>⚔️ CLANS</h1>
+    <p>Create or join a clan to dominate the servers together</p>
+  </div>
+
+  <!-- Login banner (shown if not logged in) -->
+  <div id="login-banner" class="login-banner" style="display:none">
+    <p><strong>Log in with Discord</strong> to see your clan and join others.</p>
+    <a href="/auth/discord" class="login-banner-btn">🔑 Login with Discord</a>
+  </div>
+
+  <!-- MY CLAN -->
+  <section id="my-clan-section" style="display:none">
+    <div class="section-label">🛡️ MY CLAN</div>
+    <div id="my-clan-card"></div>
+  </section>
+
+  <!-- ALL CLANS -->
+  <section>
+    <div class="all-clans-header">
+      <div class="section-label">
+        👥 ALL CLANS
+        <span class="count-badge" id="clan-count-badge" style="display:none"></span>
+      </div>
+      <button class="join-clan-btn" id="join-clan-btn" onclick="openJoinModal()">➜ JOIN CLAN</button>
+    </div>
+    <div id="all-clans-grid" class="clans-grid">
+      <div class="clans-loading"><div class="spinner"></div></div>
+    </div>
+  </section>
+</div>
+
+<!-- JOIN MODAL -->
+<div id="join-modal" class="modal-overlay" style="display:none" onclick="handleModalBackdrop(event)">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeJoinModal()">✕</button>
+    <h2>🔗 Join a Clan</h2>
+    <p>Enter the invite code from the clan owner.</p>
+    <div id="join-error" class="modal-error"></div>
+    <div id="join-success" class="modal-success"></div>
+    <input id="join-code-input" class="modal-input" placeholder="Enter invite code..." maxlength="20" oninput="this.value=this.value.toUpperCase()">
+    <button class="modal-submit-btn" id="join-submit-btn" onclick="submitJoin()">Join Clan</button>
+    <p class="modal-hint">
+      Don't have a code? Ask a clan owner in
+      <a href="https://discord.gg/playsolarix" target="_blank">our Discord</a>.
+    </p>
+  </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div id="details-modal" class="modal-overlay" style="display:none" onclick="handleDetailsBackdrop(event)">
+  <div class="modal-box" style="max-width:560px;max-height:88vh;overflow-y:auto;padding:28px 28px 24px">
+    <button class="modal-close-btn" onclick="closeDetailsModal()">✕</button>
+    <div id="details-modal-content">
+      <div style="text-align:center;color:#4c1d95;padding:40px 0">Loading…</div>
+    </div>
+  </div>
+</div>
 
 <script>
-// ── Details Modal ─────────────────────────────────────────────────────────────
-let detailsClanData = null;
+let currentUser = null;
+let myDiscordId = null;
+let inClan = false;
+let myClanId = null;
 
+// ── Boot ──────────────────────────────────────────────────────────────────────
+(async function init() {
+  const [userRes, clansRes, myRes] = await Promise.all([
+    fetch("/user").then(r => r.json()).catch(() => ({ loggedIn: false })),
+    fetch("/api/public/clans").then(r => r.json()).catch(() => []),
+    fetch("/api/public/clans/me").then(r => r.json()).catch(() => ({ loggedIn: false, clan: null }))
+  ]);
+
+  currentUser = userRes;
+  renderNav(userRes);
+
+  if (!userRes.loggedIn) {
+    document.getElementById("login-banner").style.display = "flex";
+  }
+
+  renderMyClan(myRes);
+  renderAllClans(clansRes, myRes.clan?.id);
+
+  setInterval(async () => {
+    try {
+      const [clansRefresh, myRefresh] = await Promise.all([
+        fetch("/api/public/clans").then(r => r.json()).catch(() => []),
+        fetch("/api/public/clans/me").then(r => r.json()).catch(() => ({ loggedIn: false, clan: null }))
+      ]);
+      myClanId = myRefresh.clan?.id || null;
+      inClan = !!myRefresh.clan;
+      renderMyClan(myRefresh);
+      renderAllClans(clansRefresh, myRefresh.clan?.id);
+    } catch {}
+  }, 30000);
+})();
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+function renderNav(user) {
+  const area = document.getElementById("nav-account");
+  if (!user.loggedIn) {
+    area.innerHTML = `<a href="/auth/discord" class="nav-login-btn">Login</a>`;
+    return;
+  }
+  myDiscordId = user.id;
+  area.innerHTML = `
+    <div class="nav-user">
+      <img src="${esc(user.avatar)}" class="nav-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+      <span class="nav-username">${esc(user.username)}</span>
+      <a href="/logout" class="nav-logout">Logout</a>
+    </div>`;
+}
+
+// ── My Clan ───────────────────────────────────────────────────────────────────
+function renderMyClan(data) {
+  const section = document.getElementById("my-clan-section");
+  if (!data.loggedIn || !data.clan) { section.style.display = "none"; return; }
+  inClan = true;
+  myClanId = data.clan.id;
+  const c = data.clan;
+  const color = c.color || "#a855f7";
+  const tag = c.clantag ? `[${c.clantag}]` : "";
+  section.style.display = "block";
+
+  const imgHtml = c.image_url
+    ? `<img src="${esc(c.image_url)}" alt="${esc(c.name)}" onerror="this.parentElement.innerHTML='🛡️'">`
+    : clanSvg(color, 40);
+
+  document.getElementById("my-clan-card").innerHTML = `
+    <div class="my-clan-card" style="--clan-color:${color}">
+      <div class="my-clan-img">${imgHtml}</div>
+      <div class="my-clan-body">
+        <div class="my-clan-name-row">
+          <span class="my-clan-name">${esc(c.name)}</span>
+          ${tag ? `<span class="my-clan-tag">${esc(tag)}</span>` : ""}
+          <span class="online-dot" title="Active"></span>
+        </div>
+        <div class="my-clan-desc">${esc(c.description || "No description provided.")}</div>
+        <div class="my-clan-meta">
+          <span class="meta-badge">👥 <strong>${c.member_count || 0}</strong> members</span>
+          <span class="meta-badge ${c.is_owner ? 'badge-owner' : 'badge-member'}">
+            ${c.is_owner ? "👑 Owner" : "🏷️ Member"}
+          </span>
+        </div>
+        <button class="view-details-btn" onclick="openDetailsModal()">👁 View Details</button>
+      </div>
+    </div>`;
+}
+
+// ── All Clans ─────────────────────────────────────────────────────────────────
+function renderAllClans(clans, myId) {
+  const grid = document.getElementById("all-clans-grid");
+  const badge = document.getElementById("clan-count-badge");
+
+  if (!Array.isArray(clans) || clans.length === 0) {
+    grid.innerHTML = `<div class="clans-empty">No clans yet — create one via the Discord bot!</div>`;
+    return;
+  }
+
+  badge.textContent = clans.length;
+  badge.style.display = "inline";
+
+  clans.sort((a, b) => {
+    if (a.id === myId) return -1;
+    if (b.id === myId) return 1;
+    return (b.member_count || 0) - (a.member_count || 0);
+  });
+
+  grid.innerHTML = clans.map(c => {
+    const color = c.color || "#7c3aed";
+    const tag = c.clantag ? `[${c.clantag}]` : "";
+    const isMine = c.id === myId;
+    const leader = c.owner_discord_name || c.owner_gamertag || null;
+
+    const imgHtml = c.image_url
+      ? `<img src="${esc(c.image_url)}" alt="${esc(c.name)}" onerror="this.parentElement.innerHTML='${clanSvg(color, 24).replace(/"/g, "&quot;")}'>">`
+      : clanSvg(color, 24);
+
+    return `
+      <div class="clan-card ${isMine ? 'is-mine' : ''}" style="--clan-color:${color}">
+        <div class="clan-icon" style="border-color:${color}30;background:${color}10">
+          ${imgHtml}
+        </div>
+        <div class="clan-body">
+          <div class="clan-name-row">
+            <span class="clan-card-name">${esc(c.name)}</span>
+            ${tag ? `<span class="clan-card-tag" style="color:${color};border-color:${color}">${esc(tag)}</span>` : ""}
+          </div>
+          <div class="clan-card-desc">${esc(c.description || "No description provided.")}</div>
+          <div class="clan-card-footer">
+            <div class="clan-card-meta">
+              <span>👥 <strong>${c.member_count || 0}</strong> members</span>
+              ${leader ? `<span>👑 <strong>${esc(leader)}</strong></span>` : ""}
+            </div>
+            ${isMine ? `<span class="clan-mine-badge">✓ Your Clan</span>` : ""}
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// ── Join Modal ────────────────────────────────────────────────────────────────
+function openJoinModal() {
+  if (!currentUser?.loggedIn) { window.location.href = "/auth/discord"; return; }
+  document.getElementById("join-modal").style.display = "flex";
+  document.getElementById("join-code-input").focus();
+  clearJoinMessages();
+}
+function closeJoinModal() {
+  document.getElementById("join-modal").style.display = "none";
+  document.getElementById("join-code-input").value = "";
+  clearJoinMessages();
+}
+function handleModalBackdrop(e) { if (e.target === e.currentTarget) closeJoinModal(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") { closeJoinModal(); closeDetailsModal(); } });
+
+function clearJoinMessages() {
+  document.getElementById("join-error").style.display = "none";
+  document.getElementById("join-success").style.display = "none";
+}
+
+async function submitJoin() {
+  const code = document.getElementById("join-code-input").value.trim();
+  if (!code) return;
+  const btn = document.getElementById("join-submit-btn");
+  btn.disabled = true; btn.textContent = "Joining…";
+  clearJoinMessages();
+
+  try {
+    const r = await fetch("/api/clans/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code })
+    });
+    const data = await r.json();
+    if (data.ok) {
+      const s = document.getElementById("join-success");
+      s.textContent = `✅ You joined ${data.clanName}! The Discord bot will assign your clan role shortly.`;
+      s.style.display = "block";
+      btn.textContent = "Joined!";
+      setTimeout(() => window.location.reload(), 2500);
+    } else {
+      const err = document.getElementById("join-error");
+      err.textContent = data.error || "Something went wrong.";
+      err.style.display = "block";
+      btn.disabled = false; btn.textContent = "Join Clan";
+    }
+  } catch {
+    const err = document.getElementById("join-error");
+    err.textContent = "Network error. Please try again.";
+    err.style.display = "block";
+    btn.disabled = false; btn.textContent = "Join Clan";
+  }
+}
+
+// ── Details Modal ─────────────────────────────────────────────────────────────
 async function openDetailsModal() {
   document.getElementById("details-modal").style.display = "flex";
   document.getElementById("details-modal-content").innerHTML =
@@ -777,7 +613,6 @@ async function openDetailsModal() {
     const clan = meRes.clan;
     const members = membersRes.members || [];
     const codes   = codesRes.codes   || [];
-    detailsClanData = { clan, members, codes };
     renderDetailsModal(clan, members, codes);
   } catch(e) {
     document.getElementById("details-modal-content").innerHTML =
@@ -791,12 +626,14 @@ function renderDetailsModal(clan, members, codes) {
   const color   = clan.color || "#a855f7";
   const now     = Math.floor(Date.now() / 1000);
 
-  // ── Header ──────────────────────────────────────────────────────────────────
+  // Header
   let html = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
       <div style="width:48px;height:48px;border-radius:10px;background:rgba(168,85,247,0.1);
                   border:2px solid ${color};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        ${clanSvg(color, 24)}
+        ${clan.image_url
+          ? `<img src="${esc(clan.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:9px" onerror="this.parentElement.innerHTML='🛡️'">`
+          : clanSvg(color, 24)}
       </div>
       <div>
         <div style="font-size:18px;font-weight:800;color:#fff">
@@ -807,7 +644,7 @@ function renderDetailsModal(clan, members, codes) {
       </div>
     </div>`;
 
-  // ── Edit description (owner only) ────────────────────────────────────────
+  // Edit description (owner only)
   if (isOwner) {
     html += `
       <div class="details-section">
@@ -818,9 +655,9 @@ function renderDetailsModal(clan, members, codes) {
       </div>`;
   }
 
-  // ── Invite Codes ─────────────────────────────────────────────────────────
+  // Invite Codes
   html += `<div class="details-section">
-    <div class="details-section-title">🔑 Invite Codes <span style="font-size:10px;color:#4c1d95;font-weight:500;text-transform:none;letter-spacing:0">(created via Discord)</span></div>`;
+    <div class="details-section-title">🔑 Invite Codes <span style="font-size:10px;color:#4c1d95;font-weight:500;text-transform:none;letter-spacing:0">(created via Discord bot)</span></div>`;
   if (!codes.length) {
     html += `<div class="no-codes-note">No active codes. Use <code style="background:#0d0620;padding:1px 5px;border-radius:4px;color:#c084fc">/clan invitecode create</code> in Discord.</div>`;
   } else {
@@ -839,7 +676,7 @@ function renderDetailsModal(clan, members, codes) {
   }
   html += `</div>`;
 
-  // ── Members ───────────────────────────────────────────────────────────────
+  // Members
   html += `<div class="details-section">
     <div class="details-section-title">👥 Members (${members.length})</div>`;
   if (!members.length) {
@@ -863,7 +700,7 @@ function renderDetailsModal(clan, members, codes) {
   }
   html += `</div>`;
 
-  // ── Disband (owner only) ─────────────────────────────────────────────────
+  // Disband (owner only)
   if (isOwner) {
     html += `
       <div class="details-section" style="border-top:1px solid #1e0840;padding-top:16px;margin-top:20px">
@@ -884,18 +721,14 @@ function closeDetailsModal() {
   document.getElementById("details-modal").style.display = "none";
   document.body.style.overflow = "";
 }
-
 function handleDetailsBackdrop(e) {
   if (e.target.id === "details-modal") closeDetailsModal();
 }
-
 function copyCode(code) {
-  navigator.clipboard.writeText(code).then(() => {
-    // brief visual flash
-  });
+  navigator.clipboard.writeText(code).catch(() => {});
 }
 
-// ── Save description ──────────────────────────────────────────────────────────
+// Save description
 async function saveDescription() {
   const val = (document.getElementById("edit-desc-input")?.value || "").trim();
   const st  = document.getElementById("edit-status");
@@ -916,7 +749,7 @@ async function saveDescription() {
   } catch { st.textContent = "Network error."; st.className = "details-status err"; }
 }
 
-// ── Kick member ───────────────────────────────────────────────────────────────
+// Kick member
 async function kickMember(userId, name) {
   if (!confirm(`Kick ${name} from the clan?`)) return;
   const btn = document.getElementById(`kick-${userId}`);
@@ -941,13 +774,9 @@ async function kickMember(userId, name) {
   }
 }
 
-// ── Disband clan ──────────────────────────────────────────────────────────────
-function showDisbandConfirm() {
-  document.getElementById("disband-confirm").style.display = "block";
-}
-function hideDisbandConfirm() {
-  document.getElementById("disband-confirm").style.display = "none";
-}
+// Disband clan
+function showDisbandConfirm() { document.getElementById("disband-confirm").style.display = "block"; }
+function hideDisbandConfirm() { document.getElementById("disband-confirm").style.display = "none"; }
 
 async function disbandClan() {
   const st = document.getElementById("disband-status");
@@ -962,6 +791,17 @@ async function disbandClan() {
       st.textContent = d.error || "Error."; st.className = "details-status err";
     }
   } catch { st.textContent = "Network error."; st.className = "details-status err"; }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function clanSvg(color, size) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
+    <path d="M12 2L3 6v6c0 5.1 3.9 9.9 9 11 5.1-1.1 9-5.9 9-11V6L12 2z" fill="${color}" opacity="0.4"/>
+    <path d="M12 2L3 6v6c0 5.1 3.9 9.9 9 11 5.1-1.1 9-5.9 9-11V6L12 2z" stroke="${color}" stroke-width="1.5" fill="none"/>
+  </svg>`;
 }
 </script>
 </body>
