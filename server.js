@@ -8,11 +8,18 @@ const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
 const { Pool } = require("pg");
 const https = require("https");
-const Stripe = require("stripe");
-function getStripe() {
-    const key = process.env.STRIPE_SECRET_KEY;
-    if (!key) throw new Error("STRIPE_SECRET_KEY is not set in environment variables.");
-    return new Stripe(key);
+// ── Helcim helpers ────────────────────────────────────────────────────────────
+async function helcimRequest(path, body) {
+    const apiToken = process.env.HELCIM_API_TOKEN;
+    if (!apiToken) throw new Error("HELCIM_API_TOKEN is not set in environment variables.");
+    const resp = await fetch(`https://api.helcim.com/v2${path}`, {
+        method: "POST",
+        headers: { "api-token": apiToken, "Content-Type": "application/json", "accept": "application/json" },
+        body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.errors ? JSON.stringify(data.errors) : `Helcim error ${resp.status}`);
+    return data;
 }
 const WebSocket = require("ws");
 
@@ -63,35 +70,29 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
-// ── Stripe webhook MUST be registered before express.json() ──
-app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (req, res) => {
-    const sig = req.headers["stripe-signature"];
-    let event;
+// ── Helcim webhook ────────────────────────────────────────────────────────────
+app.post("/helcim-webhook", express.json(), async (req, res) => {
     try {
-        event = getStripe().webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-        console.error("Webhook signature failed:", err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+        const tx = req.body;
+        // Helcim sends transaction objects; only handle approved purchases
+        if (!tx || tx.status !== "APPROVED") return res.json({ received: true });
 
-    if (event.type === "checkout.session.completed") {
-        const session = event.data.object;
-        const meta = session.metadata || {};
-        const itemId = meta.item_id;
-        const itemName = meta.item_name;
-        const itemPrice = meta.item_price;
-        const roleId = meta.role_id;
-        const zipUrl = meta.zip_url;
-        const discordUserId = meta.discord_user_id;
-        const customerEmail = session.customer_details?.email || "";
+        const meta = tx.customerCode ? {} : (tx.comments ? (() => { try { return JSON.parse(tx.comments); } catch { return {}; } })() : {});
+        const itemId   = meta.item_id   || null;
+        const itemName = meta.item_name || tx.invoiceNumber || "Store item";
+        const itemPrice = tx.amount ? `$${parseFloat(tx.amount).toFixed(2)}` : (meta.item_price || "");
+        const roleId   = meta.role_id   || "";
+        const zipUrl   = meta.zip_url   || "";
+        const discordUserId = meta.discord_user_id || "";
+        const customerEmail = tx.billingAddress?.email || "";
 
         try {
             await pool.query(
                 "INSERT INTO purchases (id, item_id, item_name, item_price, discord_user_id, type, note) VALUES ($1,$2,$3,$4,$5,$6,$7)",
-                [Date.now(), itemId || null, itemName, itemPrice, discordUserId || "", "stripe", `Stripe checkout — ${customerEmail}`]
+                [Date.now(), itemId, itemName, itemPrice, discordUserId, "helcim", `Helcim — txn ${tx.transactionId || ""} — ${customerEmail}`]
             );
         } catch (e) {
-            console.error("Failed to record purchase:", e.message);
+            console.error("Failed to record Helcim purchase:", e.message);
         }
 
         let roleResult = null;
@@ -102,7 +103,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `✅ **Stripe Purchase Completed**\n` +
+            `✅ **Helcim Purchase Completed**\n` +
             `📦 Item: **${itemName}**\n` +
             `💷 Price: **${itemPrice}**\n` +
             `📧 Email: ${customerEmail}\n` +
@@ -111,8 +112,9 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
             `📁 File: ${zipUrl ? "✅ Download ready" : "ℹ️ No file attached"}\n` +
             `🕐 Time: ${ts}`
         );
+    } catch (e) {
+        console.error("Helcim webhook error:", e.message);
     }
-
     res.json({ received: true });
 });
 
@@ -762,36 +764,38 @@ app.post("/api/settings", checkAdminJson, async (req, res) => {
     }
 });
 
-// ── Stripe Checkout ───────────────────────────────────────────────────────────
-app.post("/api/create-checkout-session", async (req, res) => {
+// ── Helcim Checkout Token ─────────────────────────────────────────────────────
+app.post("/api/create-helcim-token", async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not logged in" });
     const { itemId } = req.body;
     if (!itemId) return res.status(400).json({ error: "Missing itemId" });
     try {
-        const stripe = getStripe();
         const { rows } = await pool.query("SELECT * FROM store_items WHERE id = $1", [itemId]);
         if (!rows[0]) return res.status(404).json({ error: "Item not found" });
         const item = rows[0];
-        if (!item.stripe_link) return res.status(400).json({ error: "No Stripe price configured for this item" });
 
-        const priceStr = item.price.replace(/[^0-9.]/g, "");
-        const price = parseFloat(priceStr);
+        const priceStr = String(item.price).replace(/[^0-9.]/g, "");
+        const amount = parseFloat(priceStr);
+        if (!amount || amount <= 0) return res.status(400).json({ error: "Item has no valid price" });
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ["card"],
-            line_items: [{ price: item.stripe_link, quantity: 1 }],
-            mode: "payment",
-            success_url: `${BASE_URL}/checkout-success.html?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${BASE_URL}/store.html`,
-            metadata: {
-                item_id: String(item.id),
-                item_name: item.name,
-                item_price: item.price,
-                role_id: item.role_id || "",
-                zip_url: item.zip_url || "",
-                discord_user_id: req.user?.id || ""
-            }
+        // Embed metadata in the invoice comments so webhook can match the purchase
+        const meta = JSON.stringify({
+            item_id:          String(item.id),
+            item_name:        item.name,
+            item_price:       item.price,
+            role_id:          item.role_id  || "",
+            zip_url:          item.zip_url  || "",
+            discord_user_id:  req.user.id   || ""
         });
-        res.json({ url: session.url });
+
+        const data = await helcimRequest("/helcim-pay/initialize", {
+            paymentType: "purchase",
+            amount,
+            currency: "CAD",
+            comments: meta
+        });
+
+        res.json({ checkoutToken: data.checkoutToken, itemName: item.name, amount });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -800,15 +804,11 @@ app.post("/api/create-checkout-session", async (req, res) => {
 // ── Checkout route ────────────────────────────────────────────────────────────
 app.get("/checkout/:id", (req, res) => res.sendFile(path.join(__dirname, "checkout.html")));
 
+// Lightweight endpoint so checkout-success.html can show the zip download link
 app.get("/api/checkout-info", async (req, res) => {
-    const sessionId = req.query.session_id;
-    if (!sessionId) return res.json({ zipUrl: "" });
-    try {
-        const stripe = getStripe();
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-        const zipUrl = session.metadata?.zip_url || "";
-        res.json({ zipUrl });
-    } catch { res.json({ zipUrl: "" }); }
+    // For Helcim the zip URL is passed as a query param from the success redirect
+    const zipUrl = req.query.zip_url || "";
+    res.json({ zipUrl });
 });
 
 // ── Admin: player links ───────────────────────────────────────────────────────

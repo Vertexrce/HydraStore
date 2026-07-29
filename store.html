@@ -6,6 +6,8 @@
 <title>Solarix Store</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="style.css">
+<!-- Helcim payment modal -->
+<script src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
 <style>
 .nav-cog-btn { font-size: 20px; color: #4a2080; text-decoration: none; padding: 6px 10px; border-radius: 8px; transition: color 0.2s, background 0.2s; line-height: 1; }
 .nav-cog-btn:hover { color: #a855f7; background: rgba(124,58,237,0.12); }
@@ -26,7 +28,7 @@
 .mobile-menu a { color: #c4b5fd; text-decoration: none; font-size: 15px; font-weight: 600; padding: 12px 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
 .mobile-menu a:hover { background: rgba(124,58,237,0.12); color: #fff; }
 
-/* ── Gems bar ── */
+/* ── Credits bar ── */
 .gems-bar {
   display: flex; align-items: center; gap: 10px;
   background: linear-gradient(135deg, #130929, #0d0520);
@@ -139,7 +141,7 @@
     </div>
   </div>
 
-  <!-- Gems balance bar -->
+  <!-- Store credits balance bar -->
   <div id="gems-bar" class="gems-bar" style="display:none">
     <span class="gems-bar-icon">💎</span>
     <div class="gems-bar-text">
@@ -153,7 +155,7 @@
 
   <!-- Login banner -->
   <div class="login-banner" id="login-banner">
-    <span>💎 Log in with Discord to see your gem balance and buy items.</span>
+    <span>💎 Log in with Discord to see your balance and buy items.</span>
     <a href="/auth/discord" class="login-banner-btn">Login</a>
   </div>
 
@@ -175,20 +177,27 @@ function filterCat(cat, btn) {
   });
 }
 
+// ── Buy button builder ──────────────────────────────────────────────────────
 function buildBuyBtn(item, user, creditBalance) {
   if (!user?.loggedIn) {
     return '<a href="/auth/discord" class="store-buy-btn">Login to Buy</a>';
   }
   const priceNum = parseFloat(String(item.price).replace(/[^0-9.]/g, "")) || 0;
+  if (!priceNum) return ''; // free / no price set
 
-  // If item has a Stripe link, primary action is card payment
-  if (item.stripeLink) {
-    const creditBtn = creditBalance >= priceNum && priceNum > 0
-      ? '<button class="store-buy-btn" style="background:rgba(124,58,237,0.7);font-size:13px;padding:9px 0;margin-top:6px;" onclick="buyWithCredits(' + item.id + ', this)">💳 Use Credits — ' + esc(item.price) + '</button>'
-      : '';
-    return '<button class="store-buy-btn" onclick="buyWithCard(' + item.id + ', this)">💳 Buy — 
+  // Primary button — card payment via Helcim
+  const cardBtn = '<button class="store-buy-btn" onclick="buyWithCard(' + item.id + ', this)">💳 Buy — $' + priceNum.toFixed(2) + '</button>';
 
-function renderSections(items, user, gemBalance) {
+  // Secondary button — use store credits if balance covers it
+  const creditBtn = creditBalance >= priceNum
+    ? '<button class="store-buy-btn" style="background:rgba(124,58,237,0.7);font-size:13px;padding:9px 0;margin-top:6px;" onclick="buyWithCredits(' + item.id + ', this)">💎 Use Credits — ' + esc(item.price) + '</button>'
+    : '';
+
+  return cardBtn + creditBtn;
+}
+
+// ── Render store ────────────────────────────────────────────────────────────
+function renderSections(items, user, creditBalance) {
   const cats = [...new Set(items.map(i => i.category || "General"))];
   const tabBar = document.getElementById("category-tabs");
   const sectionsEl = document.getElementById("store-sections");
@@ -215,7 +224,7 @@ function renderSections(items, user, gemBalance) {
                 <div class="store-card-price"><span class="gems-icon">💎</span>${esc(item.price)}</div>
                 <div class="store-card-desc">${esc(item.description)}</div>
                 <div class="card-btns">
-                  ${buildBuyBtn(item, user, gemBalance)}
+                  ${buildBuyBtn(item, user, creditBalance)}
                 </div>
               </div>
             </div>`).join("")}
@@ -224,30 +233,57 @@ function renderSections(items, user, gemBalance) {
   }).join("");
 }
 
+// ── Helcim card payment ─────────────────────────────────────────────────────
+// Listen for Helcim modal result
+window.addEventListener("message", async (event) => {
+  const HELCIM_KEY = "helcim-pay-js-checkout";
+  if (!event.data || event.data.eventName !== HELCIM_KEY) return;
+
+  if (event.data.eventStatus === "ABORTED") {
+    // User closed the modal — re-enable the button
+    const btn = document._helcimBtn;
+    if (btn) { btn.disabled = false; btn.textContent = btn._origText; }
+    document._helcimBtn = null;
+    return;
+  }
+
+  if (event.data.eventStatus === "SUCCESS") {
+    const btn = document._helcimBtn;
+    if (btn) { btn.textContent = "✅ Payment received!"; btn.classList.add("success"); }
+    document._helcimBtn = null;
+    // Small delay then reload so the webhook has time to record the purchase
+    setTimeout(() => window.location.reload(), 2000);
+  }
+});
+
 async function buyWithCard(itemId, btn) {
   btn.disabled = true;
-  const orig = btn.textContent;
-  btn.textContent = "Redirecting…";
+  btn._origText = btn.textContent;
+  btn.textContent = "Loading…";
+  document._helcimBtn = btn;
+
   try {
-    const r = await fetch("/api/create-checkout-session", {
+    const r = await fetch("/api/create-helcim-token", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itemId })
     });
     const data = await r.json();
-    if (r.ok && data.url) {
-      window.location.href = data.url;
+    if (r.ok && data.checkoutToken) {
+      btn.textContent = "Opening payment…";
+      appendHelcimIframe(data.checkoutToken);
     } else {
       btn.disabled = false;
-      btn.textContent = orig;
-      alert(data.error || "Checkout failed. Check Stripe is configured.");
+      btn.textContent = btn._origText;
+      alert(data.error || "Could not start checkout. Make sure HELCIM_API_TOKEN is set.");
     }
   } catch {
     btn.disabled = false;
-    btn.textContent = orig;
+    btn.textContent = btn._origText;
     alert("Network error.");
   }
 }
 
+// ── Store credits payment ───────────────────────────────────────────────────
 async function buyWithCredits(itemId, btn) {
   btn.disabled = true;
   const orig = btn.textContent;
@@ -274,6 +310,7 @@ async function buyWithCredits(itemId, btn) {
   }
 }
 
+// ── Init ────────────────────────────────────────────────────────────────────
 async function init() {
   const [statusRes, itemsRes, userRes] = await Promise.all([
     fetch("/api/admin-status"),
@@ -286,7 +323,7 @@ async function init() {
 
   if (isAdmin) document.getElementById("admin-banner").style.display = "block";
 
-  let gemBalance = 0;
+  let creditBalance = 0;
 
   if (user.loggedIn) {
     document.getElementById("account-area").innerHTML = `
@@ -298,13 +335,12 @@ async function init() {
     document.getElementById("mob-account").innerHTML =
       `<a href="/logout" style="color:#f87171">Logout</a>`;
 
-    // Load store credits balance
     try {
       const gRes = await fetch("/api/credits/me");
       const gData = await gRes.json();
       if (gData.loggedIn) {
-        gemBalance = parseFloat(gData.balance) || 0;
-        document.getElementById("gems-balance").textContent = Math.floor(gemBalance);
+        creditBalance = parseFloat(gData.balance) || 0;
+        document.getElementById("gems-balance").textContent = Math.floor(creditBalance);
         document.getElementById("gems-bar").style.display = "flex";
       }
     } catch {}
@@ -312,122 +348,7 @@ async function init() {
     document.getElementById("login-banner").style.display = "flex";
   }
 
-  renderSections(items, user, gemBalance);
-}
-
-init();
-</script>
-</body>
-</html>
- + esc(item.price) + '</button>' + creditBtn;
-  }
-
-  // Credits-only item
-  const canAfford = creditBalance >= priceNum;
-  return '<button class="store-buy-btn" onclick="buyWithCredits(' + item.id + ', this)" ' + (!canAfford ? 'title="Not enough credits"' : '') + '>💳 Buy — ' + esc(item.price) + ' credits</button>';
-}
-
-function renderSections(items, user, gemBalance) {
-  const cats = [...new Set(items.map(i => i.category || "General"))];
-  const tabBar = document.getElementById("category-tabs");
-  const sectionsEl = document.getElementById("store-sections");
-
-  cats.forEach(cat => {
-    const btn = document.createElement("button");
-    btn.className = "category-tab";
-    btn.textContent = cat;
-    btn.onclick = () => filterCat(cat, btn);
-    tabBar.appendChild(btn);
-  });
-
-  sectionsEl.innerHTML = cats.map(cat => {
-    const catItems = items.filter(i => (i.category || "General") === cat);
-    return `
-      <div class="category-section" data-cat="${esc(cat)}">
-        <div class="category-title">${esc(cat)}</div>
-        <div class="store-grid-inner">
-          ${catItems.map(item => `
-            <div class="store-card-v2">
-              ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" class="store-card-img" alt="${esc(item.name)}" onerror="this.classList.add('hidden')">` : ""}
-              <div class="store-card-body">
-                <div class="store-card-name">${esc(item.name)}</div>
-                <div class="store-card-price"><span class="gems-icon">💎</span>${esc(item.price)}</div>
-                <div class="store-card-desc">${esc(item.description)}</div>
-                <div class="card-btns">
-                  ${buildBuyBtn(item, user, gemBalance)}
-                </div>
-              </div>
-            </div>`).join("")}
-        </div>
-      </div>`;
-  }).join("");
-}
-
-async function buyWithGems(itemId, btn) {
-  btn.disabled = true;
-  const orig = btn.textContent;
-  btn.textContent = "Processing…";
-  try {
-    const r = await fetch("/api/pay-with-credits", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId })
-    });
-    const data = await r.json();
-    if (r.ok) {
-      btn.textContent = "✅ Purchased!";
-      btn.classList.add("success");
-      document.getElementById("gems-balance").textContent = Math.floor(data.newBalance || 0);
-    } else {
-      btn.disabled = false;
-      btn.textContent = orig;
-      alert(data.error || "Purchase failed.");
-    }
-  } catch {
-    btn.disabled = false;
-    btn.textContent = orig;
-    alert("Network error.");
-  }
-}
-
-async function init() {
-  const [statusRes, itemsRes, userRes] = await Promise.all([
-    fetch("/api/admin-status"),
-    fetch("/api/store-items"),
-    fetch("/user")
-  ]);
-  const { isAdmin } = await statusRes.json();
-  const items = await itemsRes.json();
-  const user = await userRes.json();
-
-  if (isAdmin) document.getElementById("admin-banner").style.display = "block";
-
-  let gemBalance = 0;
-
-  if (user.loggedIn) {
-    document.getElementById("account-area").innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;">
-        <img src="${esc(user.avatar)}" style="width:32px;height:32px;border-radius:50%;border:2px solid #7c3aed;" alt="">
-        <span style="font-size:13px;color:#e0e6f0;font-weight:600;">${esc(user.username)}</span>
-        <a href="/logout" style="color:#f87171;font-size:13px;font-weight:600;text-decoration:none;">Logout</a>
-      </div>`;
-    document.getElementById("mob-account").innerHTML =
-      `<a href="/logout" style="color:#f87171">Logout</a>`;
-
-    // Load gems balance
-    try {
-      const gRes = await fetch("/api/credits/me");
-      const gData = await gRes.json();
-      if (gData.loggedIn) {
-        gemBalance = parseFloat(gData.balance) || 0;
-        document.getElementById("gems-balance").textContent = Math.floor(gemBalance);
-        document.getElementById("gems-bar").style.display = "flex";
-      }
-    } catch {}
-  } else {
-    document.getElementById("login-banner").style.display = "flex";
-  }
-
-  renderSections(items, user, gemBalance);
+  renderSections(items, user, creditBalance);
 }
 
 init();

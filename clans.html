@@ -293,9 +293,7 @@ nav {
     <li><a href="/store.html">Store</a></li>
   </ul>
   <div class="nav-right">
-    <a href="/clans/${c.id}" class="view-details-btn">
-    👁 View Details
-</a>
+    <a href="https://discord.gg/playsolarix" class="nav-discord-btn" target="_blank">Discord</a>
     <div id="nav-account"></div>
     <a href="/admin-login.html" class="nav-cog" title="Admin">⚙</a>
   </div>
@@ -431,19 +429,12 @@ function renderMyClan(data) {
           <span class="online-dot" title="Active"></span>
         </div>
         <div class="my-clan-desc">${esc(c.description || "No description provided.")}</div>
-       <div class="my-clan-meta">
-  <span class="meta-badge">👥 <strong>${c.member_count || 0}</strong> Members</span>
-
-  <span class="meta-badge ${c.is_owner ? 'badge-owner' : 'badge-member'}">
-    ${c.is_owner ? "👑 Owner" : "🏷️ Member"}
-  </span>
-
-  ${
-    c.clan_code
-      ? `<span class="meta-badge">🔑 ${esc(c.clan_code)}</span>`
-      : ""
-  }
-</div>
+        <div class="my-clan-meta">
+          <span class="meta-badge">👥 <strong>${c.member_count || 0}</strong> members</span>
+          <span class="meta-badge ${c.is_owner ? 'badge-owner' : 'badge-member'}">
+            ${c.is_owner ? "👑 Owner" : "🏷️ Member"}
+          </span>
+        </div>
         <a href="https://discord.gg/playsolarix" target="_blank" class="view-details-btn">👁 View Details</a>
       </div>
     </div>`;
