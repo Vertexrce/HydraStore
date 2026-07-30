@@ -579,10 +579,14 @@ async function submitJoin() {
     const data = await r.json();
     if (data.ok) {
       const s = document.getElementById("join-success");
-      s.textContent = `✅ You joined ${data.clanName}! The Discord bot will assign your clan role shortly.`;
+      if (data.pending) {
+        s.textContent = `⏳ Request sent! The Discord bot will validate your code and add you to the clan shortly.`;
+      } else {
+        s.textContent = `✅ You joined ${data.clanName}! The Discord bot will assign your clan role shortly.`;
+      }
       s.style.display = "block";
-      btn.textContent = "Joined!";
-      setTimeout(() => window.location.reload(), 2500);
+      btn.textContent = data.pending ? "Pending…" : "Joined!";
+      setTimeout(() => window.location.reload(), 3000);
     } else {
       const err = document.getElementById("join-error");
       err.textContent = data.error || "Something went wrong.";

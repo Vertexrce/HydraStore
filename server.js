@@ -258,6 +258,30 @@ async function setupDB() {
     await pool.query(`ALTER TABLE clans_mirror ADD COLUMN IF NOT EXISTS owner_discord_name TEXT`);
     await pool.query(`ALTER TABLE clans_mirror ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE web_game_servers ADD COLUMN IF NOT EXISTS max_players INTEGER DEFAULT 100`);
+    await pool.query(`ALTER TABLE web_join_requests ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'`);
+    await pool.query(`ALTER TABLE web_join_requests ADD COLUMN IF NOT EXISTS processed_at TIMESTAMPTZ`);
+    await pool.query(`ALTER TABLE web_join_requests ADD COLUMN IF NOT EXISTS result_message TEXT`);
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS web_disband_requests (
+            id SERIAL PRIMARY KEY,
+            clan_id INT NOT NULL,
+            disbanded_by TEXT,
+            status TEXT DEFAULT 'pending',
+            processed_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS web_kick_requests (
+            id SERIAL PRIMARY KEY,
+            clan_id INT NOT NULL,
+            user_id TEXT NOT NULL,
+            kicked_by TEXT,
+            status TEXT DEFAULT 'pending',
+            processed_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
     await pool.query(`ALTER TABLE web_game_servers ADD COLUMN IF NOT EXISTS location TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE web_game_servers ADD COLUMN IF NOT EXISTS status_label TEXT DEFAULT 'online'`);
 
@@ -453,33 +477,67 @@ app.get("/api/public/servers", async (req, res) => {
     }
 });
 
-// ── Public: live player counts (queries RCON, cached 60s) ────────────────────
-const _playerCountCache = new Map(); // id → { count, ts }
+// ── Bot-pushed player counts (preferred over direct RCON from Railway) ────────
+// Map: server_id → { count, online, ts }
+const _botPushedCounts = new Map();
+
+// POST /api/sync/server-status  — bot calls this every ~30s with live player counts
+// Body: [{ id, players, online }]  or  { id, players, online }  (single server)
+// Header: x-sync-token: <SYNC_TOKEN>
+app.post("/api/sync/server-status", express.json(), (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token)
+        return res.status(401).json({ error: "Unauthorized" });
+    const payload = Array.isArray(req.body) ? req.body : [req.body];
+    const now = Date.now();
+    for (const s of payload) {
+        if (!s.id) continue;
+        _botPushedCounts.set(String(s.id), {
+            count:  (s.players != null && s.players !== "") ? parseInt(s.players, 10) : null,
+            online: s.online !== false,
+            ts:     now
+        });
+    }
+    res.json({ ok: true, updated: payload.length });
+});
+
+// ── Public: live player counts — bot-pushed first, RCON fallback ─────────────
+const _rconCache = new Map(); // id → { count, ts }
 app.get("/api/public/server-status", async (req, res) => {
     try {
         const { rows } = await pool.query(
             "SELECT id, name, rcon_host, rcon_port, rcon_password, max_players, status_label FROM web_game_servers ORDER BY sort_order, id"
         );
         const now = Date.now();
+        const BOT_TTL  = 90_000;  // bot data valid for 90s
+        const RCON_TTL = 60_000;  // direct RCON cache for 60s
+
         const results = await Promise.all(rows.map(async s => {
-            // Only query RCON for servers that are "online"
+            const sid = String(s.id);
+
+            // 1. Use bot-pushed count if fresh (bot has direct RCON access)
+            const bot = _botPushedCounts.get(sid);
+            if (bot && (now - bot.ts) < BOT_TTL) {
+                return { id: s.id, online: bot.online, players: bot.count, maxPlayers: s.max_players || 100 };
+            }
+
+            // 2. status_label override
             if ((s.status_label || "online") !== "online") {
                 return { id: s.id, online: false, players: null, maxPlayers: s.max_players || 100 };
             }
-            const cached = _playerCountCache.get(s.id);
-            if (cached && now - cached.ts < 60000) {
+
+            // 3. Try direct RCON (works if website can reach the server)
+            const cached = _rconCache.get(sid);
+            if (cached && (now - cached.ts) < RCON_TTL) {
                 return { id: s.id, online: true, players: cached.count, maxPlayers: s.max_players || 100 };
             }
             try {
                 const response = await sendRconCommand(s.rcon_host, s.rcon_port, s.rcon_password, "status");
-                // Parse "players: X (Y max)" from Rust RCON status output
                 const match = (response || "").match(/players\s*:\s*(\d+)/i);
                 const count = match ? parseInt(match[1], 10) : 0;
-                _playerCountCache.set(s.id, { count, ts: now });
+                _rconCache.set(sid, { count, ts: now });
                 return { id: s.id, online: true, players: count, maxPlayers: s.max_players || 100 };
             } catch {
-                // RCON unreachable — server status_label says online so keep it online,
-                // just show unknown player count rather than marking the whole server offline
                 return { id: s.id, online: true, players: null, maxPlayers: s.max_players || 100 };
             }
         }));
@@ -1653,50 +1711,153 @@ app.get("/api/public/clans/me", async (req, res) => {
 });
 
 // ── Join clan with invite code ────────────────────────────────────────────────
-app.post("/api/clans/join", async (req, res) => {
+app.post("/api/clans/join", express.json(), async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Not logged in" });
     const { code } = req.body;
     if (!code?.trim()) return res.status(400).json({ error: "Invite code required" });
     try {
+        const uid = String(req.user.id);
+        const codeUpper = code.trim().toUpperCase();
+
         // Already in a clan?
         const { rows: existing } = await pool.query(
-            "SELECT clan_id FROM clan_members_mirror WHERE user_id=$1 LIMIT 1",
-            [String(req.user.id)]
+            "SELECT clan_id FROM clan_members_mirror WHERE user_id=$1 LIMIT 1", [uid]
         );
         if (existing[0]) return res.status(400).json({ error: "You are already in a clan. Leave your current clan first via Discord." });
 
-        // Validate code
+        // Already have a pending join request?
+        const { rows: pendingCheck } = await pool.query(
+            "SELECT status FROM web_join_requests WHERE discord_id=$1 LIMIT 1", [uid]
+        );
+        if (pendingCheck[0]?.status === "pending") {
+            return res.status(400).json({ error: "You already have a pending join request. Please wait for the Discord bot to process it." });
+        }
+
+        // Try to validate code in the mirror first (fast path)
         const now = Math.floor(Date.now() / 1000);
-        const { rows: codes } = await pool.query(
-            `SELECT * FROM clan_invite_codes_mirror WHERE UPPER(code) = UPPER($1)
+        const { rows: mirrorCodes } = await pool.query(
+            `SELECT * FROM clan_invite_codes_mirror
+             WHERE UPPER(code) = $1
              AND (expires_at IS NULL OR expires_at > $2)
              AND (max_uses IS NULL OR uses < max_uses)`,
-            [code.trim().toUpperCase(), now]
+            [codeUpper, now]
         );
-        if (!codes[0]) return res.status(404).json({ error: "Invalid or expired invite code. Ask the clan owner for a new one." });
 
-        const invite = codes[0];
+        if (mirrorCodes[0]) {
+            // Code found in mirror — process immediately
+            const invite = mirrorCodes[0];
+            await pool.query(
+                "INSERT INTO clan_members_mirror (clan_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+                [invite.clan_id, uid]
+            );
+            await pool.query("UPDATE clan_invite_codes_mirror SET uses=uses+1 WHERE UPPER(code)=$1", [codeUpper]);
+            await pool.query(
+                `INSERT INTO web_join_requests (discord_id, clan_id, code, status, created_at)
+                 VALUES ($1,$2,$3,'pending',NOW())
+                 ON CONFLICT (discord_id) DO UPDATE SET clan_id=$2, code=$3, status='pending', created_at=NOW()`,
+                [uid, invite.clan_id, codeUpper]
+            );
+            const { rows: clanRows } = await pool.query("SELECT name FROM clans_mirror WHERE id=$1", [invite.clan_id]);
+            return res.json({ ok: true, clanName: clanRows[0]?.name || "Unknown", pending: false });
+        }
 
-        // Add to clan_members_mirror
+        // Code not in mirror — queue for bot to validate (bot has all codes in its own DB)
         await pool.query(
-            "INSERT INTO clan_members_mirror (clan_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
-            [invite.clan_id, String(req.user.id)]
+            `INSERT INTO web_join_requests (discord_id, clan_id, code, status, created_at)
+             VALUES ($1, 0, $2, 'pending', NOW())
+             ON CONFLICT (discord_id) DO UPDATE SET clan_id=0, code=$2, status='pending', created_at=NOW()`,
+            [uid, codeUpper]
         );
-        // Increment uses
-        await pool.query("UPDATE clan_invite_codes_mirror SET uses=uses+1 WHERE code=$1", [code.trim().toUpperCase()]);
-        // Store web join request for bot to assign Discord role
-        await pool.query(
-            `INSERT INTO web_join_requests (discord_id, clan_id, code, created_at)
-             VALUES ($1,$2,$3,NOW())
-             ON CONFLICT (discord_id) DO UPDATE SET clan_id=$2, code=$3, created_at=NOW()`,
-            [String(req.user.id), invite.clan_id, code.trim().toUpperCase()]
-        );
-
-        const { rows: clanRows } = await pool.query("SELECT name FROM clans_mirror WHERE id=$1", [invite.clan_id]);
-        return res.json({ ok: true, clanName: clanRows[0]?.name || "Unknown" });
+        return res.json({
+            ok: true,
+            pending: true,
+            clanName: null,
+            message: "Your request has been sent to the Discord bot for validation. You'll be added to the clan shortly."
+        });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
+});
+
+// ── Bot action queue — bot polls these to process web-initiated actions ──────
+// All endpoints require x-sync-token header.
+
+// GET /api/bot/pending-actions — returns all unprocessed joins, kicks, disbands
+app.get("/api/bot/pending-actions", async (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token)
+        return res.status(401).json({ error: "Unauthorized" });
+    try {
+        const [joins, kicks, disbands] = await Promise.all([
+            pool.query(`SELECT discord_id, clan_id, code, created_at FROM web_join_requests WHERE status='pending' ORDER BY created_at`),
+            pool.query(`SELECT id, clan_id, user_id, kicked_by, created_at FROM web_kick_requests WHERE status='pending' ORDER BY created_at`),
+            pool.query(`SELECT id, clan_id, disbanded_by, created_at FROM web_disband_requests WHERE status='pending' ORDER BY created_at`)
+        ]);
+        res.json({
+            joins:    joins.rows,
+            kicks:    kicks.rows,
+            disbands: disbands.rows
+        });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/bot/complete-join — bot calls after it processes a join request
+// Body: { discord_id, clan_id, success, message? }
+app.post("/api/bot/complete-join", express.json(), async (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token)
+        return res.status(401).json({ error: "Unauthorized" });
+    const { discord_id, clan_id, success, message } = req.body;
+    if (!discord_id) return res.status(400).json({ error: "discord_id required" });
+    try {
+        const status = success ? "done" : "failed";
+        await pool.query(
+            `UPDATE web_join_requests SET status=$1, processed_at=NOW(), result_message=$2 WHERE discord_id=$3`,
+            [status, message || null, String(discord_id)]
+        );
+        // If successful and we didn't already have clan_id in mirror, add them
+        if (success && clan_id) {
+            await pool.query(
+                "INSERT INTO clan_members_mirror (clan_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+                [clan_id, String(discord_id)]
+            );
+        }
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/bot/complete-kick — bot calls after it removes Discord role
+// Body: { id, success }
+app.post("/api/bot/complete-kick", express.json(), async (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token)
+        return res.status(401).json({ error: "Unauthorized" });
+    const { id, success } = req.body;
+    if (!id) return res.status(400).json({ error: "id required" });
+    try {
+        await pool.query(
+            `UPDATE web_kick_requests SET status=$1, processed_at=NOW() WHERE id=$2`,
+            [success ? "done" : "failed", id]
+        );
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/bot/complete-disband — bot calls after it removes Discord clan roles/channels
+// Body: { id, success }
+app.post("/api/bot/complete-disband", express.json(), async (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token)
+        return res.status(401).json({ error: "Unauthorized" });
+    const { id, success } = req.body;
+    if (!id) return res.status(400).json({ error: "id required" });
+    try {
+        await pool.query(
+            `UPDATE web_disband_requests SET status=$1, processed_at=NOW() WHERE id=$2`,
+            [success ? "done" : "failed", id]
+        );
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── Bot SQLite helper — opens fresh each request so startup-time file absence is fine ──
@@ -1915,18 +2076,11 @@ app.post("/api/clans/:clanId/kick", express.json(), async (req, res) => {
             "DELETE FROM clan_members_mirror WHERE clan_id=$1 AND user_id=$2",
             [clanId, String(userId)]
         );
-        // Record kick request for bot to process
-        try {
-            await pool.query(`
-                CREATE TABLE IF NOT EXISTS web_kick_requests (
-                    id SERIAL PRIMARY KEY, clan_id INT, user_id TEXT,
-                    kicked_by TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
-                )`);
-            await pool.query(
-                "INSERT INTO web_kick_requests (clan_id, user_id, kicked_by) VALUES ($1,$2,$3)",
-                [clanId, String(userId), String(req.user.id)]
-            );
-        } catch {}
+        // Queue kick for bot to remove Discord role
+        await pool.query(
+            "INSERT INTO web_kick_requests (clan_id, user_id, kicked_by, status) VALUES ($1,$2,$3,'pending')",
+            [clanId, String(userId), String(req.user.id)]
+        );
         res.json({ ok: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -1973,18 +2127,11 @@ app.post("/api/clans/:clanId/disband", express.json(), async (req, res) => {
         await pool.query("DELETE FROM clan_members_mirror WHERE clan_id=$1", [clanId]);
         await pool.query("DELETE FROM clan_invite_codes_mirror WHERE clan_id=$1", [clanId]);
         await pool.query("DELETE FROM clans_mirror WHERE id=$1", [clanId]);
-        // Record disband request for bot to process
-        try {
-            await pool.query(`
-                CREATE TABLE IF NOT EXISTS web_disband_requests (
-                    id SERIAL PRIMARY KEY, clan_id INT,
-                    disbanded_by TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
-                )`);
-            await pool.query(
-                "INSERT INTO web_disband_requests (clan_id, disbanded_by) VALUES ($1,$2)",
-                [clanId, String(req.user.id)]
-            );
-        } catch {}
+        // Queue disband for bot to remove Discord roles/channels
+        await pool.query(
+            "INSERT INTO web_disband_requests (clan_id, disbanded_by, status) VALUES ($1,$2,'pending')",
+            [clanId, String(req.user.id)]
+        );
         res.json({ ok: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
