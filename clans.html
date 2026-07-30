@@ -684,7 +684,7 @@ function renderDetailsModal(clan, members, codes) {
   } else {
     members.forEach(m => {
       const isThisOwner = String(m.user_id) === String(clan.owner_id);
-      const displayName = m.gamertag || m.account_name || ("User …" + String(m.user_id).slice(-4));
+      const displayName = m.gamertag || m.account_name || m.discord_name || ("User …" + String(m.user_id).slice(-4));
       html += `
         <div class="member-row" id="mrow-${esc(m.user_id)}">
           <div>

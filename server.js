@@ -1469,13 +1469,17 @@ app.post("/api/sync/clans", express.json(), async (req, res) => {
                 [String(s.user_id), s.gamertag || null, s.kills || 0, s.deaths || 0]
             );
         }
-        for (const ic of invite_codes) {
-            await pool.query(
-                `INSERT INTO clan_invite_codes_mirror (code, clan_id, expires_at, max_uses, uses)
-                 VALUES ($1,$2,$3,$4,$5)
-                 ON CONFLICT (code) DO UPDATE SET clan_id=$2, expires_at=$3, max_uses=$4`,
-                [ic.code, ic.clan_id, ic.expires_at || null, ic.max_uses || null, ic.uses || 0]
-            );
+        // Only wipe+replace codes if the bot actually sent them
+        if (invite_codes.length > 0) {
+            await pool.query("DELETE FROM clan_invite_codes_mirror");
+            for (const ic of invite_codes) {
+                await pool.query(
+                    `INSERT INTO clan_invite_codes_mirror (code, clan_id, expires_at, max_uses, uses)
+                     VALUES ($1,$2,$3,$4,$5)
+                     ON CONFLICT (code) DO UPDATE SET clan_id=$2, expires_at=$3, max_uses=$4, uses=$5`,
+                    [ic.code, ic.clan_id, ic.expires_at || null, ic.max_uses || null, ic.uses || 0]
+                );
+            }
         }
         // Sync linked accounts (bot → Postgres mirror)
         for (const la of linked_accounts) {
@@ -1496,6 +1500,59 @@ app.post("/api/sync/clans", express.json(), async (req, res) => {
         res.json({ ok: true, clans: clans.length, members: members.length, stats: stats.length, linked: linked_accounts.length });
     } catch (e) {
         console.error("sync/clans error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ── Bot sync: push just invite codes (lightweight, no full wipe) ─────────────
+// Bot calls this whenever a code is created or deleted for a clan.
+// Body: { clan_id, codes: [{ code, expires_at, max_uses, uses }] }
+//   OR: { clan_id, code, action: "delete" }  ← to remove a single code
+app.post("/api/sync/clan-codes", express.json(), async (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token)
+        return res.status(401).json({ error: "Unauthorized" });
+
+    const { clan_id, codes, code: singleCode, action } = req.body;
+    if (!clan_id) return res.status(400).json({ error: "clan_id required" });
+
+    try {
+        // Delete a single code
+        if (action === "delete" && singleCode) {
+            await pool.query("DELETE FROM clan_invite_codes_mirror WHERE code=$1", [singleCode]);
+            return res.json({ ok: true, deleted: singleCode });
+        }
+
+        // Upsert a full list of codes for this clan
+        if (Array.isArray(codes)) {
+            // Replace only this clan's codes
+            await pool.query("DELETE FROM clan_invite_codes_mirror WHERE clan_id=$1", [clan_id]);
+            for (const ic of codes) {
+                if (!ic.code) continue;
+                await pool.query(
+                    `INSERT INTO clan_invite_codes_mirror (code, clan_id, expires_at, max_uses, uses)
+                     VALUES ($1,$2,$3,$4,$5)
+                     ON CONFLICT (code) DO UPDATE SET clan_id=$2, expires_at=$3, max_uses=$4, uses=$5`,
+                    [ic.code, clan_id, ic.expires_at || null, ic.max_uses || null, ic.uses || 0]
+                );
+            }
+            return res.json({ ok: true, upserted: codes.length });
+        }
+
+        // Upsert a single new code
+        if (singleCode) {
+            const { expires_at, max_uses, uses = 0 } = req.body;
+            await pool.query(
+                `INSERT INTO clan_invite_codes_mirror (code, clan_id, expires_at, max_uses, uses)
+                 VALUES ($1,$2,$3,$4,$5)
+                 ON CONFLICT (code) DO UPDATE SET clan_id=$2, expires_at=$3, max_uses=$4, uses=$5`,
+                [singleCode, clan_id, expires_at || null, max_uses || null, uses]
+            );
+            return res.json({ ok: true, upserted: singleCode });
+        }
+
+        res.status(400).json({ error: "Provide codes array, or code + action" });
+    } catch (e) {
         res.status(500).json({ error: e.message });
     }
 });
@@ -1764,6 +1821,12 @@ app.get("/api/clans/:clanId/members", async (req, res) => {
         );
         if (!membership[0] && !ownership[0]) return res.status(403).json({ error: "You are not in this clan" });
 
+        // Fetch owner info for name fallback
+        const { rows: clanInfo } = await pool.query(
+            "SELECT owner_id, owner_discord_name FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
+        );
+        const ownerInfo = clanInfo[0] || {};
+
         const { rows: members } = await pool.query(`
             SELECT cm.user_id,
                    COALESCE(cs.gamertag, wpl.gamertag) AS gamertag,
@@ -1775,7 +1838,28 @@ app.get("/api/clans/:clanId/members", async (req, res) => {
             WHERE cm.clan_id = $1
             ORDER BY cm.user_id
         `, [clanId]);
-        res.json({ members });
+
+        // Enrich owner row with owner_discord_name when no gamertag available
+        const enriched = members.map(m => {
+            const isOwnerRow = String(m.user_id) === String(ownerInfo.owner_id);
+            return {
+                ...m,
+                discord_name: isOwnerRow ? (ownerInfo.owner_discord_name || null) : null
+            };
+        });
+
+        // Synthetic owner row if owner not in clan_members_mirror at all
+        const ownerInList = enriched.some(m => String(m.user_id) === String(ownerInfo.owner_id));
+        if (!ownerInList && ownerInfo.owner_id) {
+            enriched.unshift({
+                user_id: ownerInfo.owner_id,
+                gamertag: null,
+                account_name: null,
+                discord_name: ownerInfo.owner_discord_name || null
+            });
+        }
+
+        res.json({ members: enriched });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -1817,10 +1901,12 @@ app.post("/api/clans/:clanId/kick", express.json(), async (req, res) => {
     if (!clanId || !userId) return res.status(400).json({ error: "Missing fields" });
     try {
         const { rows: clan } = await pool.query(
-            "SELECT owner_id FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
+            "SELECT owner_id, owner_discord_name FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
         );
         if (!clan[0]) return res.status(404).json({ error: "Clan not found" });
-        if (String(clan[0].owner_id) !== String(req.user.id))
+        const isOwner = String(clan[0].owner_id) === String(req.user.id) ||
+            (req.user.username && (clan[0].owner_discord_name || "").toLowerCase() === req.user.username.toLowerCase());
+        if (!isOwner)
             return res.status(403).json({ error: "Only the clan owner can kick members" });
         if (String(userId) === String(req.user.id))
             return res.status(400).json({ error: "You cannot kick yourself" });
@@ -1853,10 +1939,12 @@ app.post("/api/clans/:clanId/edit", express.json(), async (req, res) => {
     if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
     try {
         const { rows: clan } = await pool.query(
-            "SELECT owner_id FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
+            "SELECT owner_id, owner_discord_name FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
         );
         if (!clan[0]) return res.status(404).json({ error: "Clan not found" });
-        if (String(clan[0].owner_id) !== String(req.user.id))
+        const isOwner = String(clan[0].owner_id) === String(req.user.id) ||
+            (req.user.username && (clan[0].owner_discord_name || "").toLowerCase() === req.user.username.toLowerCase());
+        if (!isOwner)
             return res.status(403).json({ error: "Only the clan owner can edit the clan" });
 
         await pool.query(
@@ -1874,10 +1962,12 @@ app.post("/api/clans/:clanId/disband", express.json(), async (req, res) => {
     if (!clanId) return res.status(400).json({ error: "Invalid clan ID" });
     try {
         const { rows: clan } = await pool.query(
-            "SELECT owner_id FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
+            "SELECT owner_id, owner_discord_name FROM clans_mirror WHERE id=$1 LIMIT 1", [clanId]
         );
         if (!clan[0]) return res.status(404).json({ error: "Clan not found" });
-        if (String(clan[0].owner_id) !== String(req.user.id))
+        const isOwner = String(clan[0].owner_id) === String(req.user.id) ||
+            (req.user.username && (clan[0].owner_discord_name || "").toLowerCase() === req.user.username.toLowerCase());
+        if (!isOwner)
             return res.status(403).json({ error: "Only the clan owner can disband the clan" });
 
         await pool.query("DELETE FROM clan_members_mirror WHERE clan_id=$1", [clanId]);
