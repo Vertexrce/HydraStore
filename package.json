@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "build": "echo 'No build step needed'"
+    "build": "echo 'No build step needed'",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "dependencies": {
     "connect-pg-simple": "^10.0.0",
@@ -17,5 +19,8 @@
     "pg": "^8.14.1",
     "stripe": "^17.7.0",
     "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "wrangler": "^4.123.0"
   }
 }
