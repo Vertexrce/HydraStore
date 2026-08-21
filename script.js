@@ -1,6 +1,6 @@
-// Solarix — shared script helpers (used by pages that include this file)
+// Hydra — shared script helpers (used by pages that include this file)
 
-const CART_KEY = "solarix_cart";
+const CART_KEY = "hydra_cart";
 
 function getCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }

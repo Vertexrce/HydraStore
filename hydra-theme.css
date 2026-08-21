@@ -1,0 +1,81 @@
+/* Hydra red theme overrides */
+:root {
+  --hydra-red: #ef233c;
+  --hydra-red-bright: #ff334d;
+  --hydra-red-dark: #8f1022;
+  --hydra-red-glow: rgba(239, 35, 60, 0.55);
+}
+
+body {
+  background: #090204 !important;
+}
+
+.navbar,
+.topbar {
+  border-color: rgba(239, 35, 60, 0.28) !important;
+}
+
+.logo-text,
+.nav-logo-text,
+.brand,
+.section-title,
+.hero h1,
+.hero-title,
+.admin-title span {
+  color: var(--hydra-red-bright) !important;
+  text-shadow: 0 0 18px var(--hydra-red-glow) !important;
+}
+
+.discord-btn,
+.nav-btn,
+.btn-primary,
+.clans-cta-btn,
+.claim-btn,
+button[type="submit"] {
+  background: linear-gradient(135deg, var(--hydra-red-bright), var(--hydra-red-dark)) !important;
+  border-color: var(--hydra-red) !important;
+}
+
+.btn-secondary,
+.nav-links a:hover,
+.nav-links a.active {
+  border-color: var(--hydra-red) !important;
+  color: #fff !important;
+}
+
+.hero {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.28), rgba(18, 0, 4, 0.72)),
+    url("/hero-bg.jpg") !important;
+}
+
+.feature-box,
+.stat-card,
+.panel,
+.item-card,
+.server-row,
+.rule-card,
+.kit-card,
+.status-card,
+.lb-wrap {
+  border-color: rgba(239, 35, 60, 0.3) !important;
+}
+
+a:hover,
+.navbar a.active,
+.section-sub {
+  color: var(--hydra-red-bright) !important;
+}
+
+/* Convert common inline purple accents without touching Discord branding. */
+[style*="#a855f7"],
+[style*="#7c3aed"],
+[style*="#8b5cf6"],
+[style*="#c4b5fd"] {
+  color: var(--hydra-red-bright) !important;
+}
+
+[style*="#7c3aed"] {
+  background-color: var(--hydra-red-dark) !important;
+  border-color: var(--hydra-red) !important;
+}

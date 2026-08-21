@@ -380,7 +380,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
     session({
         store: new PgSession({ pool, tableName: "session" }),
-        secret: process.env.SESSION_SECRET || "solarix-change-me",
+        secret: process.env.SESSION_SECRET || "hydra-change-me",
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -441,7 +441,7 @@ app.get("/user", (req, res) => {
 app.post("/admin-login", (req, res) => {
     const { username, password } = req.body;
     const adminUser = process.env.ADMIN_USERNAME || "admin";
-    const adminPass = process.env.ADMIN_PASSWORD || "solarix";
+    const adminPass = process.env.ADMIN_PASSWORD || "hydra";
     if (username === adminUser && password === adminPass) {
         req.session.adminLoggedIn = true;
         res.redirect("/admin.html");
@@ -636,7 +636,7 @@ app.post("/api/admin/give-credit", checkAdminJson, async (req, res) => {
         const newBalance = parseFloat(rows[0]?.balance || 0);
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `💎 **Gems ${amt >= 0 ? "Added" : "Deducted"}** (Solarix)\n` +
+            `💎 **Gems ${amt >= 0 ? "Added" : "Deducted"}** (Hydra)\n` +
             `👤 Discord: <@${discordId}>\n` +
             `💎 Amount: **${amt >= 0 ? "+" : ""}${amt.toFixed(0)} gems**\n` +
             `💼 New Balance: **${newBalance.toFixed(0)} gems**\n` +
@@ -691,7 +691,7 @@ app.post("/api/pay-with-credits", async (req, res) => {
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `✅ **Gem Purchase** (Solarix)\n` +
+            `✅ **Gem Purchase** (Hydra)\n` +
             `📦 Item: **${item.name}**\n` +
             `💎 Cost: **${price.toFixed(0)} gems**\n` +
             `👤 Discord: <@${req.user.id}>\n` +
@@ -733,7 +733,7 @@ async function sendDiscordLog(message) {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bot ${token}`,
-                "User-Agent": "Solarix/1.0",
+                "User-Agent": "Hydra/1.0",
                 "Content-Length": Buffer.byteLength(body)
             }
         };
@@ -754,7 +754,7 @@ async function assignDiscordRole(guildId, userId, roleId) {
             hostname: "discord.com",
             path: `/api/v10/guilds/${guildId}/members/${userId}/roles/${roleId}`,
             method: "PUT",
-            headers: { "Authorization": `Bot ${token}`, "Content-Length": 0, "User-Agent": "Solarix/1.0" }
+            headers: { "Authorization": `Bot ${token}`, "Content-Length": 0, "User-Agent": "Hydra/1.0" }
         };
         const req = https.request(options, r => {
             let data = "";
@@ -787,7 +787,7 @@ app.post("/api/bypass-payment", checkAdminJson, async (req, res) => {
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         const roleNote = roleResult?.ok ? `✅ Role assigned to <@${discordUserId}>` : roleResult ? `⚠️ Role failed: ${roleResult.error}` : `ℹ️ No role/user provided`;
         await sendDiscordLog(
-            `⚡ **Bypass Payment** (Solarix)\n` +
+            `⚡ **Bypass Payment** (Hydra)\n` +
             `📦 Item: **${itemName}**\n` +
             `💷 Price: **${itemPrice || "N/A"}**\n` +
             `👤 Discord: ${discordUserId ? `<@${discordUserId}>` : "Not specified"}\n` +
@@ -956,7 +956,7 @@ app.post("/api/admin/give-kit", checkAdminJson, async (req, res) => {
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `🎒 **Admin Kit Give** (Solarix)\n` +
+            `🎒 **Admin Kit Give** (Hydra)\n` +
             `📦 Kit: **${resolvedKitName}**\n` +
             `🎮 Player: **${gamertag || discordId}**\n` +
             `💬 Added to kits tab (player claims in-game themselves)\n` +
@@ -1109,7 +1109,7 @@ app.post("/api/kits/claim", async (req, res) => {
                         hostname: "discord.com",
                         path: `/api/v10/guilds/${guildId}/members/${req.user.id}`,
                         method: "GET",
-                        headers: { "Authorization": `Bot ${token}`, "User-Agent": "Solarix/1.0" }
+                        headers: { "Authorization": `Bot ${token}`, "User-Agent": "Hydra/1.0" }
                     };
                     const r = https.request(opts, response => {
                         let body = "";
@@ -1150,7 +1150,7 @@ app.post("/api/kits/claim", async (req, res) => {
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
         await sendDiscordLog(
-            `🎒 **Kit Claimed** (Solarix)\n` +
+            `🎒 **Kit Claimed** (Hydra)\n` +
             `📦 Kit: **${kit.name}**\n` +
             `👤 Discord: <@${req.user.id}>\n` +
             `🎮 Gamertag: **${gamertag}**\n` +
@@ -1171,7 +1171,7 @@ function sendRconCommand(host, port, password, command) {
             if (!done) { done = true; ws.terminate(); reject(new Error("RCON timeout")); }
         }, 8000);
         ws.on("open", () => {
-            ws.send(JSON.stringify({ Identifier: 1, Message: command, Name: "Solarix" }));
+            ws.send(JSON.stringify({ Identifier: 1, Message: command, Name: "Hydra" }));
         });
         ws.on("message", (data) => {
             if (!done) { done = true; clearTimeout(timeout); ws.close(); try { const parsed = JSON.parse(data.toString()); resolve(parsed.Message || data.toString()); } catch { resolve(data.toString()); } }
@@ -1347,7 +1347,7 @@ app.post("/api/gem-shop/buy", async (req, res) => {
         const newBalance = parseFloat(newCr[0]?.balance || 0);
 
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        await sendDiscordLog(`💎 **Gem Shop Purchase** (Solarix)\n📦 Item: **${item.name}** x${quantity}\n💎 Cost: **${totalCost} gems**\n👤 Discord: <@${req.user.id}>\n🎮 Gamertag: **${gamertag}**\n💰 Remaining: **${Math.floor(newBalance)} gems**\n🕐 Time: ${ts}`);
+        await sendDiscordLog(`💎 **Gem Shop Purchase** (Hydra)\n📦 Item: **${item.name}** x${quantity}\n💎 Cost: **${totalCost} gems**\n👤 Discord: <@${req.user.id}>\n🎮 Gamertag: **${gamertag}**\n💰 Remaining: **${Math.floor(newBalance)} gems**\n🕐 Time: ${ts}`);
 
         res.json({ ok: true, newBalance });
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -1403,7 +1403,7 @@ app.post("/api/admin/give-item", checkAdminJson, async (req, res) => {
         if (!srv[0]) return res.status(404).json({ error: "Server not found" });
         await sendRconCommand(srv[0].rcon_host, srv[0].rcon_port, srv[0].rcon_password, `inventory.giveto "${gamertag}" "${shortname}" ${qty}`);
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        await sendDiscordLog(`⚡ **Admin Give Item** (Solarix)\n📦 Item: **${itemName||shortname}** x${qty}\n🎮 Gamertag: **${gamertag}**\n🖥️ Server: ${srv[0].name}\n🕐 Time: ${ts}`);
+        await sendDiscordLog(`⚡ **Admin Give Item** (Hydra)\n📦 Item: **${itemName||shortname}** x${qty}\n🎮 Gamertag: **${gamertag}**\n🖥️ Server: ${srv[0].name}\n🕐 Time: ${ts}`);
         res.json({ ok: true, gamertag });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -1436,7 +1436,7 @@ app.post("/api/admin/give-gems-by-gamertag", checkAdminJson, async (req, res) =>
         const { rows: nr } = await pool.query("SELECT balance FROM store_credits WHERE discord_id = $1", [discordId]);
         const newBalance = parseFloat(nr[0]?.balance || 0);
         const ts = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
-        await sendDiscordLog(`💎 **Admin Give Gems** (Solarix)\n💎 Amount: **${numAmount > 0 ? '+' : ''}${numAmount}**\n🎮 Player: **${gamertag}**\n📝 Reason: ${reason || "Admin grant"}\n💰 New Balance: **${Math.floor(newBalance)}**\n🕐 Time: ${ts}`);
+        await sendDiscordLog(`💎 **Admin Give Gems** (Hydra)\n💎 Amount: **${numAmount > 0 ? '+' : ''}${numAmount}**\n🎮 Player: **${gamertag}**\n📝 Reason: ${reason || "Admin grant"}\n💰 New Balance: **${Math.floor(newBalance)}**\n🕐 Time: ${ts}`);
         res.json({ ok: true, discordId, gamertag, newBalance });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -2306,7 +2306,7 @@ setInterval(async () => {
 
 setupDB()
     .then(() => {
-        app.listen(PORT, () => console.log(`Solarix server running on port ${PORT}`));
+        app.listen(PORT, () => console.log(`Hydra server running on port ${PORT}`));
     })
     .catch(err => {
         console.error("DB setup failed:", err.message);
