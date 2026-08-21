@@ -401,8 +401,17 @@ function checkAdmin(req, res, next) {
 }
 
 function checkAdminJson(req, res, next) {
-    if (req.session.adminLoggedIn) return next();
+    if (req.session.adminLoggedIn || isConfiguredDiscordAdmin(req.user)) return next();
     res.status(401).json({ error: "Unauthorized" });
+}
+
+function isConfiguredDiscordAdmin(user) {
+    if (!user?.id) return false;
+    const configuredIds = String(process.env.ADMIN_DISCORD_IDS || process.env.ADMIN_DISCORD_ID || "")
+        .split(",")
+        .map(id => id.trim())
+        .filter(Boolean);
+    return configuredIds.includes(String(user.id));
 }
 
 app.get("/auth/discord", (req, res, next) => {
@@ -430,6 +439,8 @@ app.get("/user", (req, res) => {
     res.json({
         loggedIn: true,
         id: req.user.id,
+        discordId: req.user.id,
+        isAdmin: Boolean(req.session.adminLoggedIn || isConfiguredDiscordAdmin(req.user)),
         username: req.user.username,
         avatar: req.user.avatar
             ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
