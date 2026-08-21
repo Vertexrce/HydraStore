@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "HydraStore"
+description = "A dark, premium Rust community storefront with clans, store, servers, inventory kits, and Discord-aware admin access."
+version = "1.0.0"
+id = "artifacts/hydra-store"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25480
+
+[services.development]
+run = "pnpm --filter @workspace/hydra-store run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hydra-store", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/hydra-store/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25480"
+BASE_PATH = "/"
