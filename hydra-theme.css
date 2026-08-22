@@ -1,13 +1,13 @@
-/* Hydra red theme overrides */
+/* Hydra violet theme overrides */
 :root {
-  --hydra-red: #ef233c;
-  --hydra-red-bright: #ff334d;
-  --hydra-red-dark: #8f1022;
-  --hydra-red-glow: rgba(239, 35, 60, 0.55);
+  --hydra-red: #a855f7;
+  --hydra-red-bright: #c15aff;
+  --hydra-red-dark: #5b21b6;
+  --hydra-red-glow: rgba(168, 85, 247, 0.55);
 }
 
 body {
-  background: #090204 !important;
+  background: #0a0420 !important;
 }
 
 .navbar,
