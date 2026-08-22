@@ -400,3 +400,32 @@ footer a:hover{ text-decoration:underline; }
   .hero-console { padding: 20px; }
   .console-server h3 { font-size: 21px; }
 }
+
+/* ── VALORA REFERENCE COMPOSITION ── */
+.nav-actions { display:flex; align-items:center; gap:8px; }
+.server-select, .coins-btn { border:1px solid #32124d; border-radius:7px; background:#170a25; color:#b78ad2; padding:8px 12px; font-size:11px; font-weight:700; }
+.server-select span { color:#76508e; margin-left:12px; }
+.coins-btn { text-decoration:none; }
+.hero { min-height:650px; height:auto; text-align:left; background:linear-gradient(rgba(5,1,12,.78),rgba(8,2,18,.92)), url("hero-bg.jpg") center / cover no-repeat; }
+.hero::after { content:""; position:absolute; inset:0; pointer-events:none; opacity:.3; background-image:linear-gradient(rgba(175,91,231,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(175,91,231,.06) 1px,transparent 1px); background-size:58px 58px; }
+.hero-grid { display:block; width:min(1240px,calc(100% - 80px)); min-height:650px; margin:0 auto; }
+.hero-overlay { position:relative; z-index:1; max-width:760px; margin:0 auto; padding:120px 0 80px; text-align:center; }
+.hero-eyebrow { margin-bottom:25px; color:#8e6a9e; font:600 10px monospace; letter-spacing:.48em; }
+.hero-title { display:block; margin:0; font-size:clamp(88px,15vw,176px); line-height:.82; letter-spacing:-.085em; text-align:center; color:#a84cff; text-shadow:0 0 45px rgba(168,76,255,.26); }
+.hero-title .hero-light { color:#faf6ff; }
+.hero-copy { max-width:470px; margin:42px auto 0; color:#877c91; font-size:14px; line-height:1.8; }
+.hero-copy strong { color:#d7cede; }
+.hero-buttons { justify-content:center; margin-top:38px; }
+.btn-primary, .btn-secondary { display:inline-flex; align-items:center; gap:10px; padding:13px 28px; border-radius:8px; font-size:12px; }
+.btn-primary { background:linear-gradient(120deg,#8d3be8,#c24cff); box-shadow:0 12px 30px rgba(153,57,229,.28); }
+.btn-secondary { border:1px solid rgba(181,95,233,.48); background:rgba(27,14,39,.58); color:#d8c9df; }
+@media(max-width:768px) {
+  .nav-actions { gap:4px; }
+  .nav-actions .server-select, .nav-actions .coins-btn { display:none; }
+  .nav-actions .discord-btn { padding:8px 10px; font-size:10px; }
+  .hero { min-height:0; }
+  .hero-grid { width:calc(100% - 32px); min-height:0; }
+  .hero-overlay { padding:100px 0 70px; }
+  .hero-title { font-size:clamp(78px,24vw,120px); }
+  .hero-eyebrow { letter-spacing:.28em; }
+}
