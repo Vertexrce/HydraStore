@@ -115,6 +115,10 @@
     <div id="error-msg" class="error" style="display:none">
         Incorrect username or password.
     </div>
+    <div id="discord-required-msg" class="error" style="display:none">
+        You must sign in with an approved Discord account before using admin login.
+        <a href="/auth/discord" style="color:#fff">Sign in with Discord</a>
+    </div>
 
     <form method="POST" action="/admin-login">
         <input type="text" name="username" placeholder="Username" required autocomplete="off">
@@ -128,8 +132,18 @@
 <script>
     const params = new URLSearchParams(window.location.search);
     if (params.get("error")) {
-        document.getElementById("error-msg").style.display = "block";
+        if (params.get("error") === "discord_required") {
+            document.getElementById("discord-required-msg").style.display = "block";
+        } else {
+            document.getElementById("error-msg").style.display = "block";
+        }
     }
+    fetch("/user").then(r => r.json()).then(user => {
+        if (user.discordAdminRequired && !user.isAdmin) {
+            document.querySelector("form").style.display = "none";
+            document.getElementById("discord-required-msg").style.display = "block";
+        }
+    }).catch(() => {});
 </script>
 
 </body>

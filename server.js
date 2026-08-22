@@ -396,7 +396,7 @@ app.use(passport.session());
 app.use(express.static(__dirname));
 
 function checkAdmin(req, res, next) {
-    if (req.session.adminLoggedIn) return next();
+    if (req.session.adminLoggedIn || isConfiguredDiscordAdmin(req.user)) return next();
     res.redirect("/admin-login.html");
 }
 
@@ -412,6 +412,13 @@ function isConfiguredDiscordAdmin(user) {
         .map(id => id.trim())
         .filter(Boolean);
     return configuredIds.includes(String(user.id));
+}
+
+function hasConfiguredDiscordAdmins() {
+    return String(process.env.ADMIN_DISCORD_IDS || process.env.ADMIN_DISCORD_ID || "")
+        .split(",")
+        .map(id => id.trim())
+        .some(Boolean);
 }
 
 app.get("/auth/discord", (req, res, next) => {
@@ -435,12 +442,17 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/user", (req, res) => {
-    if (!req.user) return res.json({ loggedIn: false });
+    if (!req.user) return res.json({
+        loggedIn: false,
+        isAdmin: false,
+        discordAdminRequired: hasConfiguredDiscordAdmins()
+    });
     res.json({
         loggedIn: true,
         id: req.user.id,
         discordId: req.user.id,
         isAdmin: Boolean(req.session.adminLoggedIn || isConfiguredDiscordAdmin(req.user)),
+        discordAdminRequired: hasConfiguredDiscordAdmins(),
         username: req.user.username,
         avatar: req.user.avatar
             ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
@@ -451,6 +463,11 @@ app.get("/user", (req, res) => {
 // ── Admin login ───────────────────────────────────────────────────────────────
 app.post("/admin-login", (req, res) => {
     const { username, password } = req.body;
+    // When Discord IDs are configured in Railway, only those Discord accounts
+    // may use the admin login. The password remains a second layer of auth.
+    if (hasConfiguredDiscordAdmins() && !isConfiguredDiscordAdmin(req.user)) {
+        return res.redirect("/admin-login.html?error=discord_required");
+    }
     const adminUser = process.env.ADMIN_USERNAME || "admin";
     const adminPass = process.env.ADMIN_PASSWORD || "hydra";
     if (username === adminUser && password === adminPass) {
