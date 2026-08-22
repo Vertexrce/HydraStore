@@ -226,6 +226,8 @@ footer { background: #080204 !important; }
 .store-card-v2 { border-color: rgba(239,35,60,.35) !important; }
 .nav-links a[href="/kits"],
 .nav-links a[href="/gems"],
+.navbar ul a[href="/kits"],
+.navbar ul a[href="/gems"],
 .mobile-menu a[href="/kits"],
 .mobile-menu a[href="/gems"],
 .nav-cog,
