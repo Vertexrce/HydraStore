@@ -325,6 +325,13 @@ async function setupDB() {
             discord_id TEXT PRIMARY KEY,
             last_accrued_at TIMESTAMPTZ DEFAULT NOW()
         );
+
+        CREATE TABLE IF NOT EXISTS server_online_players (
+            server_id INTEGER NOT NULL,
+            gamertag TEXT NOT NULL,
+            seen_at TIMESTAMPTZ DEFAULT NOW(),
+            PRIMARY KEY (server_id, gamertag)
+        );
     `);
     await pool.query(`ALTER TABLE web_kit_configs ADD COLUMN IF NOT EXISTS is_public INTEGER DEFAULT 0`);
     await pool.query(`ALTER TABLE gem_shop_items ADD COLUMN IF NOT EXISTS quantity_per_purchase INTEGER DEFAULT 1`);
@@ -527,6 +534,35 @@ app.post("/api/sync/server-status", express.json(), (req, res) => {
         });
     }
     res.json({ ok: true, updated: payload.length });
+});
+
+// POST /api/sync/server-players — bot sends the current player names for each
+// configured server so gem earning can be tied to real gameplay.
+// Body: { serverId: 1, players: ["PlayerOne", "PlayerTwo"] }
+app.post("/api/sync/server-players", express.json(), async (req, res) => {
+    const token = process.env.SYNC_TOKEN || "";
+    if (!token || req.headers["x-sync-token"] !== token)
+        return res.status(401).json({ error: "Unauthorized" });
+    const serverId = req.body?.serverId || req.body?.id;
+    const players = Array.isArray(req.body?.players) ? req.body.players : [];
+    if (!serverId) return res.status(400).json({ error: "Missing serverId" });
+    try {
+        await pool.query("DELETE FROM server_online_players WHERE server_id=$1", [serverId]);
+        for (const player of players) {
+            const gamertag = typeof player === "string" ? player : player?.gamertag || player?.name;
+            if (gamertag?.trim()) {
+                await pool.query(
+                    `INSERT INTO server_online_players (server_id, gamertag, seen_at)
+                     VALUES ($1,$2,NOW()) ON CONFLICT (server_id,gamertag)
+                     DO UPDATE SET seen_at=NOW()`,
+                    [serverId, gamertag.trim()]
+                );
+            }
+        }
+        res.json({ ok: true, serverId, players: players.length });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ── Public: live player counts — bot-pushed first, RCON fallback ─────────────
@@ -2291,8 +2327,64 @@ app.get("/api/casino/history", async (req, res) => {
 });
 
 // ── Gem accrual helper ────────────────────────────────────────────────────────
+async function refreshOnlinePlayersFromRcon() {
+    const { rows: servers } = await pool.query(
+        "SELECT id, rcon_host, rcon_port, rcon_password FROM web_game_servers"
+    );
+    for (const server of servers) {
+        try {
+            const response = await sendRconCommand(
+                server.rcon_host, server.rcon_port, server.rcon_password, "playerlist"
+            );
+            const parsed = typeof response === "string" ? JSON.parse(response) : response;
+            const players = Array.isArray(parsed) ? parsed : parsed?.Players || parsed?.players || [];
+            await pool.query("DELETE FROM server_online_players WHERE server_id=$1", [server.id]);
+            for (const player of players) {
+                const gamertag = typeof player === "string"
+                    ? player
+                    : player?.DisplayName || player?.displayName || player?.Name || player?.name;
+                if (gamertag?.trim()) {
+                    await pool.query(
+                        `INSERT INTO server_online_players (server_id, gamertag, seen_at)
+                         VALUES ($1,$2,NOW()) ON CONFLICT (server_id,gamertag)
+                         DO UPDATE SET seen_at=NOW()`,
+                        [server.id, gamertag.trim()]
+                    );
+                }
+            }
+        } catch {
+            // Never keep a stale player online after a failed RCON refresh.
+            await pool.query("DELETE FROM server_online_players WHERE server_id=$1", [server.id]);
+        }
+    }
+}
+
 async function accrueGems(discordId) {
     try {
+        // A website-linked account only earns while its linked gamertag is
+        // currently online on one of the servers configured in the dashboard.
+        const { rows: linkedRows } = await pool.query(
+            `SELECT wpl.gamertag
+             FROM web_player_links wpl
+             WHERE wpl.discord_id=$1
+             AND EXISTS (
+                 SELECT 1 FROM server_online_players sop
+                 JOIN web_game_servers wgs ON wgs.id=sop.server_id
+                 WHERE LOWER(sop.gamertag)=LOWER(wpl.gamertag)
+                   AND sop.seen_at > NOW() - INTERVAL '2 minutes'
+             )`,
+            [discordId]
+        );
+        if (!linkedRows[0]) {
+            await pool.query(
+                `INSERT INTO gem_accrual_log (discord_id, last_accrued_at)
+                 VALUES ($1,NOW()) ON CONFLICT (discord_id)
+                 DO UPDATE SET last_accrued_at=NOW()`,
+                [discordId]
+            );
+            return;
+        }
+
         // Get last accrual time
         const { rows: la } = await pool.query("SELECT last_accrued_at FROM gem_accrual_log WHERE discord_id = $1", [discordId]);
         const lastAccrued = la[0]?.last_accrued_at ? new Date(la[0].last_accrued_at) : null;
@@ -2312,7 +2404,10 @@ async function accrueGems(discordId) {
         const rate = (10 + kitCount * 10) * multiplier; // gems per hour
 
         const earned = Math.floor(rate * hoursSince);
-        if (earned <= 0) return;
+        if (earned <= 0) {
+            await pool.query("UPDATE gem_accrual_log SET last_accrued_at = NOW() WHERE discord_id = $1", [discordId]);
+            return;
+        }
 
         await pool.query(
             `INSERT INTO store_credits (discord_id, balance, updated_at) VALUES ($1, $2, NOW())
@@ -2324,13 +2419,14 @@ async function accrueGems(discordId) {
     } catch {}
 }
 
-// ── Background: accrue gems for all users every hour ─────────────────────────
+// ── Background: check active players frequently so offline time never earns ──
 setInterval(async () => {
     try {
+        await refreshOnlinePlayersFromRcon();
         const { rows } = await pool.query("SELECT discord_id FROM gem_accrual_log");
         for (const r of rows) { await accrueGems(r.discord_id); }
     } catch {}
-}, 60 * 60 * 1000);
+}, 60 * 1000);
 
 setupDB()
     .then(() => {
