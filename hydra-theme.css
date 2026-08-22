@@ -1,13 +1,13 @@
-/* Hydra violet theme overrides */
+/* Hydra red neon theme overrides */
 :root {
-  --hydra-red: #a855f7;
-  --hydra-red-bright: #c15aff;
-  --hydra-red-dark: #5b21b6;
-  --hydra-red-glow: rgba(168, 85, 247, 0.55);
+  --hydra-red: #ef233c;
+  --hydra-red-bright: #ff3b4f;
+  --hydra-red-dark: #9d0b1d;
+  --hydra-red-glow: rgba(255, 35, 60, 0.7);
 }
 
 body {
-  background: #0a0420 !important;
+  background: #090205 !important;
 }
 
 .navbar,
@@ -27,6 +27,7 @@ body {
 }
 
 .discord-btn,
+.login-btn,
 .nav-btn,
 .btn-primary,
 .clans-cta-btn,
@@ -79,3 +80,69 @@ a:hover,
   background-color: var(--hydra-red-dark) !important;
   border-color: var(--hydra-red) !important;
 }
+
+/* Header controls */
+.login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  color: #fff !important;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.coins-btn {
+  color: #ff9aa5 !important;
+  border-color: rgba(239, 35, 60, .42) !important;
+  background: rgba(54, 5, 13, .8) !important;
+  white-space: nowrap;
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 138px;
+  padding: 7px 10px;
+  border: 1px solid rgba(239, 35, 60, .42);
+  border-radius: 9px;
+  background: rgba(28, 5, 12, .92);
+  color: #f5dce0;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  font-weight: 800;
+}
+.profile-btn::-webkit-details-marker { display: none; }
+.profile-chevron { margin-left: auto; color: #ff7180; }
+.profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 7px);
+  width: 160px;
+  padding: 6px;
+  border: 1px solid rgba(239, 35, 60, .4);
+  border-radius: 12px;
+  background: #13060a;
+  box-shadow: 0 14px 35px rgba(0,0,0,.5), 0 0 20px rgba(239,35,60,.12);
+}
+.profile-dropdown a {
+  display: block;
+  padding: 10px 12px;
+  color: #d6aeb4 !important;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.profile-dropdown a:hover { background: rgba(239,35,60,.14) !important; color: #fff !important; }
+.user-menu { position: relative; }
+
+/* The brand is one red neon mark, not a violet gradient. */
+.logo-text, .hero-title, .hero-title span, .hero-title .hero-light {
+  color: #ff3048 !important;
+  text-shadow: 0 0 10px rgba(255, 20, 45, .85), 0 0 34px rgba(255, 20, 45, .55) !important;
+}
+footer { background: #080204 !important; }

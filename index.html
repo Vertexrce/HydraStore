@@ -30,22 +30,19 @@
 <li><a href="#" id="nav-servers-btn">Servers</a></li>
 <li><a href="#clans">Clans</a></li>
 <li><a href="#leaderboards">Leaderboards</a></li>
-<li><a href="/kits">Kits</a></li>
 <li><a href="/store.html">Store</a></li>
-<li><a href="/gems">💎 Gems</a></li>
-<li><a href="#rules">Rules</a></li>
 </ul>
 
 <div class="nav-actions">
   <button class="server-select" type="button" id="nav-server-select">▣ &nbsp; Select Server <span>⌄</span></button>
-  <a href="/gems" class="coins-btn">♢ &nbsp; Coins Store</a>
-  <a href="https://discord.gg/D8XSz4USNm" class="discord-btn" target="_blank">Sign in with Discord</a>
+  <a href="/gems" class="coins-btn" aria-label="Open Gems Store">💎 <span id="gems-balance">0 Gems</span></a>
+  <a href="https://discord.gg/D8XSz4USNm" class="discord-btn" target="_blank" rel="noopener">Discord</a>
 </div>
 
 <a href="/admin-login.html" class="admin-cog-btn" title="Admin Setup">⚙</a>
 
 <div id="account-area">
-    <a href="/auth/discord" class="discord-btn">Login</a>
+    <a href="/auth/discord" class="login-btn">Login</a>
 </div>
 
 </nav>
@@ -78,89 +75,7 @@
   </div>
 </section>
 
-<section class="stats">
-<div class="stat-card">
-  <h2>🟢</h2>
-  <h3>Status</h3>
-  <p id="stat-status">Live</p>
-</div>
-<div class="stat-card">
-  <h2>👥</h2>
-  <h3>Players</h3>
-  <p>Growing Daily</p>
-</div>
-<div class="stat-card">
-  <h2>📅</h2>
-  <h3>Wipes</h3>
-  <p>Weekly</p>
-</div>
-<div class="stat-card">
-  <h2>💬</h2>
-  <h3>Discord</h3>
-  <p>discord.gg/D8XSz4USNm</p>
-</div>
-</section>
-
-<section class="features">
-<h2>Why Hydra?</h2>
-<div class="feature-grid">
-  <div class="feature-box">⚡ 5X Gather Rates</div>
-  <div class="feature-box">🏆 Clan Focused</div>
-  <div class="feature-box">🛡 Active Staff</div>
-  <div class="feature-box">🎮 Console Optimized</div>
-  <div class="feature-box">👥 High Pop</div>
-</div>
-</section>
-
-<!-- ── Clans CTA ── -->
-<section class="clans-section" id="clans">
-  <h2 class="section-title">⚔️ Clans</h2>
-  <p class="section-sub">Join or create a clan to dominate the servers</p>
-  <div id="my-clan-home-wrap" style="display:none;max-width:600px;margin:0 auto 28px;"></div>
-  <div style="text-align:center;">
-    <a href="/clans" class="clans-cta-btn">⚔️ View All Clans →</a>
-  </div>
-</section>
-
-<!-- ── Leaderboard ── -->
-<section class="lb-section" id="leaderboards">
-  <h2 class="section-title">🏆 Kill Leaderboard</h2>
-  <p class="section-sub">Top players this wipe — updated in real time</p>
-  <div class="lb-wrap">
-    <table class="lb-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Player</th>
-          <th>Clan</th>
-          <th>Kills</th>
-          <th>Deaths</th>
-          <th>K/D</th>
-        </tr>
-      </thead>
-      <tbody id="lb-body">
-        <tr><td colspan="6" class="lb-loading">Loading leaderboard…</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- ── Rules ── -->
-<section class="rules-section" id="rules">
-  <h2 class="section-title">📜 Server Rules</h2>
-  <div class="rules-grid">
-    <div class="rule-card"><span class="rule-num">1</span><p>No cheating, hacking, or exploiting bugs.</p></div>
-    <div class="rule-card"><span class="rule-num">2</span><p>No racism, hate speech, or targeted harassment.</p></div>
-    <div class="rule-card"><span class="rule-num">3</span><p>No teaming outside your clan — solo/duo/trio/clan only.</p></div>
-    <div class="rule-card"><span class="rule-num">4</span><p>No excessive griefing or foundation wiping.</p></div>
-    <div class="rule-card"><span class="rule-num">5</span><p>Report bugs and issues to staff in Discord immediately.</p></div>
-    <div class="rule-card"><span class="rule-num">6</span><p>Respect staff decisions — appeals go in Discord tickets.</p></div>
-  </div>
-</section>
-
-<footer>
-<p>Hydra © 2026 · <a href="https://discord.gg/D8XSz4USNm" style="color:#a855f7" target="_blank">discord.gg/D8XSz4USNm</a></p>
-</footer>
+<footer><p>Hydra © 2026 · <a href="https://discord.gg/D8XSz4USNm" target="_blank" rel="noopener">discord.gg/D8XSz4USNm</a></p></footer>
 
 <style>
 /* ── Clans ── */
@@ -472,19 +387,32 @@
 </style>
 
 <script>
-// Load user info
+// Load user info and the current gems balance.
 fetch("/user")
   .then(r => r.json())
   .then(user => {
     if (user.loggedIn) {
       document.getElementById("account-area").innerHTML = `
-        <div class="user-box">
+        <details class="user-menu">
+          <summary class="profile-btn">
           <img src="${user.avatar}" class="avatar">
-          <span>${user.username}</span>
-          <a href="/logout" class="logout-btn">Logout</a>
-        </div>`;
+          <span>${escHtml(user.username)}</span><span class="profile-chevron">⌄</span>
+          </summary>
+          <div class="profile-dropdown">
+            <a href="/kits">Inventory</a>
+            <a href="/logout">Sign Out</a>
+          </div>
+        </details>`;
     }
   });
+
+fetch("/api/gems/me")
+  .then(r => r.json())
+  .then(data => {
+    const balance = document.getElementById("gems-balance");
+    if (balance && data && data.loggedIn) balance.textContent = `${data.balance || 0} Gems`;
+  })
+  .catch(() => {});
 
 // Servers modal
 function openServersModal() {
@@ -496,7 +424,6 @@ function closeServersModal() {
 }
 
 document.getElementById("nav-servers-btn").addEventListener("click", e => { e.preventDefault(); openServersModal(); });
-document.getElementById("hero-servers-btn").addEventListener("click", e => { e.preventDefault(); openServersModal(); });
 document.getElementById("modal-close-btn").addEventListener("click", closeServersModal);
 document.getElementById("servers-modal").addEventListener("click", e => { if (e.target === e.currentTarget) closeServersModal(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeServersModal(); });
@@ -560,7 +487,7 @@ function escHtml(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-document.addEventListener("DOMContentLoaded", () => { loadMyClanHome(); loadLeaderboard(); });
+document.addEventListener("DOMContentLoaded", () => {});
 
 async function loadServers() {
   const list = document.getElementById("servers-list");
