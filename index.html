@@ -75,7 +75,36 @@
   </div>
 </section>
 
-<footer><p>Hydra © 2026 · <a href="https://discord.gg/D8XSz4USNm" target="_blank" rel="noopener">discord.gg/D8XSz4USNm</a></p></footer>
+<section class="join-server-section">
+  <p class="join-server-prompt">Want to see your name on the leaderboards?</p>
+  <a href="#servers" class="join-server-btn" id="join-server-btn">Join a Server</a>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-brand">
+    <div class="footer-logo">HYDRA</div>
+    <p>Providing the best premium Rust<br>servers since 2024. Compete, climb,<br>and conquer with the Hydra RCE<br>community.</p>
+  </div>
+  <div class="footer-column">
+    <h3>Navigation</h3>
+    <a href="#">Home</a>
+    <a href="/store.html">Store</a>
+    <a href="#leaderboards">Leaderboards</a>
+    <a href="#servers">Servers</a>
+    <a href="/gems">Gems</a>
+  </div>
+  <div class="footer-column">
+    <h3>Social</h3>
+    <a href="https://discord.gg/D8XSz4USNm" target="_blank" rel="noopener">Discord</a>
+    <a href="https://www.tiktok.com" target="_blank" rel="noopener">TikTok</a>
+  </div>
+  <div class="footer-column">
+    <h3>Legal</h3>
+    <a href="/terms.html">Terms of Service</a>
+    <a href="/privacy.html">Privacy Policy</a>
+    <a href="mailto:hydrarust.support@gmail.com">hydrarust.support@gmail.com</a>
+  </div>
+</footer>
 
 <style>
 /* ── Clans ── */
@@ -401,6 +430,7 @@ fetch("/user")
           <div class="profile-dropdown">
             <a href="/kits">Inventory</a>
             <a href="/logout">Sign Out</a>
+            <a href="/admin-login.html">Admin Login</a>
           </div>
         </details>`;
     }
@@ -424,6 +454,8 @@ function closeServersModal() {
 }
 
 document.getElementById("nav-servers-btn").addEventListener("click", e => { e.preventDefault(); openServersModal(); });
+document.getElementById("nav-server-select").addEventListener("click", openServersModal);
+document.getElementById("join-server-btn").addEventListener("click", e => { e.preventDefault(); openServersModal(); });
 document.getElementById("modal-close-btn").addEventListener("click", closeServersModal);
 document.getElementById("servers-modal").addEventListener("click", e => { if (e.target === e.currentTarget) closeServersModal(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeServersModal(); });
