@@ -203,6 +203,35 @@ footer { background: #080204 !important; }
 }
 .footer-column a { text-decoration: none; }
 .footer-column a:hover { color: #ff7180 !important; }
+.store-page, .gems-page, .clans-page, .page {
+  color: #f7e8ea;
+}
+.store-page h1, .gems-page h1, .clans-page h1, .page-title {
+  text-shadow: 0 0 18px rgba(255, 35, 60, .24);
+}
+.category-tab.active, .category-tab:hover {
+  background: rgba(239,35,60,.16) !important;
+  border-color: #ef233c !important;
+  color: #fff !important;
+}
+.category-title { color: #ff7180 !important; border-color: rgba(239,35,60,.22) !important; }
+.gems-bar, .login-banner, .item-card, .panel, .status-card {
+  border-color: rgba(239,35,60,.32) !important;
+}
+.gems-balance-pill {
+  background: rgba(239,35,60,.14) !important;
+  border-color: rgba(239,35,60,.42) !important;
+  color: #ff9aa5 !important;
+}
+.store-card-v2 { border-color: rgba(239,35,60,.35) !important; }
+.nav-links a[href="/kits"],
+.nav-links a[href="/gems"],
+.mobile-menu a[href="/kits"],
+.mobile-menu a[href="/gems"],
+.nav-cog,
+.nav-cog-btn {
+  display: none !important;
+}
 @media (max-width: 700px) {
   .site-footer { grid-template-columns: repeat(2, 1fr); padding: 42px 24px 50px; }
   .footer-brand { grid-column: 1 / -1; }

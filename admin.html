@@ -152,7 +152,14 @@
                 </div>
                 <div class="field">
                     <label>Category</label>
-                    <input type="text" id="new-category" placeholder="e.g. Ranks, Kits, Bundles" value="General">
+                    <select id="new-category">
+                        <option>General</option>
+                        <option>Ranks</option>
+                        <option>Packs</option>
+                        <option>Coins Packs</option>
+                        <option>Bundles</option>
+                        <option>VIP</option>
+                    </select>
                 </div>
             </div>
             <div class="grid-2">
@@ -567,6 +574,12 @@ function previewImg(imgId, url) {
 
 /* ── Items ── */
 let items = [];
+const storeCategories = ["General", "Ranks", "Packs", "Coins Packs", "Bundles", "VIP"];
+function categoryOptions(value) {
+    const current = value || "General";
+    const options = storeCategories.includes(current) ? storeCategories : [current, ...storeCategories];
+    return options.map(cat => `<option value="${esc(cat)}" ${cat === current ? "selected" : ""}>${esc(cat)}</option>`).join("");
+}
 
 async function loadItems() {
     const res = await fetch("/api/store-items");
@@ -600,7 +613,7 @@ function renderItems() {
                 </div>
                 <div class="field">
                     <label>Category</label>
-                    <input type="text" value="${esc(item.category||'General')}" oninput="items[${i}].category=this.value">
+                    <select onchange="items[${i}].category=this.value">${categoryOptions(item.category)}</select>
                 </div>
             </div>
             <div class="grid-2">

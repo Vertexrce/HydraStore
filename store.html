@@ -58,25 +58,25 @@
 .category-section.hidden { display: none; }
 .category-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #5b21b6; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #1a0a40; }
 .store-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-.store-card-v2 { background: #130929; border: 1px solid #1e0840; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.15s; }
-.store-card-v2:hover { border-color: #5b21b6; transform: translateY(-2px); }
+.store-card-v2 { background: linear-gradient(145deg, #18070d, #0e0508); border: 1px solid rgba(239,35,60,.35); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.15s, box-shadow .2s; }
+.store-card-v2:hover { border-color: #ff3048; transform: translateY(-4px); box-shadow: 0 12px 32px rgba(239,35,60,.16); }
 .store-card-img { width: 100%; height: 160px; object-fit: cover; display: block; background: #0c0520; }
 .store-card-img.hidden { display: none; }
 .store-card-body { padding: 20px 22px; display: flex; flex-direction: column; flex: 1; }
 .store-card-name { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .store-card-price {
   display: flex; align-items: center; gap: 8px;
-  font-size: 22px; font-weight: 800; color: #a855f7; margin-bottom: 12px;
+  font-size: 22px; font-weight: 800; color: #ff3048; margin-bottom: 12px; text-shadow: 0 0 14px rgba(255,48,72,.25);
 }
 .store-card-price .gems-icon { font-size: 18px; }
 .store-card-desc { font-size: 12px; color: #8b5cf6; line-height: 1.6; margin-bottom: 18px; flex: 1; white-space: pre-line; }
 .card-btns { display: flex; flex-direction: column; gap: 9px; }
 .store-buy-btn {
   display: block; width: 100%; padding: 13px 0;
-  background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; border: none;
+  background: linear-gradient(135deg, #ff3048, #a30b20); color: #fff; border: none;
   border-radius: 9px; font-size: 15px; font-weight: 700; text-align: center;
   text-decoration: none; cursor: pointer; transition: opacity 0.15s;
-  box-shadow: 0 4px 18px rgba(124,58,237,0.25);
+  box-shadow: 0 4px 18px rgba(239,35,60,0.25);
 }
 .store-buy-btn:hover:not(:disabled) { opacity: 0.9; }
 .store-buy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -113,7 +113,7 @@
     <li><a href="/store.html" class="active">Store</a></li>
   </ul>
   <div class="nav-right">
-    <a href="https://discord.gg/playsolarix" class="discord-btn nav-discord-server" target="_blank">Discord</a>
+    <a href="https://discord.gg/D8XSz4USNm" class="discord-btn nav-discord-server" target="_blank" rel="noopener">Discord</a>
     <a href="/admin-login.html" class="nav-cog-btn" title="Admin">⚙</a>
     <div id="account-area">
       <a href="/auth/discord" class="discord-btn">Login</a>
